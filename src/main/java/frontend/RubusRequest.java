@@ -68,7 +68,7 @@ public class RubusRequest {
 				}
 				case INFO -> {
 					if (params != null && params.length > 0) {
-						stringBuilder.append("media-id ").append(params[0]);
+						stringBuilder.append("media-id ").append(params[0]).append('\n');
 					} else {
 						throw new IllegalStateException("ID not specified");
 					}
@@ -95,9 +95,9 @@ public class RubusRequest {
 								Long.parseLong(stringVal2.substring(stringVal2.lastIndexOf(' ') + 1));
 							long val3 =
 								Long.parseLong(stringVal3.substring(stringVal3.lastIndexOf(' ') + 1));
-							stringBuilder.append("media-id ").append(stringVal1);
-							stringBuilder.append("first-playback-piece ");
-							stringBuilder.append("number-playback-pieces ");
+							stringBuilder.append("media-id ").append(stringVal1).append('\n');
+							stringBuilder.append("first-playback-piece ").append(val2).append('\n');
+							stringBuilder.append("number-playback-pieces ").append(val3).append('\n');
 						} catch (NoSuchElementException exception) {
 							throw new IllegalStateException(exception);
 						}
