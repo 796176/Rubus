@@ -102,7 +102,14 @@ public class FetchController implements Observer {
 		@Override
 		public void run() {
 			RubusClient rubusClient = new RubusClient(socket);
-			RubusRequest request = RubusRequest.newBuilder().FETCH().params(null, null).build();
+			RubusRequest request = RubusRequest
+				.newBuilder()
+				.FETCH()
+				.params(
+					"from " + player.getPlayingPiece() + 1 + player.getBuffer().length,
+					"total " + Math.min(bufferSize - player.getBuffer().length, player.getTotalPieces() - player.getPlayingPiece())
+				)
+				.build();
 			RubusResponse response = rubusClient.send(request, 15000);
 			FetchedPieces fetchedPieces = response.FETCH();
 			Decoder decoder =

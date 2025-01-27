@@ -58,6 +58,52 @@ public class RubusRequest {
 		}
 
 		RubusRequest build() throws IllegalStateException {
+			StringBuilder stringBuilder = new StringBuilder();
+			stringBuilder.append("request-type ").append(requestType).append('\n');
+			switch (requestType) {
+				case LIST -> {
+					if (params == null || params.length == 0) {
+						stringBuilder.append("title-contains *\n");
+					} else {
+						stringBuilder.append("title-contains ").append(params[0]).append('\n');
+					}
+				}
+				case INFO -> {
+					if (params != null && params.length > 0) {
+						stringBuilder.append("media-id ").append(params[0]);
+					} else {
+						throw new IllegalStateException("ID not specified");
+					}
+				}
+				case FETCH -> {
+					if (params != null && params.length > 1) {
+						try {
+							String stringVal1 = Arrays
+								.stream(params)
+								.filter(s -> s.toLowerCase().matches(".*start|begin|from.* \\d+"))
+								.findFirst()
+								.get();
+							String stringVal2 = Arrays
+								.stream(params)
+								.filter(s -> s.toLowerCase().matches(".*number|total|amount|length.* \\d+"))
+								.findFirst()
+								.get();
+							long val1 =
+								Long.parseLong(stringVal1.substring(stringVal1.lastIndexOf(' ') + 1));
+							long val2 =
+								Long.parseLong(stringVal2.substring(stringVal2.lastIndexOf(' ') + 1));
+							stringBuilder.append("first-playback-piece ").append(val1);
+							stringBuilder.append("number-playback-pieces ").append(val2);
+						} catch (NoSuchElementException exception) {
+							throw new IllegalStateException(exception);
+						}
+					} else {
+						throw new IllegalStateException("Range not specified");
+					}
+				}
+				default -> throw new IllegalStateException("Request type not specified");
+			}
+			request = stringBuilder.toString().getBytes();
 			return new RubusRequest();
 		}
 	}
