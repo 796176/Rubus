@@ -106,6 +106,7 @@ public class FetchController implements Observer {
 				.newBuilder()
 				.FETCH()
 				.params(
+					"id " + id,
 					"from " + player.getPlayingPiece() + 1 + player.getBuffer().length,
 					"total " + Math.min(bufferSize - player.getBuffer().length, player.getTotalPieces() - player.getPlayingPiece())
 				)
