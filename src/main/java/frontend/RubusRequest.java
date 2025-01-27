@@ -61,7 +61,7 @@ public class RubusRequest {
 			switch (requestType) {
 				case LIST -> {
 					if (params == null || params.length == 0) {
-						stringBuilder.append("title-contains *\n");
+						stringBuilder.append("title-contains .\n");
 					} else {
 						stringBuilder.append("title-contains ").append(params[0]).append('\n');
 					}
