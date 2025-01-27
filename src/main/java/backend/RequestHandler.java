@@ -20,7 +20,9 @@
 package backend;
 
 import common.RubusSocket;
+import common.net.request.RubusRequestType;
 
+import java.util.Arrays;
 import java.util.function.Consumer;
 
 public class RequestHandler implements Runnable {
@@ -38,6 +40,61 @@ public class RequestHandler implements Runnable {
 
 	@Override
 	public void run() {
+		byte[] buffer = new byte[1024];
+		int actualBufferSize = 0;
+		int byteRead;
+		do {
+			byteRead = socket.read(buffer);
+			actualBufferSize += byteRead;
+			if (actualBufferSize == buffer.length) {
+				buffer = Arrays.copyOf(buffer, buffer.length * 2);
+			}
+		} while (byteRead > 0);
+		if (actualBufferSize == 0) return;
+
+		String request = new String(buffer);
+		try {
+			RubusRequestType requestType =
+				RubusRequestType.valueOf(request.substring(request.indexOf("request-type "), request.indexOf('\n')));
+			switch (requestType) {
+				case LIST -> {
+					String titlePattern = request.substring(
+						request.indexOf("title-contains ") + "title-contains ".length(),
+						request.indexOf('\n', request.indexOf("title-contains "))
+					);
+				}
+				case INFO -> {
+					String mediaID = request.substring(
+						request.indexOf("media-id ") + "media-id".length(),
+						request.indexOf('\n', request.indexOf("media-id "))
+					);
+
+				}
+				case FETCH -> {
+					String mediaID = request.substring(
+						request.indexOf("media-id ") + "media-id".length(),
+						request.indexOf('\n', request.indexOf("media-id "))
+					);
+					long beginningPieceIndex = Long.parseLong(
+						request.substring(
+							request.indexOf("first-playback-piece ") + "first-playback-piece ".length(),
+							request.indexOf('\n', request.indexOf("first-playback-piece "))
+						)
+					);
+					long piecesToFetch = Long.parseLong(
+						request.substring(
+							request.indexOf("number-playback-pieces ") + "number-playback-pieces ".length(),
+							request.indexOf('\n', request.indexOf("number-playback-pieces "))
+						)
+					);
+				}
+			}
+		} catch (IndexOutOfBoundsException indexOutOfBoundsException) {
+
+		} catch (IllegalArgumentException illegalArgumentException) {
+
+		}
+
 		consumer.accept(socket);
 	}
 
