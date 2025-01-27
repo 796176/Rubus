@@ -19,6 +19,8 @@
 
 package frontend;
 
+import common.net.request.RubusRequestType;
+
 import java.util.Arrays;
 import java.util.NoSuchElementException;
 
@@ -26,28 +28,24 @@ public class RubusRequest {
 	public static class Builder {
 		private Builder() {}
 
-		private enum Request {
-			LIST, INFO, FETCH
-		}
-
-		Request requestType;
+		RubusRequestType requestType;
 
 		String[] params = null;
 
 		byte[] request = null;
 
 		Builder LIST() {
-			requestType = Request.LIST;
+			requestType = RubusRequestType.LIST;
 			return this;
 		}
 
 		Builder INFO() {
-			requestType = Request.INFO;
+			requestType = RubusRequestType.INFO;
 			return this;
 		}
 
 		Builder FETCH() {
-			requestType = Request.FETCH;
+			requestType = RubusRequestType.FETCH;
 			return this;
 		}
 
