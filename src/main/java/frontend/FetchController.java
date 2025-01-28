@@ -101,27 +101,31 @@ public class FetchController implements Observer {
 
 		@Override
 		public void run() {
-			RubusClient rubusClient = new RubusClient(socket);
-			RubusRequest request = RubusRequest
-				.newBuilder()
-				.FETCH()
-				.params(
-					"id " + id,
-					"from " + player.getPlayingPiece() + 1 + player.getBuffer().length,
-					"total " + Math.min(bufferSize - player.getBuffer().length, player.getTotalPieces() - player.getPlayingPiece())
-				)
-				.build();
-			RubusResponse response = rubusClient.send(request, 15000);
-			FetchedPieces fetchedPieces = response.FETCH();
-			Decoder decoder =
-				DecoderFactory.getDecoder(fetchedPieces.videoEncodingFormat(), fetchedPieces.audioEncodingFormat());
-			PlaybackPiece[] newPlaybackPieces = decoder.decode(
-				fetchedPieces.video(),
-				fetchedPieces.audio()
-			);
-			PlaybackPiece[] buffer = Arrays.copyOf(player.getBuffer(), player.getBuffer().length + newPlaybackPieces.length);
-			System.arraycopy(newPlaybackPieces, 0, buffer, player.getBuffer().length, newPlaybackPieces.length);
-			if (!isInterrupted) player.setBuffer(buffer);
+			try {
+				RubusClient rubusClient = new RubusClient(socket);
+				RubusRequest request = RubusRequest
+					.newBuilder()
+					.FETCH()
+					.params(
+						"id " + id,
+						"from " + player.getPlayingPiece() + 1 + player.getBuffer().length,
+						"total " + Math.min(bufferSize - player.getBuffer().length, player.getTotalPieces() - player.getPlayingPiece())
+					)
+					.build();
+				RubusResponse response = rubusClient.send(request, 15000);
+				FetchedPieces fetchedPieces = response.FETCH();
+				Decoder decoder =
+					DecoderFactory.getDecoder(fetchedPieces.videoEncodingFormat(), fetchedPieces.audioEncodingFormat());
+				PlaybackPiece[] newPlaybackPieces = decoder.decode(
+					fetchedPieces.video(),
+					fetchedPieces.audio()
+				);
+				PlaybackPiece[] buffer = Arrays.copyOf(player.getBuffer(), player.getBuffer().length + newPlaybackPieces.length);
+				System.arraycopy(newPlaybackPieces, 0, buffer, player.getBuffer().length, newPlaybackPieces.length);
+				if (!isInterrupted) player.setBuffer(buffer);
+			} catch (Exception e) {
+				exception = e;
+			}
 		}
 
 		public void interrupt() {

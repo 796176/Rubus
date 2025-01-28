@@ -21,6 +21,7 @@ package backend;
 
 import common.RubusSocket;
 
+import java.io.IOException;
 import java.util.concurrent.*;
 
 public class SocketManager extends Thread {
@@ -74,7 +75,7 @@ public class SocketManager extends Thread {
 			for (RubusSocket socket: sockets) {
 				socket.close(1000);
 			}
-		} catch (InterruptedException ignored) {}
+		} catch (InterruptedException | IOException ignored) {}
 	}
 
 	public int size() {

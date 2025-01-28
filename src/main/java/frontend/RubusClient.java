@@ -21,6 +21,7 @@ package frontend;
 
 import common.RubusSocket;
 
+import java.io.IOException;
 import java.util.Arrays;
 
 public class RubusClient {
@@ -43,7 +44,7 @@ public class RubusClient {
 		return socket;
 	}
 
-	public RubusResponse send(RubusRequest request, long timeout) {
+	public RubusResponse send(RubusRequest request, long timeout) throws IOException {
 		assert request != null && timeout > 0;
 
 		socket.write(request.getBytes());

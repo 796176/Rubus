@@ -21,6 +21,7 @@ package backend;
 
 import common.RubusSocket;
 
+import java.io.IOException;
 import java.net.SocketTimeoutException;
 
 public class RubusServer extends Thread {
@@ -53,6 +54,9 @@ public class RubusServer extends Thread {
 					manager.add(socket);
 				}
 			} catch (SocketTimeoutException ignored) {}
+			catch (IOException ioException) {
+
+			}
 		}
 	}
 

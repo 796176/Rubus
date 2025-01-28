@@ -50,10 +50,11 @@ public class RequestHandler implements Runnable {
 
 	@Override
 	public void run() {
-		byte[] request = retrieveRequest(socket);
-		if (request.length == 0) return;
-		String requestMes = new String(request);
 		try {
+			byte[] request = retrieveRequest(socket);
+			if (request.length == 0) return;
+			
+			String requestMes = new String(request);
 			StringBuilder responseMes = new StringBuilder("response-type ").append(RubusResponseType.OK).append('\n');
 			ByteArrayOutputStream body = new ByteArrayOutputStream();
 			RubusRequestType requestType =
@@ -126,11 +127,17 @@ public class RequestHandler implements Runnable {
 			System.arraycopy(body, 0, response, responseMes.length(), body.size());
 			socket.write(response);
 		} catch (IndexOutOfBoundsException indexOutOfBoundsException) {
-			socket.write(("response-type " + RubusResponseType.BAD_PARAMETERS + "\n").getBytes());
+			try {
+				socket.write(("response-type " + RubusResponseType.BAD_PARAMETERS + "\n").getBytes());
+			} catch (IOException ignored) {}
 		} catch (IllegalArgumentException illegalArgumentException) {
-			socket.write(("response-type " + RubusResponseType.BAD_REQUEST + "\n").getBytes());
+			try {
+				socket.write(("response-type " + RubusResponseType.BAD_REQUEST + "\n").getBytes());
+			} catch (IOException ignored) {}
 		} catch (IOException e) {
-			socket.write(("response-type" + RubusResponseType.SERVER_ERROR + "\n").getBytes());
+			try {
+				socket.write(("response-type" + RubusResponseType.SERVER_ERROR + "\n").getBytes());
+			} catch (IOException ignored) {}
 		}
 
 		consumer.accept(socket);
@@ -140,7 +147,7 @@ public class RequestHandler implements Runnable {
 		return socket;
 	}
 
-	private byte[] retrieveRequest(RubusSocket socket) {
+	private byte[] retrieveRequest(RubusSocket socket) throws IOException {
 		byte[] request = new byte[1024];
 		int actualBufferSize = 0;
 		int byteRead;

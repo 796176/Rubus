@@ -21,12 +21,12 @@ package backend;
 
 import common.RubusSocket;
 
-import java.net.SocketTimeoutException;
+import java.io.IOException;
 
 public interface RubusServerSocket {
-	RubusSocket accept();
+	RubusSocket accept() throws IOException;
 
-	RubusSocket accept(long timeout) throws SocketTimeoutException;
+	RubusSocket accept(long timeout) throws IOException;
 
 	void close();
 }

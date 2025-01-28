@@ -20,27 +20,29 @@
 package common;
 
 
+import java.io.IOException;
+
 public interface RubusSocket {
 
-	void close();
+	void close() throws IOException;
 
-	void close(long timeout);
+	void close(long timeout) throws IOException;
 
-	int read(byte[] in);
+	int read(byte[] in) throws IOException;
 
-	int read(byte[] in, long timeout);
+	int read(byte[] in, long timeout) throws IOException;
 
-	int read(byte[] in, int offset, int length);
+	int read(byte[] in, int offset, int length) throws IOException;
 
-	int read(byte[] in, int offset, int length, long timeout);
+	int read(byte[] in, int offset, int length, long timeout) throws IOException;
 
-	void write(byte[] out);
+	void write(byte[] out) throws IOException;
 
-	void write(byte[] out, long timeout);
+	void write(byte[] out, long timeout) throws IOException;
 
-	void write(byte[] out, int offset, int length);
+	void write(byte[] out, int offset, int length) throws IOException;
 
-	void write(byte[] out, int offset, int length, long timeout);
+	void write(byte[] out, int offset, int length, long timeout) throws IOException;
 
 	boolean isClosed();
 
