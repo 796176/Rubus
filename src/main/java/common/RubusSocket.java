@@ -34,13 +34,13 @@ public interface RubusSocket {
 
 	int read(byte[] in, int offset, int length, long timeout);
 
-	int write(byte[] out);
+	void write(byte[] out);
 
-	int write(byte[] out, long timeout);
+	void write(byte[] out, long timeout);
 
-	int write(byte[] out, int offset, int length);
+	void write(byte[] out, int offset, int length);
 
-	int write(byte[] out, int offset, int length, long timeout);
+	void write(byte[] out, int offset, int length, long timeout);
 
 	boolean isClosed();
 
