@@ -53,7 +53,7 @@ public class RequestHandler implements Runnable {
 		try {
 			byte[] request = retrieveRequest(socket);
 			if (request.length == 0) return;
-			
+
 			String requestMes = new String(request);
 			StringBuilder responseMes = new StringBuilder("response-type ").append(RubusResponseType.OK).append('\n');
 			ByteArrayOutputStream body = new ByteArrayOutputStream();
@@ -158,6 +158,6 @@ public class RequestHandler implements Runnable {
 				request = Arrays.copyOf(request, request.length * 2);
 			}
 		} while (byteRead > 0);
-		return request;
+		return Arrays.copyOf(request, actualBufferSize);
 	}
 }
