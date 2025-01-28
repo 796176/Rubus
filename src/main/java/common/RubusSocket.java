@@ -22,10 +22,6 @@ package common;
 
 public interface RubusSocket {
 
-	void open();
-
-	void open(long timeout);
-
 	void close();
 
 	void close(long timeout);
