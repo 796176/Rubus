@@ -21,4 +21,4 @@ package common.net.response.body;
 
 import java.io.Serializable;
 
-public record PlaybackList(String[] ids) implements Serializable { }
+public record PlaybackList(String[] ids, String[] titles) implements Serializable { }
