@@ -20,6 +20,7 @@
 package backend;
 
 import common.RubusSocket;
+import common.RubusSockets;
 
 import java.io.IOException;
 import java.net.SocketTimeoutException;
@@ -32,11 +33,16 @@ public class RubusServer extends Thread {
 
 	private SocketManager manager;
 
-	private final RubusServerSocket serverSocket = RubusServerSocketFactory.get();
+	private final RubusServerSocket serverSocket;
 
 	public RubusServer(int maxConnections) {
 		assert maxConnections > 0;
 
+		try {
+			serverSocket = RubusSockets.getRubusServerSocket(58888);
+		} catch (IOException ioException) {
+			throw new RuntimeException(ioException);
+		}
 		this.maxConnections = maxConnections;
 		manager = SocketManager.newSocketManager(maxConnections);
 	}
