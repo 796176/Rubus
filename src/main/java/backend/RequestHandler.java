@@ -19,9 +19,19 @@
 
 package backend;
 
+import backend.io.Media;
+import backend.io.MediaPool;
 import common.RubusSocket;
 import common.net.request.RubusRequestType;
+import common.net.response.RubusResponseType;
+import common.net.response.body.FetchedPieces;
+import common.net.response.body.PlaybackInfo;
+import common.net.response.body.PlaybackList;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.ObjectOutputStream;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.function.Consumer;
 
@@ -40,59 +50,87 @@ public class RequestHandler implements Runnable {
 
 	@Override
 	public void run() {
-		byte[] buffer = new byte[1024];
-		int actualBufferSize = 0;
-		int byteRead;
-		do {
-			byteRead = socket.read(buffer);
-			actualBufferSize += byteRead;
-			if (actualBufferSize == buffer.length) {
-				buffer = Arrays.copyOf(buffer, buffer.length * 2);
-			}
-		} while (byteRead > 0);
-		if (actualBufferSize == 0) return;
-
-		String request = new String(buffer);
+		byte[] request = retrieveRequest(socket);
+		if (request.length == 0) return;
+		String requestMes = new String(request);
 		try {
+			StringBuilder responseMes = new StringBuilder("response-type ").append(RubusResponseType.OK).append('\n');
+			ByteArrayOutputStream body = new ByteArrayOutputStream();
 			RubusRequestType requestType =
-				RubusRequestType.valueOf(request.substring(request.indexOf("request-type "), request.indexOf('\n')));
+				RubusRequestType.valueOf(requestMes.substring(requestMes.indexOf("request-type "), requestMes.indexOf('\n')));
 			switch (requestType) {
 				case LIST -> {
-					String titlePattern = request.substring(
-						request.indexOf("title-contains ") + "title-contains ".length(),
-						request.indexOf('\n', request.indexOf("title-contains "))
+					String titlePattern = requestMes.substring(
+						requestMes.indexOf("title-contains ") + "title-contains ".length(),
+						requestMes.indexOf('\n', requestMes.indexOf("title-contains "))
 					);
+					ArrayList<String> ids = new ArrayList<>();
+					ArrayList<String> titles = new ArrayList<>();
+					Arrays
+						.stream(MediaPool.availableMediaFast())
+						.filter(media -> media.getTitle().matches(titlePattern))
+						.forEach(media -> {
+							ids.add(media.getID());
+							titles.add(media.getTitle());
+						});
+					PlaybackList playbackList = new PlaybackList(ids.toArray(new String[0]), titles.toArray(new String[0]));
+					responseMes.append("serialized-object ").append(PlaybackList.class.getName()).append('\n');
+					ObjectOutputStream oos = new ObjectOutputStream(body);
+					oos.writeObject(playbackList);
 				}
-				case INFO -> {
-					String mediaID = request.substring(
-						request.indexOf("media-id ") + "media-id".length(),
-						request.indexOf('\n', request.indexOf("media-id "))
-					);
 
+				case INFO -> {
+					String mediaID = requestMes.substring(
+						requestMes.indexOf("media-id ") + "media-id".length(),
+						requestMes.indexOf('\n', requestMes.indexOf("media-id "))
+					);
+					Media media = MediaPool.getMedia(mediaID);
+					PlaybackInfo playbackInfo = new PlaybackInfo(media.getID(), media.getTitle(), media.getTotalPieces(), media.getPieceDuration());
+					responseMes.append("serialized-object ").append(PlaybackInfo.class.getName()).append('\n');
+					ObjectOutputStream oos = new ObjectOutputStream(body);
+					oos.writeObject(playbackInfo);
 				}
+
 				case FETCH -> {
-					String mediaID = request.substring(
-						request.indexOf("media-id ") + "media-id".length(),
-						request.indexOf('\n', request.indexOf("media-id "))
+					String mediaID = requestMes.substring(
+						requestMes.indexOf("media-id ") + "media-id".length(),
+						requestMes.indexOf('\n', requestMes.indexOf("media-id "))
 					);
 					long beginningPieceIndex = Long.parseLong(
-						request.substring(
-							request.indexOf("first-playback-piece ") + "first-playback-piece ".length(),
-							request.indexOf('\n', request.indexOf("first-playback-piece "))
+						requestMes.substring(
+							requestMes.indexOf("first-playback-piece ") + "first-playback-piece ".length(),
+							requestMes.indexOf('\n', requestMes.indexOf("first-playback-piece "))
 						)
 					);
-					long piecesToFetch = Long.parseLong(
-						request.substring(
-							request.indexOf("number-playback-pieces ") + "number-playback-pieces ".length(),
-							request.indexOf('\n', request.indexOf("number-playback-pieces "))
+					int piecesToFetch = Integer.parseInt(
+						requestMes.substring(
+							requestMes.indexOf("number-playback-pieces ") + "number-playback-pieces ".length(),
+							requestMes.indexOf('\n', requestMes.indexOf("number-playback-pieces "))
 						)
 					);
+					Media media = MediaPool.getMedia(mediaID);
+					FetchedPieces fetchedPieces =
+						new FetchedPieces(
+							mediaID,
+							beginningPieceIndex,
+							media.getVideoEncodingType(),
+							media.fetchVideoPieces(beginningPieceIndex, piecesToFetch),
+							media.getAudioEncodingType(),
+							media.fetchAudioPieces(beginningPieceIndex, piecesToFetch)
+						);
+					ObjectOutputStream oos = new ObjectOutputStream(body);
+					oos.writeObject(fetchedPieces);
 				}
 			}
+			byte[] response = Arrays.copyOf(responseMes.toString().getBytes(), responseMes.length() + body.size());
+			System.arraycopy(body, 0, response, responseMes.length(), body.size());
+			socket.write(response);
 		} catch (IndexOutOfBoundsException indexOutOfBoundsException) {
-
+			socket.write(("response-type " + RubusResponseType.BAD_PARAMETERS + "\n").getBytes());
 		} catch (IllegalArgumentException illegalArgumentException) {
-
+			socket.write(("response-type " + RubusResponseType.BAD_REQUEST + "\n").getBytes());
+		} catch (IOException e) {
+			socket.write(("response-type" + RubusResponseType.SERVER_ERROR + "\n").getBytes());
 		}
 
 		consumer.accept(socket);
@@ -100,5 +138,19 @@ public class RequestHandler implements Runnable {
 
 	public RubusSocket getSocket() {
 		return socket;
+	}
+
+	private byte[] retrieveRequest(RubusSocket socket) {
+		byte[] request = new byte[1024];
+		int actualBufferSize = 0;
+		int byteRead;
+		do {
+			byteRead = socket.read(request);
+			actualBufferSize += byteRead;
+			if (actualBufferSize == request.length) {
+				request = Arrays.copyOf(request, request.length * 2);
+			}
+		} while (byteRead > 0);
+		return request;
 	}
 }
