@@ -46,7 +46,7 @@ public class FetchController implements Observer {
 	@Override
 	public void update(Subject s) {
 		if (s instanceof PlayerInterface pi) {
-			if (pi.getBuffer().length + minPiecesToFetch < bufferSize || pi.getTotalPieces() - pi.getPlayingPiece() < minPiecesToFetch) {
+			if (pi.getBuffer().length + minPiecesToFetch < bufferSize || pi.getVideoDuration() - pi.getCurrentSecond() < minPiecesToFetch) {
 				if (backgroundFetch != null && backgroundFetch.isAlive()) {
 					backgroundFetch.interrupt();
 				}
@@ -108,20 +108,18 @@ public class FetchController implements Observer {
 					.FETCH()
 					.params(
 						"id " + id,
-						"from " + player.getPlayingPiece() + 1 + player.getBuffer().length,
-						"total " + Math.min(bufferSize - player.getBuffer().length, player.getTotalPieces() - player.getPlayingPiece())
+						"from " + player.getCurrentSecond() + 1 + player.getBuffer().length,
+						"total " + Math.min(bufferSize - player.getBuffer().length, player.getVideoDuration() - player.getCurrentSecond())
 					)
 					.build();
 				RubusResponse response = rubusClient.send(request, 15000);
 				FetchedPieces fetchedPieces = response.FETCH();
-				Decoder decoder =
-					DecoderFactory.getDecoder(fetchedPieces.videoEncodingFormat(), fetchedPieces.audioEncodingFormat());
-				PlaybackPiece[] newPlaybackPieces = decoder.decode(
-					fetchedPieces.video(),
-					fetchedPieces.audio()
-				);
-				PlaybackPiece[] buffer = Arrays.copyOf(player.getBuffer(), player.getBuffer().length + newPlaybackPieces.length);
-				System.arraycopy(newPlaybackPieces, 0, buffer, player.getBuffer().length, newPlaybackPieces.length);
+				EncodedPlaybackPiece[] encodedPlaybackPieces = new EncodedPlaybackPiece[fetchedPieces.video().length];
+				for (int i = 0; i < encodedPlaybackPieces.length; i++) {
+					encodedPlaybackPieces[i] = new EncodedPlaybackPiece(fetchedPieces.video()[i], fetchedPieces.audio()[i]);
+				}
+				EncodedPlaybackPiece[] buffer = Arrays.copyOf(player.getBuffer(), player.getBuffer().length + encodedPlaybackPieces.length);
+				System.arraycopy(encodedPlaybackPieces, 0, buffer, player.getBuffer().length, encodedPlaybackPieces.length);
 				if (!isInterrupted) player.setBuffer(buffer);
 			} catch (Exception e) {
 				exception = e;

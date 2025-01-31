@@ -19,9 +19,4 @@
 
 package frontend;
 
-public record PlaybackPiece(
-	byte[] video,
-	int videoHeight,
-	int videoWidth,
-	byte[] audio
-) { }
+public record EncodedPlaybackPiece(byte[] video, byte[] audio) { }

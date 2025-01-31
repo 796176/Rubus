@@ -26,15 +26,19 @@ public interface PlayerInterface {
 
 	boolean isPaused();
 
-	long getPlayingPiece();
+	int getCurrentSecond();
 
-	long getTotalPieces();
+	int getVideoDuration();
 
-	double getPieceDuration();
+	int getVideoWidth();
 
-	void setPlayingPiece(long timestamp);
+	int getVideoHeight();
 
-	PlaybackPiece[] getBuffer();
+	void setPlayingSecond(int timestamp);
 
-	void setBuffer(PlaybackPiece[] buffer);
+	EncodedPlaybackPiece[] getBuffer();
+
+	void setBuffer(EncodedPlaybackPiece[] buffer);
+
+	Decoder getDecoder();
 }
