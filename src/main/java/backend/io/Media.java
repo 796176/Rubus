@@ -19,6 +19,8 @@
 
 package backend.io;
 
+import common.net.response.body.PlaybackInfo;
+
 public interface Media {
 	String getID();
 	String getTitle();
@@ -28,4 +30,5 @@ public interface Media {
 	String getVideoEncodingType();
 	byte[][] fetchAudioPieces(long pieceIndex, int number);
 	byte[][] fetchVideoPieces(long pieceIndex, int number);
+	PlaybackInfo toPlaybackInfo();
 }
