@@ -114,9 +114,7 @@ public class RequestHandler implements Runnable {
 						new FetchedPieces(
 							mediaID,
 							beginningPieceIndex,
-							media.getVideoEncodingType(),
 							media.fetchVideoPieces(beginningPieceIndex, piecesToFetch),
-							media.getAudioEncodingType(),
 							media.fetchAudioPieces(beginningPieceIndex, piecesToFetch)
 						);
 					ObjectOutputStream oos = new ObjectOutputStream(body);

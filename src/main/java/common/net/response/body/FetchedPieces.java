@@ -24,8 +24,6 @@ import java.io.Serializable;
 public record FetchedPieces(
 	String id,
 	long startingPieceIndex,
-	String videoEncodingFormat,
 	byte[][] video,
-	String audioEncodingFormat,
 	byte[][] audio
 ) implements Serializable { }
