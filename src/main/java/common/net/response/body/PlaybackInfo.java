@@ -21,4 +21,14 @@ package common.net.response.body;
 
 import java.io.Serializable;
 
-public record PlaybackInfo(String id, String title, long length, double pieceDuration) implements Serializable { }
+public record PlaybackInfo(
+	String id,
+	String title,
+	int videoWidth,
+	int videoHeight,
+	int duration,
+	String videoEncoding,
+	String audioEncoding,
+	String videoContainer,
+	String audioContainer
+) implements Serializable { }

@@ -86,7 +86,7 @@ public class RequestHandler implements Runnable {
 						requestMes.indexOf('\n', requestMes.indexOf("media-id "))
 					);
 					Media media = MediaPool.getMedia(mediaID);
-					PlaybackInfo playbackInfo = new PlaybackInfo(media.getID(), media.getTitle(), media.getTotalPieces(), media.getPieceDuration());
+					PlaybackInfo playbackInfo = media.toPlaybackInfo();
 					responseMes.append("serialized-object ").append(PlaybackInfo.class.getName()).append('\n');
 					ObjectOutputStream oos = new ObjectOutputStream(body);
 					oos.writeObject(playbackInfo);
