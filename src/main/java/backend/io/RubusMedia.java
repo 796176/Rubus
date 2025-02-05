@@ -1,0 +1,149 @@
+/*
+ * Rubus is an application level protocol for video and audio streaming and
+ * the client and server reference implementations.
+ * Copyright (C) 2024 Yegore Vlussove
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
+package backend.io;
+
+import common.net.response.body.PlaybackInfo;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+
+public class RubusMedia implements Media {
+	private final String id;
+	private final String title;
+	private final int duration;
+	private final int videoWidth;
+	private final int videoHeight;
+	private final String videoContainer;
+	private final String audioContainer;
+	private final String videoCodec;
+	private final String audioCodec;
+	private final Path contentPath;
+
+	public RubusMedia(
+		String id,
+		String title,
+		int duration,
+		int videoWidth,
+		int videoHeight,
+		String videoContainer,
+		String audioContainer,
+		String videoCodec,
+		String audioCodec,
+		Path contentPath
+	) {
+		assert id != null && title != null && contentPath != null && duration > 0 && videoWidth >= 0 && videoHeight >= 0;
+
+		this.id = id;
+		this.title = title;
+		this.duration = duration;
+		this.videoWidth = videoWidth;
+		this.videoHeight = videoHeight;
+		this.videoContainer = videoContainer;
+		this.audioContainer = audioContainer;
+		this.videoCodec = videoCodec;
+		this.audioCodec = audioCodec;
+		this.contentPath = contentPath;
+	}
+
+	@Override
+	public String getID() {
+		return id;
+	}
+
+	@Override
+	public String getTitle() {
+		return title;
+	}
+
+	@Override
+	public int getDuration() {
+		return duration;
+	}
+
+	@Override
+	public int getVideoWidth() {
+		return videoWidth;
+	}
+
+	@Override
+	public int getVideoHeight() {
+		return videoHeight;
+	}
+
+	@Override
+	public String getVideoCodec() {
+		return videoCodec;
+	}
+
+	@Override
+	public String getAudioCodec() {
+		return audioCodec;
+	}
+
+	@Override
+	public String getVideoContainer() {
+		return videoContainer;
+	}
+
+	@Override
+	public String getAudioContainer() {
+		return audioContainer;
+	}
+
+	@Override
+	public byte[][] fetchAudioPieces(int pieceIndex, int number) throws IOException {
+		assert pieceIndex >= 0 && number > 0 && pieceIndex + number <= getDuration();
+
+		byte[][] audioPieces = new byte[number][];
+		for (int audioIndex = pieceIndex; audioIndex < number; audioIndex++) {
+			Path audioPiecePath = Path.of(contentPath.toString(), "a" + audioIndex + "." + getAudioContainer());
+			audioPieces[audioIndex - pieceIndex] = Files.exists(audioPiecePath) ? Files.readAllBytes(audioPiecePath) : null;
+		}
+		return audioPieces;
+	}
+
+	@Override
+	public byte[][] fetchVideoPieces(int pieceIndex, int number) throws IOException {
+		assert pieceIndex >= 0 && number > 0 && pieceIndex + number <= getDuration();
+
+		byte[][] videoPieces = new byte[number][];
+		for (int videoIndex = pieceIndex; videoIndex < number; videoIndex++) {
+			Path audioPiecePath = Path.of(contentPath.toString(), "v" + videoIndex + "." + getAudioContainer());
+			videoPieces[videoIndex - pieceIndex] = Files.exists(audioPiecePath) ? Files.readAllBytes(audioPiecePath) : null;
+		}
+		return videoPieces;
+	}
+
+	@Override
+	public PlaybackInfo toPlaybackInfo() {
+		return new PlaybackInfo(
+			getID(),
+			getTitle(),
+			getVideoWidth(),
+			getVideoHeight(),
+			getDuration(),
+			getVideoCodec(),
+			getAudioCodec(),
+			getVideoContainer(),
+			getAudioContainer()
+		);
+	}
+}
