@@ -97,7 +97,7 @@ public class RequestHandler implements Runnable {
 						requestMes.indexOf("media-id ") + "media-id".length(),
 						requestMes.indexOf('\n', requestMes.indexOf("media-id "))
 					);
-					long beginningPieceIndex = Long.parseLong(
+					int beginningPieceIndex = Integer.parseInt(
 						requestMes.substring(
 							requestMes.indexOf("first-playback-piece ") + "first-playback-piece ".length(),
 							requestMes.indexOf('\n', requestMes.indexOf("first-playback-piece "))

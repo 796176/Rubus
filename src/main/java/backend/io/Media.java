@@ -21,14 +21,19 @@ package backend.io;
 
 import common.net.response.body.PlaybackInfo;
 
+import java.io.IOException;
+
 public interface Media {
 	String getID();
 	String getTitle();
-	long getTotalPieces();
-	double getPieceDuration();
-	String getAudioEncodingType();
-	String getVideoEncodingType();
-	byte[][] fetchAudioPieces(long pieceIndex, int number);
-	byte[][] fetchVideoPieces(long pieceIndex, int number);
+	int getDuration();
+	int getVideoWidth();
+	int getVideoHeight();
+	String getVideoCodec();
+	String getAudioCodec();
+	String getVideoContainer();
+	String getAudioContainer();
+	byte[][] fetchAudioPieces(int pieceIndex, int number) throws IOException;
+	byte[][] fetchVideoPieces(int pieceIndex, int number) throws IOException;
 	PlaybackInfo toPlaybackInfo();
 }

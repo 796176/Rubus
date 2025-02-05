@@ -19,6 +19,8 @@
 
 package backend.io;
 
+import java.io.IOException;
+
 public abstract class MediaProxy implements Media {
 
 	private final String id;
@@ -43,37 +45,31 @@ public abstract class MediaProxy implements Media {
 	}
 
 	@Override
-	public long getTotalPieces() {
+	public int getDuration() {
 		if (subject == null) subject = MediaPool.getMedia(getID());
-		return subject.getTotalPieces();
+		return subject.getDuration();
 	}
 
 	@Override
-	public double getPieceDuration() {
+	public String getAudioCodec() {
 		if (subject == null) subject = MediaPool.getMedia(getID());
-		return subject.getPieceDuration();
+		return subject.getAudioCodec();
 	}
 
 	@Override
-	public String getAudioEncodingType() {
+	public String getVideoCodec() {
 		if (subject == null) subject = MediaPool.getMedia(getID());
-		return subject.getAudioEncodingType();
+		return subject.getVideoCodec();
 	}
 
 	@Override
-	public String getVideoEncodingType() {
-		if (subject == null) subject = MediaPool.getMedia(getID());
-		return subject.getVideoEncodingType();
-	}
-
-	@Override
-	public byte[][] fetchAudioPieces(long pieceIndex, int number) {
+	public byte[][] fetchAudioPieces(int pieceIndex, int number) throws IOException {
 		if (subject == null) subject = MediaPool.getMedia(getID());
 		return subject.fetchAudioPieces(pieceIndex, number);
 	}
 
 	@Override
-	public byte[][] fetchVideoPieces(long pieceIndex, int number) {
+	public byte[][] fetchVideoPieces(int pieceIndex, int number) throws IOException{
 		if (subject == null) subject = MediaPool.getMedia(getID());
 		return subject.fetchVideoPieces(pieceIndex, number);
 	}
