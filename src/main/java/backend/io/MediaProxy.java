@@ -19,6 +19,8 @@
 
 package backend.io;
 
+import common.net.response.body.PlaybackInfo;
+
 import java.io.IOException;
 
 public abstract class MediaProxy implements Media {
@@ -51,15 +53,39 @@ public abstract class MediaProxy implements Media {
 	}
 
 	@Override
-	public String getAudioCodec() {
+	public int getVideoWidth() {
 		if (subject == null) subject = MediaPool.getMedia(getID());
-		return subject.getAudioCodec();
+		return subject.getVideoWidth();
+	}
+
+	@Override
+	public int getVideoHeight() {
+		if (subject == null) subject = MediaPool.getMedia(getID());
+		return subject.getVideoHeight();
 	}
 
 	@Override
 	public String getVideoCodec() {
 		if (subject == null) subject = MediaPool.getMedia(getID());
 		return subject.getVideoCodec();
+	}
+
+	@Override
+	public String getAudioCodec() {
+		if (subject == null) subject = MediaPool.getMedia(getID());
+		return subject.getAudioCodec();
+	}
+
+	@Override
+	public String getVideoContainer() {
+		if (subject == null) subject = MediaPool.getMedia(getID());
+		return subject.getVideoContainer();
+	}
+
+	@Override
+	public String getAudioContainer() {
+		if (subject == null) subject = MediaPool.getMedia(getID());
+		return subject.getAudioContainer();
 	}
 
 	@Override
@@ -72,5 +98,11 @@ public abstract class MediaProxy implements Media {
 	public byte[][] fetchVideoPieces(int pieceIndex, int number) throws IOException{
 		if (subject == null) subject = MediaPool.getMedia(getID());
 		return subject.fetchVideoPieces(pieceIndex, number);
+	}
+
+	@Override
+	public PlaybackInfo toPlaybackInfo() {
+		if (subject == null) subject = MediaPool.getMedia(getID());
+		return subject.toPlaybackInfo();
 	}
 }
