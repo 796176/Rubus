@@ -57,4 +57,14 @@ public class MediaPool {
 		}
 		return null;
 	}
+
+	public static String getDBLocation() {
+		return dbLocation;
+	}
+
+	public static void setDBLocation(String newDBLocation) {
+		assert newDBLocation != null;
+
+		dbLocation = newDBLocation;
+	}
 }
