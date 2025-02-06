@@ -19,16 +19,42 @@
 
 package backend.io;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+
 public class MediaPool {
-	public static Media[] availableMedia() {
-		return null;
+
+	private static String dbLocation = "db";
+
+	public static Media[] availableMedia() throws IOException {
+		return Files.readAllLines(Path.of(getDBLocation())).stream().map(line -> {
+			String[] parameters = line.split("\u001e");
+			return new RubusMedia(
+				parameters[0],
+				parameters[1],
+				Integer.parseInt(parameters[2]),
+				Integer.parseInt(parameters[3]),
+				Integer.parseInt(parameters[4]),
+				parameters[5],
+				parameters[6],
+				parameters[7],
+				parameters[8],
+				Path.of(parameters[9])
+			);
+		}).toArray(Media[]::new);
 	}
 
-	public static Media[] availableMediaFast() {
-		return null;
+	public static Media[] availableMediaFast() throws IOException {
+		return availableMedia();
 	}
 
-	public static Media getMedia(String mediaId) {
+	public static Media getMedia(String mediaId) throws IOException {
+		for (Media media: availableMedia()) {
+			if (media.getID().equals(mediaId)) {
+				return media;
+			}
+		}
 		return null;
 	}
 }

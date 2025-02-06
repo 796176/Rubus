@@ -41,49 +41,49 @@ public abstract class MediaProxy implements Media {
 	}
 
 	@Override
-	public String getTitle() {
+	public String getTitle() throws IOException {
 		if (subject == null) subject = MediaPool.getMedia(getID());
 		return subject.getTitle();
 	}
 
 	@Override
-	public int getDuration() {
+	public int getDuration() throws IOException {
 		if (subject == null) subject = MediaPool.getMedia(getID());
 		return subject.getDuration();
 	}
 
 	@Override
-	public int getVideoWidth() {
+	public int getVideoWidth() throws IOException {
 		if (subject == null) subject = MediaPool.getMedia(getID());
 		return subject.getVideoWidth();
 	}
 
 	@Override
-	public int getVideoHeight() {
+	public int getVideoHeight() throws IOException {
 		if (subject == null) subject = MediaPool.getMedia(getID());
 		return subject.getVideoHeight();
 	}
 
 	@Override
-	public String getVideoCodec() {
+	public String getVideoCodec() throws IOException {
 		if (subject == null) subject = MediaPool.getMedia(getID());
 		return subject.getVideoCodec();
 	}
 
 	@Override
-	public String getAudioCodec() {
+	public String getAudioCodec() throws IOException {
 		if (subject == null) subject = MediaPool.getMedia(getID());
 		return subject.getAudioCodec();
 	}
 
 	@Override
-	public String getVideoContainer() {
+	public String getVideoContainer() throws IOException {
 		if (subject == null) subject = MediaPool.getMedia(getID());
 		return subject.getVideoContainer();
 	}
 
 	@Override
-	public String getAudioContainer() {
+	public String getAudioContainer() throws IOException {
 		if (subject == null) subject = MediaPool.getMedia(getID());
 		return subject.getAudioContainer();
 	}
@@ -101,7 +101,7 @@ public abstract class MediaProxy implements Media {
 	}
 
 	@Override
-	public PlaybackInfo toPlaybackInfo() {
+	public PlaybackInfo toPlaybackInfo() throws IOException {
 		if (subject == null) subject = MediaPool.getMedia(getID());
 		return subject.toPlaybackInfo();
 	}
