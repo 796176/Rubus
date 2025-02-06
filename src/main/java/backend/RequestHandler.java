@@ -67,13 +67,12 @@ public class RequestHandler implements Runnable {
 					);
 					ArrayList<String> ids = new ArrayList<>();
 					ArrayList<String> titles = new ArrayList<>();
-					Arrays
-						.stream(MediaPool.availableMediaFast())
-						.filter(media -> media.getTitle().matches(titlePattern))
-						.forEach(media -> {
-							ids.add(media.getID());
-							titles.add(media.getTitle());
-						});
+					for (Media m: MediaPool.availableMediaFast()) {
+						if (m.getTitle().matches(titlePattern)) {
+							ids.add(m.getID());
+							titles.add(m.getTitle());
+						}
+					}
 					PlaybackList playbackList = new PlaybackList(ids.toArray(new String[0]), titles.toArray(new String[0]));
 					responseMes.append("serialized-object ").append(PlaybackList.class.getName()).append('\n');
 					ObjectOutputStream oos = new ObjectOutputStream(body);

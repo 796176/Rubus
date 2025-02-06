@@ -24,16 +24,16 @@ import common.net.response.body.PlaybackInfo;
 import java.io.IOException;
 
 public interface Media {
-	String getID();
-	String getTitle();
-	int getDuration();
-	int getVideoWidth();
-	int getVideoHeight();
-	String getVideoCodec();
-	String getAudioCodec();
-	String getVideoContainer();
-	String getAudioContainer();
+	String getID() throws IOException;
+	String getTitle() throws IOException;
+	int getDuration() throws IOException;
+	int getVideoWidth() throws IOException;
+	int getVideoHeight() throws IOException;
+	String getVideoCodec() throws IOException;
+	String getAudioCodec() throws IOException;
+	String getVideoContainer() throws IOException;
+	String getAudioContainer() throws IOException;
 	byte[][] fetchAudioPieces(int pieceIndex, int number) throws IOException;
 	byte[][] fetchVideoPieces(int pieceIndex, int number) throws IOException;
-	PlaybackInfo toPlaybackInfo();
+	PlaybackInfo toPlaybackInfo() throws IOException;
 }
