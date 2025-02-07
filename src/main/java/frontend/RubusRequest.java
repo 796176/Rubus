@@ -28,34 +28,34 @@ public class RubusRequest {
 	public static class Builder {
 		private Builder() {}
 
-		RubusRequestType requestType;
+		private RubusRequestType requestType;
 
-		String[] params = null;
+		private byte[] request = null;
 
-		byte[] request = null;
+		private String[] params = null;
 
-		Builder LIST() {
+		public Builder LIST() {
 			requestType = RubusRequestType.LIST;
 			return this;
 		}
 
-		Builder INFO() {
+		public Builder INFO() {
 			requestType = RubusRequestType.INFO;
 			return this;
 		}
 
-		Builder FETCH() {
+		public Builder FETCH() {
 			requestType = RubusRequestType.FETCH;
 			return this;
 		}
 
 
-		Builder params(String... params) {
+		public Builder params(String... params) {
 			this.params = params;
 			return this;
 		}
 
-		RubusRequest build() throws IllegalStateException {
+		public RubusRequest build() throws IllegalStateException {
 			StringBuilder stringBuilder = new StringBuilder();
 			stringBuilder.append("request-type ").append(requestType).append('\n');
 			switch (requestType) {
