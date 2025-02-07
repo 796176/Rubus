@@ -44,7 +44,10 @@ public class SocketManager extends Thread {
 			try {
 				RubusSocket socket;
 				while ((socket = sockets.poll()) == null) {
-					synchronized (sockets) { sockets.wait(); }
+					synchronized (sockets) {
+						if (isTerminated) return;
+						sockets.wait();
+					}
 				}
 				executorService.submit(new RequestHandler(socket, this::add));
 			} catch (InterruptedException ignored) {}
@@ -68,7 +71,8 @@ public class SocketManager extends Thread {
 	}
 
 	public void terminate() {
-		isTerminated = false;
+		isTerminated = true;
+		if (sockets.isEmpty()) synchronized (sockets) { sockets.notify(); }
 		executorService.shutdown();
 		try {
 			executorService.awaitTermination(Long.MAX_VALUE, TimeUnit.MILLISECONDS);
