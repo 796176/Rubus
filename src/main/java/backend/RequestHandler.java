@@ -116,6 +116,7 @@ public class RequestHandler implements Runnable {
 							media.fetchVideoPieces(beginningPieceIndex, piecesToFetch),
 							media.fetchAudioPieces(beginningPieceIndex, piecesToFetch)
 						);
+					responseMes.append("serialized-object ").append(FetchedPieces.class.getName()).append('\n');
 					ObjectOutputStream oos = new ObjectOutputStream(body);
 					oos.writeObject(fetchedPieces);
 				}
