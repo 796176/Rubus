@@ -58,7 +58,7 @@ public class RequestHandler implements Runnable {
 			StringBuilder responseMes = new StringBuilder("response-type ").append(RubusResponseType.OK).append('\n');
 			ByteArrayOutputStream body = new ByteArrayOutputStream();
 			RubusRequestType requestType =
-				RubusRequestType.valueOf(requestMes.substring(requestMes.indexOf("request-type "), requestMes.indexOf('\n')));
+				RubusRequestType.valueOf(requestMes.substring(requestMes.indexOf(' ') + 1, requestMes.indexOf('\n')));
 			switch (requestType) {
 				case LIST -> {
 					String titlePattern = requestMes.substring(
@@ -81,7 +81,7 @@ public class RequestHandler implements Runnable {
 
 				case INFO -> {
 					String mediaID = requestMes.substring(
-						requestMes.indexOf("media-id ") + "media-id".length(),
+						requestMes.indexOf("media-id ") + "media-id ".length(),
 						requestMes.indexOf('\n', requestMes.indexOf("media-id "))
 					);
 					Media media = MediaPool.getMedia(mediaID);
@@ -93,7 +93,7 @@ public class RequestHandler implements Runnable {
 
 				case FETCH -> {
 					String mediaID = requestMes.substring(
-						requestMes.indexOf("media-id ") + "media-id".length(),
+						requestMes.indexOf("media-id ") + "media-id ".length(),
 						requestMes.indexOf('\n', requestMes.indexOf("media-id "))
 					);
 					int beginningPieceIndex = Integer.parseInt(
