@@ -71,12 +71,7 @@ public class TCPRubusSocket implements RubusSocket{
 	@Override
 	public int read(byte[] in, long timeout) throws IOException {
 		underlyingSocket.setSoTimeout((int) timeout);
-		int byteRead = 0;
-		try {
-			byteRead = read(in);
-		} catch (IOException e) {
-			throw new RuntimeException(e);
-		}
+		int	byteRead = read(in);
 		underlyingSocket.setSoTimeout(defaultTimeout);
 		return byteRead;
 	}
