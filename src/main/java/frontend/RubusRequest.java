@@ -78,24 +78,25 @@ public class RubusRequest {
 						try {
 							String stringVal1 = Arrays
 								.stream(params)
-								.filter(s -> s.toLowerCase().matches(".*id|identifyer.* .*"))
+								.filter(s -> s.toLowerCase().matches(".*(id|identifyer).* .+"))
 								.findFirst()
 								.get();
 							String stringVal2 = Arrays
 								.stream(params)
-								.filter(s -> s.toLowerCase().matches(".*start|begin|from.* \\d+"))
+								.filter(s -> s.toLowerCase().matches(".*(start|begin|from).* \\d+"))
 								.findFirst()
 								.get();
 							String stringVal3 = Arrays
 								.stream(params)
-								.filter(s -> s.toLowerCase().matches(".*number|total|amount|length.* \\d+"))
+								.filter(s -> s.toLowerCase().matches(".*(number|total|amount|length).* \\d+"))
 								.findFirst()
 								.get();
+							String val1 = stringVal1.substring(stringVal1.lastIndexOf(' ') + 1);
 							long val2 =
 								Long.parseLong(stringVal2.substring(stringVal2.lastIndexOf(' ') + 1));
 							long val3 =
 								Long.parseLong(stringVal3.substring(stringVal3.lastIndexOf(' ') + 1));
-							stringBuilder.append("media-id ").append(stringVal1).append('\n');
+							stringBuilder.append("media-id ").append(val1).append('\n');
 							stringBuilder.append("first-playback-piece ").append(val2).append('\n');
 							stringBuilder.append("number-playback-pieces ").append(val3).append('\n');
 						} catch (NoSuchElementException exception) {
