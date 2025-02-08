@@ -48,16 +48,41 @@ public class RubusClient {
 		assert request != null && timeout > 0;
 
 		socket.write(request.getBytes());
+
+		int maxHeaderAllocation = 1024 * 8;
 		byte[] response = new byte[1024];
-		int read = 0;
-		int readAll = 0;
-		do {
-			read = socket.read(response, read, response.length - read, timeout);
-			readAll += read;
-			if (readAll == response.length) {
+		int emptyLineIndex;
+		int byteRead = 0;
+		while ((emptyLineIndex = searchSubArray(response, "\n\n".getBytes())) == -1) {
+			if (byteRead > maxHeaderAllocation) throw new IllegalArgumentException();
+			if (byteRead == response.length)
 				response = Arrays.copyOf(response, response.length * 2);
-			}
-		} while (read != 0);
-		return new RubusResponse(Arrays.copyOfRange(response, 0, readAll));
+			byteRead += socket.read(response, timeout);
+		}
+
+		String header = new String(response, 0, emptyLineIndex + 1);
+		int bodyLen = Integer.parseInt(header.substring(
+			header.indexOf("body-length ") + "body-length ".length(),
+			header.indexOf('\n', header.indexOf("body-length "))
+		));
+
+		response = Arrays.copyOf(response, header.length() + "\n".length() + bodyLen);
+		do {
+			int remaining = response.length - byteRead;
+			byteRead += socket.read(response, byteRead, remaining, timeout);
+		} while (byteRead < response.length);
+
+		return new RubusResponse(response);
+	}
+
+	private int searchSubArray(byte[] oArr, byte[] sArr) {
+		int sArrayByteIndex = 0;
+		for (int i = 0; i < oArr.length - sArr.length + 1; i++) {
+			if (sArrayByteIndex == sArr.length) return i - sArr.length;
+			if (oArr[i] == sArr[sArrayByteIndex]) sArrayByteIndex++;
+			else sArrayByteIndex = 0;
+		}
+		return -1;
 	}
 }
+

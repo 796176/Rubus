@@ -156,16 +156,39 @@ public class RequestHandler implements Runnable {
 	}
 
 	private byte[] retrieveRequest(RubusSocket socket) throws IOException {
+		int maxHeaderAllocation = 1024 * 8;
 		byte[] request = new byte[1024];
-		int actualBufferSize = 0;
-		int byteRead;
-		do {
-			byteRead = socket.read(request);
-			actualBufferSize += byteRead;
-			if (actualBufferSize == request.length) {
+		int emptyLineIndex;
+		int byteRead = 0;
+		while ((emptyLineIndex = searchSubArray(request, "\n\n".getBytes())) == -1) {
+			if (request.length > maxHeaderAllocation) throw new IllegalArgumentException();
+			if (byteRead == request.length)
 				request = Arrays.copyOf(request, request.length * 2);
-			}
-		} while (byteRead > 0);
-		return Arrays.copyOf(request, actualBufferSize);
+			byteRead += socket.read(request, byteRead, request.length - byteRead, 10);
+		}
+
+		String header = new String(request, 0, emptyLineIndex + 1);
+		int bodyLen = Integer.parseInt(header.substring(
+			header.indexOf("body-length ") + "body-length ".length(),
+			header.indexOf('\n', header.indexOf("body-length "))
+		));
+
+		request = Arrays.copyOf(request, header.length() + "\n".length() + bodyLen);
+		do {
+			int remaining = request.length - byteRead;
+			byteRead += socket.read(request, byteRead, remaining, 2000);
+		} while (byteRead < request.length);
+
+		return request;
+	}
+
+	private int searchSubArray(byte[] oArr, byte[] sArr) {
+		int sArrayByteIndex = 0;
+		for (int i = 0; i < oArr.length - sArr.length + 1; i++) {
+			if (sArrayByteIndex == sArr.length) return i - sArr.length;
+			if (oArr[i] == sArr[sArrayByteIndex]) sArrayByteIndex++;
+			else sArrayByteIndex = 0;
+		}
+		return -1;
 	}
 }
