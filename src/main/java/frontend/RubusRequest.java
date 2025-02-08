@@ -108,6 +108,7 @@ public class RubusRequest {
 				}
 				default -> throw new IllegalStateException("Request type not specified");
 			}
+			stringBuilder.append("body-length 0\n\n");
 			request = stringBuilder.toString().getBytes();
 			return new RubusRequest(request);
 		}
