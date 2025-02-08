@@ -19,15 +19,76 @@
 
 package frontend;
 
+import common.net.response.RubusResponseType;
 import common.net.response.body.FetchedPieces;
+import common.net.response.body.PlaybackInfo;
+import common.net.response.body.PlaybackList;
+
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
 
 public class RubusResponse {
 
-	public RubusResponse(byte[] response) {
+	private final RubusResponseType responseType;
+	private final int bodyIndex;
+	private final String responseMsg;
+	private final byte[] response;
 
+	public RubusResponse(byte[] response) {
+		assert response != null;
+
+		this.response = response;
+		int index = 0;
+		while (index + 1 < response.length && (response[index] != '\n' | response[++index] != '\n'));
+
+		String msg = new String(response, 0, index);
+		responseType = RubusResponseType.valueOf(msg.substring(msg.indexOf(' ') + 1, msg.indexOf('\n')));
+		responseMsg = msg;
+
+		bodyIndex = index + 1;
 	}
 
-	FetchedPieces FETCH() {
+	public RubusResponseType getResponseType() {
+		return responseType;
+	}
+
+	public PlaybackList LIST() {
+		String serializedObjName = responseMsg.substring(
+			responseMsg.indexOf("serialized-object ") + "serialized-object ".length(),
+			responseMsg.indexOf('\n', responseMsg.indexOf("serialized-object "))
+		);
+		if (serializedObjName.equals(PlaybackList.class.getName())) {
+			try {
+				return (PlaybackList) new ObjectInputStream(new ByteArrayInputStream(response, bodyIndex, response.length - bodyIndex)).readObject();
+			} catch (IOException | ClassNotFoundException ignored) {}
+		}
+		return null;
+	}
+
+	public PlaybackInfo INFO() {
+		String serializedObjName = responseMsg.substring(
+			responseMsg.indexOf("serialized-object ") + "serialized-object ".length(),
+			responseMsg.indexOf('\n', responseMsg.indexOf("serialized-object "))
+		);
+		if (serializedObjName.equals(PlaybackInfo.class.getName())) {
+			try {
+				return (PlaybackInfo) new ObjectInputStream(new ByteArrayInputStream(response, bodyIndex, response.length - bodyIndex)).readObject();
+			} catch (IOException | ClassNotFoundException ignored) {}
+		}
+		return null;
+	}
+
+	public FetchedPieces FETCH() {
+		String serializedObjName = responseMsg.substring(
+			responseMsg.indexOf("serialized-object ") + "serialized-object ".length(),
+			responseMsg.indexOf('\n', responseMsg.indexOf("serialized-object "))
+		);
+		if (serializedObjName.equals(FetchedPieces.class.getName())) {
+			try {
+				return (FetchedPieces) new ObjectInputStream(new ByteArrayInputStream(response, bodyIndex, response.length - bodyIndex)).readObject();
+			} catch (IOException | ClassNotFoundException ignored) {}
+		}
 		return null;
 	}
 }
