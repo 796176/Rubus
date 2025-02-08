@@ -31,6 +31,7 @@ import common.net.response.body.PlaybackList;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
+import java.net.SocketTimeoutException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.function.Consumer;
@@ -51,8 +52,13 @@ public class RequestHandler implements Runnable {
 	@Override
 	public void run() {
 		try {
-			byte[] request = retrieveRequest(socket);
-			if (request.length == 0) return;
+			byte[] request;
+			try {
+				 request = retrieveRequest(socket);
+			} catch (SocketTimeoutException ignored) {
+				consumer.accept(socket);
+				return;
+			}
 
 			String requestMes = new String(request);
 			StringBuilder responseMes = new StringBuilder("response-type ").append(RubusResponseType.OK).append('\n');
