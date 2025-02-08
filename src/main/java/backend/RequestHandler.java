@@ -122,7 +122,7 @@ public class RequestHandler implements Runnable {
 				}
 			}
 			byte[] response = Arrays.copyOf(responseMes.toString().getBytes(), responseMes.length() + body.size());
-			System.arraycopy(body, 0, response, responseMes.length(), body.size());
+			System.arraycopy(body.toByteArray(), 0, response, responseMes.length(), body.size());
 			socket.write(response);
 		} catch (IndexOutOfBoundsException indexOutOfBoundsException) {
 			try {
