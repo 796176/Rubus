@@ -33,7 +33,7 @@ public class RubusSockets {
 
 	public static RubusSocket getRubusSocket(InetAddress inetAddress, int port) throws IOException {
 		try {
-			return rubusSocketClass.getConstructor(InetAddress.class, Integer.class).newInstance(inetAddress, port);
+			return rubusSocketClass.getConstructor(InetAddress.class, int.class).newInstance(inetAddress, port);
 		} catch (NoSuchMethodException noSuchMethodException) {
 			throw new RuntimeException("The class lacks the default constructor", noSuchMethodException);
 		} catch (InvocationTargetException invocationTargetException) {
@@ -45,7 +45,7 @@ public class RubusSockets {
 
 	public static RubusServerSocket getRubusServerSocket(int port) throws IOException {
 		try {
-			return rubusServerSocketClass.getConstructor(Integer.class).newInstance(port);
+			return rubusServerSocketClass.getConstructor(int.class).newInstance(port);
 		} catch (NoSuchMethodException noSuchMethodException) {
 			throw new RuntimeException("The class lacks the default constructor", noSuchMethodException);
 		} catch (InvocationTargetException invocationTargetException) {
