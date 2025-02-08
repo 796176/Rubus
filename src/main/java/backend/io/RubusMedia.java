@@ -126,8 +126,8 @@ public class RubusMedia implements Media {
 
 		byte[][] videoPieces = new byte[number][];
 		for (int videoIndex = pieceIndex; videoIndex < number; videoIndex++) {
-			Path audioPiecePath = Path.of(contentPath.toString(), "v" + videoIndex + "." + getAudioContainer());
-			videoPieces[videoIndex - pieceIndex] = Files.exists(audioPiecePath) ? Files.readAllBytes(audioPiecePath) : null;
+			Path videoPiecePath = Path.of(contentPath.toString(), "v" + videoIndex + "." + getVideoContainer());
+			videoPieces[videoIndex - pieceIndex] = Files.exists(videoPiecePath) ? Files.readAllBytes(videoPiecePath) : null;
 		}
 		return videoPieces;
 	}
