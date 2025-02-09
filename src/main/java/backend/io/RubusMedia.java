@@ -113,9 +113,9 @@ public class RubusMedia implements Media {
 		assert pieceIndex >= 0 && number > 0 && pieceIndex + number <= getDuration();
 
 		byte[][] audioPieces = new byte[number][];
-		for (int audioIndex = pieceIndex; audioIndex < number; audioIndex++) {
-			Path audioPiecePath = Path.of(contentPath.toString(), "a" + audioIndex + "." + getAudioContainer());
-			audioPieces[audioIndex - pieceIndex] = Files.exists(audioPiecePath) ? Files.readAllBytes(audioPiecePath) : null;
+		for (int arrayIndex = 0; arrayIndex < audioPieces.length; arrayIndex++) {
+			Path audioPiecePath = Path.of(contentPath.toString(), "a" + (arrayIndex + pieceIndex) + "." + getAudioContainer());
+			audioPieces[arrayIndex] = Files.exists(audioPiecePath) ? Files.readAllBytes(audioPiecePath) : null;
 		}
 		return audioPieces;
 	}
@@ -125,9 +125,9 @@ public class RubusMedia implements Media {
 		assert pieceIndex >= 0 && number > 0 && pieceIndex + number <= getDuration();
 
 		byte[][] videoPieces = new byte[number][];
-		for (int videoIndex = pieceIndex; videoIndex < number; videoIndex++) {
-			Path videoPiecePath = Path.of(contentPath.toString(), "v" + videoIndex + "." + getVideoContainer());
-			videoPieces[videoIndex - pieceIndex] = Files.exists(videoPiecePath) ? Files.readAllBytes(videoPiecePath) : null;
+		for (int arrayIndex = 0; arrayIndex < videoPieces.length; arrayIndex++) {
+			Path videoPiecePath = Path.of(contentPath.toString(), "v" + (arrayIndex + pieceIndex) + "." + getVideoContainer());
+			videoPieces[arrayIndex] = Files.exists(videoPiecePath) ? Files.readAllBytes(videoPiecePath) : null;
 		}
 		return videoPieces;
 	}
