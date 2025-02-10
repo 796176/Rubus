@@ -79,4 +79,10 @@ public class RubusServer extends Thread {
 	public int getMaximumOpenedConnections() {
 		return maxConnections;
 	}
+
+	public static void main(String[] args) throws InterruptedException {
+		RubusServer rubusServer = new RubusServer(4);
+		rubusServer.start();
+		rubusServer.join();
+	}
 }

@@ -19,8 +19,13 @@
 
 package frontend;
 
-public interface Decoder {
-	PlaybackPiece decode(byte[] encodedVideo, byte[] encodedAudio);
+import java.awt.*;
 
-	PlaybackPiece[] decode(byte[][] encodedVideos, byte[][] encodedAudios);
+public interface Decoder {
+
+	double framePace(byte[] encodedVideo);
+
+	Image extractFrame(byte[] video, int frameIndex);
+
+	int totalFrames(byte[] video);
 }

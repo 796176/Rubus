@@ -46,7 +46,10 @@ public class FetchController implements Observer {
 	@Override
 	public void update(Subject s) {
 		if (s instanceof PlayerInterface pi) {
-			if (pi.getBuffer().length + minPiecesToFetch < bufferSize || pi.getVideoDuration() - pi.getCurrentSecond() < minPiecesToFetch) {
+			if (
+				bufferSize - pi.getBuffer().length >= minPiecesToFetch &&
+				pi.getVideoDuration() > pi.getCurrentSecond() + pi.getBuffer().length + 1
+			) {
 				if (backgroundFetch != null && backgroundFetch.isAlive()) {
 					backgroundFetch.interrupt();
 				}
@@ -103,13 +106,18 @@ public class FetchController implements Observer {
 		public void run() {
 			try {
 				RubusClient rubusClient = new RubusClient(socket);
+				int nextPieceIndex = player.isBuffering() ?
+					player.getCurrentSecond() :
+					player.getCurrentSecond() + player.getBuffer().length + 1;
+				int totalPieces =
+					Math.min(bufferSize - player.getBuffer().length, player.getVideoDuration() - nextPieceIndex);
 				RubusRequest request = RubusRequest
 					.newBuilder()
 					.FETCH()
 					.params(
 						"id " + id,
-						"from " + (player.getCurrentSecond() + 1 + player.getBuffer().length),
-						"total " + Math.min(bufferSize - player.getBuffer().length, player.getVideoDuration() - player.getCurrentSecond())
+						"from " + nextPieceIndex,
+						"total " + totalPieces
 					)
 					.build();
 				RubusResponse response = rubusClient.send(request, 15000);

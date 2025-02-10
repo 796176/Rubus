@@ -317,7 +317,7 @@ public class Player extends JPanel implements PlayerInterface, Subject {
 			g.fillRect(0, 0, getVideoWidth(), getVideoHeight());
 			g.setColor(Color.WHITE);
 			g.setFont(new Font(Font.MONOSPACED, Font.BOLD, 25));
-			g.drawString(e.getMessage(), 0, g.getFontMetrics().getMaxAscent());
+			g.drawString(e.getClass().getName(), 0, g.getFontMetrics().getMaxAscent());
 		}
 	}
 }
