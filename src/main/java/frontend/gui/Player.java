@@ -56,6 +56,8 @@ public class Player extends JPanel implements PlayerInterface, Subject {
 
 	private int frameCounter = 0;
 
+	private EncodedPlaybackPiece playingPiece = null;
+
 	public Player(int startingTimestamp, PlaybackInfo playbackInfo) {
 		assert startingTimestamp >= 0 && playbackInfo != null;
 
@@ -141,6 +143,11 @@ public class Player extends JPanel implements PlayerInterface, Subject {
 		assert buffer != null;
 
 		this.buffer = buffer;
+	}
+
+	@Override
+	public boolean isBuffering() {
+		return playingPiece == null;
 	}
 
 	@Override
@@ -239,6 +246,7 @@ public class Player extends JPanel implements PlayerInterface, Subject {
 			}
 			sendNotification();
 		} else if (rewindBarBorders.contains(me.getPoint())) {
+			playingPiece = null;
 			currentSecondDecoder = nextSecondDecoder = null;
 			long previousSecond = getCurrentSecond();
 			double relativePosition =
@@ -256,15 +264,18 @@ public class Player extends JPanel implements PlayerInterface, Subject {
 	}
 
 	private void drawFrame(Graphics g) {
-		if (getBuffer().length == 0) {
+		if (getBuffer().length == 0 && isBuffering()) {
 			return;
 		}
 
 		try {
 			if (currentSecondDecoder == null) {
-				currentSecondDecoder = new BMPDecoder(pi.videoContainer(), false, getBuffer()[0].video());
+				playingPiece = getBuffer()[0];
+				currentSecondDecoder = new BMPDecoder(pi.videoContainer(), false, playingPiece.video());
 				if (getBuffer().length > 1)
 					nextSecondDecoder = new BMPDecoder(pi.videoContainer(), true, getBuffer()[1].video());
+				setBuffer(Arrays.copyOfRange(getBuffer(), 1, getBuffer().length));
+				sendNotification();
 				return;
 			} else if (!currentSecondDecoder.isDone()) return;
 			else if (currentSecondDecoder.getException() != null) throw currentSecondDecoder.getException();
@@ -276,16 +287,27 @@ public class Player extends JPanel implements PlayerInterface, Subject {
 				lastFrameTime = System.nanoTime();
 				frameCounter++;
 				if (frameCounter + 1 == currentSecondDecoder.getTotalFrames()) {
-					setBuffer(Arrays.copyOfRange(getBuffer(), 1, getBuffer().length));
 					setPlayingSecond(getCurrentSecond() + 1);
 					currentSecondDecoder = nextSecondDecoder;
-					if (getBuffer().length > 1)
-						nextSecondDecoder = new BMPDecoder(
-							pi.videoContainer(),
-							!currentSecondDecoder.isReversed(),
-							getBuffer()[1].video()
-						);
-					else nextSecondDecoder = null;
+
+					if (getBuffer().length > 1) {
+						currentSecondDecoder = nextSecondDecoder;
+						nextSecondDecoder =
+							new BMPDecoder(
+								pi.videoContainer(),
+								!currentSecondDecoder.isReversed(),
+								getBuffer()[1].video()
+							);
+						playingPiece = getBuffer()[0];
+						setBuffer(Arrays.copyOfRange(getBuffer(), 1, getBuffer().length));
+					} else if (getBuffer().length > 0) {
+						currentSecondDecoder = nextSecondDecoder;
+						nextSecondDecoder = null;
+						playingPiece = getBuffer()[0];
+						setBuffer(Arrays.copyOfRange(getBuffer(), 1, getBuffer().length));
+					} else {
+						playingPiece = null;
+					}
 
 					sendNotification();
 				}

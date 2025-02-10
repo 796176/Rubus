@@ -40,5 +40,7 @@ public interface PlayerInterface {
 
 	void setBuffer(EncodedPlaybackPiece[] buffer);
 
+	boolean isBuffering();
+
 	Decoder getDecoder();
 }
