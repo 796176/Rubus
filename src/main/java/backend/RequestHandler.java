@@ -29,6 +29,7 @@ import common.net.response.body.PlaybackInfo;
 import common.net.response.body.PlaybackList;
 
 import java.io.ByteArrayOutputStream;
+import java.io.EOFException;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.net.SocketTimeoutException;
@@ -57,6 +58,9 @@ public class RequestHandler implements Runnable {
 				 request = retrieveRequest(socket);
 			} catch (SocketTimeoutException ignored) {
 				consumer.accept(socket);
+				return;
+			} catch (EOFException e) {
+				socket.close();
 				return;
 			}
 
@@ -165,12 +169,14 @@ public class RequestHandler implements Runnable {
 		int maxHeaderAllocation = 1024 * 8;
 		byte[] request = new byte[1024];
 		int emptyLineIndex;
-		int byteRead = 0;
+		int byteReadTotal = 0;
 		while ((emptyLineIndex = searchSubArray(request, "\n\n".getBytes())) == -1) {
 			if (request.length > maxHeaderAllocation) throw new IllegalArgumentException();
-			if (byteRead == request.length)
+			if (byteReadTotal == request.length)
 				request = Arrays.copyOf(request, request.length * 2);
-			byteRead += socket.read(request, byteRead, request.length - byteRead, 10);
+			int byteRead = socket.read(request, byteReadTotal, request.length - byteReadTotal, 10);
+			if (byteRead == -1) throw new EOFException();
+			byteReadTotal += byteRead;
 		}
 
 		String header = new String(request, 0, emptyLineIndex + 1);
@@ -181,9 +187,9 @@ public class RequestHandler implements Runnable {
 
 		request = Arrays.copyOf(request, header.length() + "\n".length() + bodyLen);
 		do {
-			int remaining = request.length - byteRead;
-			byteRead += socket.read(request, byteRead, remaining, 2000);
-		} while (byteRead < request.length);
+			int remaining = request.length - byteReadTotal;
+			byteReadTotal += socket.read(request, byteReadTotal, remaining, 2000);
+		} while (byteReadTotal < request.length);
 
 		return request;
 	}

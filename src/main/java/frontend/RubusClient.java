@@ -21,6 +21,7 @@ package frontend;
 
 import common.RubusSocket;
 
+import java.io.EOFException;
 import java.io.IOException;
 import java.util.Arrays;
 
@@ -52,12 +53,14 @@ public class RubusClient {
 		int maxHeaderAllocation = 1024 * 8;
 		byte[] response = new byte[1024];
 		int emptyLineIndex;
-		int byteRead = 0;
+		int byteReadTotal = 0;
 		while ((emptyLineIndex = searchSubArray(response, "\n\n".getBytes())) == -1) {
-			if (byteRead > maxHeaderAllocation) throw new IllegalArgumentException();
-			if (byteRead == response.length)
+			if (byteReadTotal > maxHeaderAllocation) throw new IllegalArgumentException();
+			if (byteReadTotal == response.length)
 				response = Arrays.copyOf(response, response.length * 2);
-			byteRead += socket.read(response, timeout);
+			int byteRead = socket.read(response, timeout);
+			if (byteRead == -1) throw new EOFException();
+			byteReadTotal += byteRead;
 		}
 
 		String header = new String(response, 0, emptyLineIndex + 1);
@@ -68,9 +71,9 @@ public class RubusClient {
 
 		response = Arrays.copyOf(response, header.length() + "\n".length() + bodyLen);
 		do {
-			int remaining = response.length - byteRead;
-			byteRead += socket.read(response, byteRead, remaining, timeout);
-		} while (byteRead < response.length);
+			int remaining = response.length - byteReadTotal;
+			byteReadTotal += socket.read(response, byteReadTotal, remaining, timeout);
+		} while (byteReadTotal < response.length);
 
 		return new RubusResponse(response);
 	}
