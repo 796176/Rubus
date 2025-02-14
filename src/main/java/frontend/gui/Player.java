@@ -19,6 +19,9 @@
 
 package frontend.gui;
 
+import common.DecodingException;
+import common.net.FetchingException;
+import common.net.RubusException;
 import common.net.response.body.PlaybackInfo;
 import frontend.*;
 import frontend.decoders.BMPDecoder;
@@ -30,7 +33,7 @@ import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-public class Player extends JPanel implements PlayerInterface, Subject {
+public class Player extends JPanel implements PlayerInterface, Subject, ExceptionHandler {
 
 	private final ArrayList<Observer> observers = new ArrayList<>();
 
@@ -57,6 +60,8 @@ public class Player extends JPanel implements PlayerInterface, Subject {
 	private int frameCounter = 0;
 
 	private EncodedPlaybackPiece playingPiece = null;
+
+	private Exception occurredException = null;
 
 	public Player(int startingTimestamp, PlaybackInfo playbackInfo) {
 		assert startingTimestamp >= 0 && playbackInfo != null;
@@ -248,6 +253,7 @@ public class Player extends JPanel implements PlayerInterface, Subject {
 		} else if (rewindBarBorders.contains(me.getPoint())) {
 			playingPiece = null;
 			currentSecondDecoder = nextSecondDecoder = null;
+			occurredException = null;
 			long previousSecond = getCurrentSecond();
 			double relativePosition =
 				(double) (me.getX() - rewindBarBorders.x) / rewindBarBorders.width;
@@ -264,16 +270,15 @@ public class Player extends JPanel implements PlayerInterface, Subject {
 	}
 
 	private void drawFrame(Graphics g) {
-		if (getBuffer().length == 0 && isBuffering()) {
-			return;
-		}
-
 		try {
+			if (occurredException != null) throw occurredException;
+			if (getBuffer().length == 0 && isBuffering()) return;
+
 			if (currentSecondDecoder == null) {
 				playingPiece = getBuffer()[0];
-				currentSecondDecoder = new BMPDecoder(pi.videoContainer(), false, playingPiece.video());
+				currentSecondDecoder = new BMPDecoder(pi.videoContainer(), false, playingPiece.video(), this);
 				if (getBuffer().length > 1)
-					nextSecondDecoder = new BMPDecoder(pi.videoContainer(), true, getBuffer()[1].video());
+					nextSecondDecoder = new BMPDecoder(pi.videoContainer(), true, getBuffer()[1].video(), this);
 				setBuffer(Arrays.copyOfRange(getBuffer(), 1, getBuffer().length));
 				sendNotification();
 				return;
@@ -295,7 +300,8 @@ public class Player extends JPanel implements PlayerInterface, Subject {
 							new BMPDecoder(
 								pi.videoContainer(),
 								!currentSecondDecoder.isReversed(),
-								getBuffer()[1].video()
+								getBuffer()[1].video(),
+								this
 							);
 						playingPiece = getBuffer()[0];
 						setBuffer(Arrays.copyOfRange(getBuffer(), 1, getBuffer().length));
@@ -317,6 +323,24 @@ public class Player extends JPanel implements PlayerInterface, Subject {
 			g.setColor(Color.WHITE);
 			g.setFont(new Font(Font.MONOSPACED, Font.BOLD, 25));
 			g.drawString(e.getClass().getName(), 0, g.getFontMetrics().getMaxAscent());
+			if (e.getMessage() != null) {
+				g.drawString(e.getMessage(), 0, g.getFontMetrics().getHeight() + g.getFontMetrics().getMaxAscent());
+			}
+		}
+	}
+
+
+	@Override
+	public void handleException(Exception e) {
+		if (e instanceof FetchingException fetchingException) {
+			if (getBuffer().length == 0 && isBuffering())
+				occurredException = fetchingException;
+		} else if (e instanceof RubusException rubusException) {
+			if (getBuffer().length == 0 && isBuffering()) {
+				occurredException = rubusException;
+			}
+		} else if (e instanceof DecodingException decodingException) {
+			occurredException = decodingException;
 		}
 	}
 }
