@@ -20,6 +20,9 @@
 package frontend;
 
 import common.RubusSocket;
+import common.net.FetchingException;
+import common.net.RubusException;
+import common.net.response.RubusResponseType;
 import common.net.response.body.FetchedPieces;
 
 import java.util.Arrays;
@@ -35,6 +38,8 @@ public class FetchController implements Observer {
 	private int minPiecesToFetch = 3;
 
 	private BackgroundFetch backgroundFetch = null;
+
+	private ExceptionHandler handler = null;
 
 	public FetchController(RubusSocket rubusSocket, String playbackId) {
 		assert rubusSocket != null && playbackId != null;
@@ -89,6 +94,14 @@ public class FetchController implements Observer {
 		return bufferSize;
 	}
 
+	public ExceptionHandler getExceptionHandler() {
+		return handler;
+	}
+
+	public void setExceptionHandler(ExceptionHandler handler) {
+		this.handler = handler;
+	}
+
 	private class BackgroundFetch extends Thread {
 
 		private boolean isInterrupted = false;
@@ -121,6 +134,9 @@ public class FetchController implements Observer {
 					)
 					.build();
 				RubusResponse response = rubusClient.send(request, 15000);
+				if (response.getResponseType() != RubusResponseType.OK) {
+					throw new RubusException("Response type: " + response.getResponseType());
+				}
 				FetchedPieces fetchedPieces = response.FETCH();
 				EncodedPlaybackPiece[] encodedPlaybackPieces = new EncodedPlaybackPiece[fetchedPieces.video().length];
 				for (int i = 0; i < encodedPlaybackPieces.length; i++) {
@@ -129,8 +145,10 @@ public class FetchController implements Observer {
 				EncodedPlaybackPiece[] buffer = Arrays.copyOf(player.getBuffer(), player.getBuffer().length + encodedPlaybackPieces.length);
 				System.arraycopy(encodedPlaybackPieces, 0, buffer, player.getBuffer().length, encodedPlaybackPieces.length);
 				if (!isInterrupted) player.setBuffer(buffer);
+			} catch (RubusException e) {
+				if (handler != null) handler.handleException(e);
 			} catch (Exception e) {
-				exception = e;
+				if (handler != null) handler.handleException(new FetchingException(e.getMessage()));
 			}
 		}
 
