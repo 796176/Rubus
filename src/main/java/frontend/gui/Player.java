@@ -278,7 +278,6 @@ public class Player extends JPanel implements PlayerInterface, Subject {
 				sendNotification();
 				return;
 			} else if (!currentSecondDecoder.isDone()) return;
-			else if (currentSecondDecoder.getException() != null) throw currentSecondDecoder.getException();
 
 			Image frame = currentSecondDecoder.getFrame(frameCounter);
 			g.drawImage(frame, 0, 0, null);

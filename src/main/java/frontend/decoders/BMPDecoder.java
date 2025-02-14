@@ -19,6 +19,9 @@
 
 package frontend.decoders;
 
+import common.DecodingException;
+import frontend.ExceptionHandler;
+
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.io.*;
@@ -40,18 +43,19 @@ public class BMPDecoder implements Runnable {
 
 	private final String container;
 
-	private Exception exception;
+	private ExceptionHandler handler;
 
 	private String ffmpegLocation = "";
 
 	public BMPDecoder(
-		String containerFormat, boolean reversed, byte[] video, boolean startImmediately
+		String containerFormat, boolean reversed, byte[] video, ExceptionHandler handler, boolean startImmediately
 	) throws IOException {
 		assert containerFormat != null && video != null;
 
 		this.reversed = reversed;
 		container = containerFormat;
 		this.video = video;
+		this.handler = handler;
 		Path framesPath = Path.of(System.getProperty("java.io.tmpdir"), "rubus");
 		dir = !reversed ? Path.of(framesPath.toString(), "a") : Path.of(framesPath.toString(), "b");
 		if (Files.notExists(dir)) Files.createDirectories(dir);
@@ -60,8 +64,14 @@ public class BMPDecoder implements Runnable {
 		if (startImmediately) thread.start();
 	}
 
-	public BMPDecoder(String containerFormat, boolean reversed, byte[] video) throws IOException {
-		this(containerFormat, reversed, video, true);
+	public BMPDecoder(
+		String containerFormat, boolean reversed, byte[] video, ExceptionHandler handler
+	) throws IOException {
+		this(containerFormat, reversed, video, handler, true);
+	}
+
+	public BMPDecoder(String containerFormat, boolean reversed, byte[] video) throws IOException{
+		this(containerFormat, reversed, video, null);
 	}
 
 	public boolean isReversed() {
@@ -74,7 +84,7 @@ public class BMPDecoder implements Runnable {
 			Path videoPath = Path.of(dir.toString(), "video." + container);
 			Files.write(videoPath, video);
 			Runtime runtime = Runtime.getRuntime();
-			Process p1 = runtime.exec(
+			String[] p1Command =
 				new String[]{
 					getFfmpegLocation() + "ffprobe",
 					"-loglevel",
@@ -87,8 +97,11 @@ public class BMPDecoder implements Runnable {
 					"-of",
 					"csv=p=0",
 					videoPath.toString()
-				});
+				};
+			Process p1 = runtime.exec(p1Command);
 			p1.waitFor(1000, TimeUnit.MILLISECONDS);
+			if (p1.exitValue() != 0)
+				throw new DecodingException(String.join(" ", p1Command) + " exit code: " + p1.exitValue());
 			InputStream is = p1.getInputStream();
 			StringBuilder stringBuffer = new StringBuilder();
 			int character;
@@ -97,7 +110,7 @@ public class BMPDecoder implements Runnable {
 			}
 			totalFrames = Integer.parseInt(stringBuffer.toString().trim());
 
-			Process p2 = runtime.exec(
+			String[] p2Command =
 				new String[]{
 					getFfmpegLocation() + "ffmpeg",
 					"-loglevel",
@@ -106,11 +119,15 @@ public class BMPDecoder implements Runnable {
 					"-i",
 					videoPath.toString(),
 					dir.toString() + File.separator + "frame%d.bmp"
-				}
-			);
+				};
+			Process p2 = runtime.exec(p2Command);
 			p2.waitFor(1000, TimeUnit.MILLISECONDS);
+			if (p2.exitValue() != 0)
+				throw new DecodingException(String.join(" ", p2Command) + " exit code: " + p2.exitValue());
+		} catch (DecodingException e) {
+			if (handler != null) handler.handleException(e);
 		} catch (Exception e) {
-			exception = e;
+			if (handler != null) handler.handleException(new DecodingException(e.getMessage()));
 		}
 	}
 
@@ -130,10 +147,6 @@ public class BMPDecoder implements Runnable {
 		return 1D / getTotalFrames();
 	}
 
-	public Exception getException() {
-		return exception;
-	}
-
 	public void setFfmpegLocation(String loc) {
 		assert loc != null;
 		if (loc.isEmpty() || loc.endsWith(File.separator)) ffmpegLocation = loc;
@@ -146,5 +159,13 @@ public class BMPDecoder implements Runnable {
 
 	public void start() {
 		thread.start();
+	}
+
+	public ExceptionHandler getExceptionHandler() {
+		return handler;
+	}
+
+	public void setExceptionHandler(ExceptionHandler handler) {
+		this.handler = handler;
 	}
 }
