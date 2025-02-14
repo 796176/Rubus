@@ -49,28 +49,32 @@ public class BMPDecoder implements Runnable {
 
 	public BMPDecoder(
 		String containerFormat, boolean reversed, byte[] video, ExceptionHandler handler, boolean startImmediately
-	) throws IOException {
+	) throws DecodingException {
 		assert containerFormat != null && video != null;
 
-		this.reversed = reversed;
-		container = containerFormat;
-		this.video = video;
-		this.handler = handler;
-		Path framesPath = Path.of(System.getProperty("java.io.tmpdir"), "rubus");
-		dir = !reversed ? Path.of(framesPath.toString(), "a") : Path.of(framesPath.toString(), "b");
-		if (Files.notExists(dir)) Files.createDirectories(dir);
+		try {
+			this.reversed = reversed;
+			container = containerFormat;
+			this.video = video;
+			this.handler = handler;
+			Path framesPath = Path.of(System.getProperty("java.io.tmpdir"), "rubus");
+			dir = !reversed ? Path.of(framesPath.toString(), "a") : Path.of(framesPath.toString(), "b");
+			if (Files.notExists(dir)) Files.createDirectories(dir);
 
-		thread = new Thread(this);
-		if (startImmediately) thread.start();
+			thread = new Thread(this);
+			if (startImmediately) thread.start();
+		} catch (Exception e) {
+			throw new DecodingException(e.getMessage());
+		}
 	}
 
 	public BMPDecoder(
 		String containerFormat, boolean reversed, byte[] video, ExceptionHandler handler
-	) throws IOException {
+	) throws DecodingException {
 		this(containerFormat, reversed, video, handler, true);
 	}
 
-	public BMPDecoder(String containerFormat, boolean reversed, byte[] video) throws IOException{
+	public BMPDecoder(String containerFormat, boolean reversed, byte[] video) throws DecodingException {
 		this(containerFormat, reversed, video, null);
 	}
 
@@ -135,8 +139,12 @@ public class BMPDecoder implements Runnable {
 		return !thread.isAlive();
 	}
 
-	public Image getFrame(int index) throws IOException {
-		return ImageIO.read(Path.of(dir.toString(), "frame" + (index + 1) + ".bmp").toFile());
+	public Image getFrame(int index) throws DecodingException {
+		try {
+			return ImageIO.read(Path.of(dir.toString(), "frame" + (index + 1) + ".bmp").toFile());
+		} catch (IOException e) {
+			throw new DecodingException(e.getMessage());
+		}
 	}
 
 	public int getTotalFrames() {
