@@ -290,7 +290,7 @@ public class Player extends JPanel implements PlayerInterface, Subject, Exceptio
 			if (!isPaused() && System.nanoTime() - lastFrameTime >= currentSecondDecoder.framePaceNs()) {
 				lastFrameTime = System.nanoTime();
 				frameCounter++;
-				if (frameCounter + 1 == currentSecondDecoder.getTotalFrames()) {
+				if (frameCounter == currentSecondDecoder.getTotalFrames()) {
 					setPlayingSecond(getCurrentSecond() + 1);
 					currentSecondDecoder = nextSecondDecoder;
 
