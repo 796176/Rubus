@@ -155,6 +155,10 @@ public class BMPDecoder implements Runnable {
 		return 1D / getTotalFrames();
 	}
 
+	public int framePaceNs() {
+		return 1_000_000_000 / getTotalFrames();
+	}
+
 	public void setFfmpegLocation(String loc) {
 		assert loc != null;
 		if (loc.isEmpty() || loc.endsWith(File.separator)) ffmpegLocation = loc;

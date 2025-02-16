@@ -287,7 +287,7 @@ public class Player extends JPanel implements PlayerInterface, Subject, Exceptio
 			Image frame = currentSecondDecoder.getFrame(frameCounter);
 			g.drawImage(frame, 0, 0, null);
 
-			if (!isPaused() && System.nanoTime() - lastFrameTime >= currentSecondDecoder.framePace() * 1_000_000_000) {
+			if (!isPaused() && System.nanoTime() - lastFrameTime >= currentSecondDecoder.framePaceNs()) {
 				lastFrameTime = System.nanoTime();
 				frameCounter++;
 				if (frameCounter + 1 == currentSecondDecoder.getTotalFrames()) {
