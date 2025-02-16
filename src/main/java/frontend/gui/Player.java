@@ -45,6 +45,8 @@ public class Player extends JPanel implements PlayerInterface, Subject, Exceptio
 
 	private long lastFrameTime = 0;
 
+	private long deviation = 0;
+
 	private final int controlsHeight;
 
 	private Rectangle pauseButtonBorders = new Rectangle();
@@ -245,6 +247,8 @@ public class Player extends JPanel implements PlayerInterface, Subject, Exceptio
 	private void controlsClickHandler(MouseEvent me) {
 		if (pauseButtonBorders.contains(me.getPoint())) {
 			if (isPaused()) {
+				deviation = 0;
+				lastFrameTime = 0;
 				resume();
 			} else {
 				pause();
@@ -254,6 +258,8 @@ public class Player extends JPanel implements PlayerInterface, Subject, Exceptio
 			playingPiece = null;
 			currentSecondDecoder = nextSecondDecoder = null;
 			occurredException = null;
+			deviation = 0;
+			lastFrameTime = 0;
 			long previousSecond = getCurrentSecond();
 			double relativePosition =
 				(double) (me.getX() - rewindBarBorders.x) / rewindBarBorders.width;
@@ -287,7 +293,9 @@ public class Player extends JPanel implements PlayerInterface, Subject, Exceptio
 			Image frame = currentSecondDecoder.getFrame(frameCounter);
 			g.drawImage(frame, 0, 0, null);
 
-			if (!isPaused() && System.nanoTime() - lastFrameTime >= currentSecondDecoder.framePaceNs()) {
+			if (!isPaused() && System.nanoTime() - lastFrameTime >= currentSecondDecoder.framePaceNs() + deviation) {
+				if (lastFrameTime != 0)
+					deviation += currentSecondDecoder.framePaceNs() - (System.nanoTime() - lastFrameTime);
 				lastFrameTime = System.nanoTime();
 				frameCounter++;
 				if (frameCounter == currentSecondDecoder.getTotalFrames()) {
