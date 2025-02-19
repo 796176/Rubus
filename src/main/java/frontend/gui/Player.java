@@ -65,6 +65,8 @@ public class Player extends JPanel implements PlayerInterface, Subject, Exceptio
 
 	private Exception occurredException = null;
 
+	private boolean isBuffering = true;
+
 	public Player(int startingTimestamp, PlaybackInfo playbackInfo) {
 		assert startingTimestamp >= 0 && playbackInfo != null;
 
@@ -154,7 +156,7 @@ public class Player extends JPanel implements PlayerInterface, Subject, Exceptio
 
 	@Override
 	public boolean isBuffering() {
-		return playingPiece == null;
+		return isBuffering;
 	}
 
 	@Override
@@ -265,6 +267,7 @@ public class Player extends JPanel implements PlayerInterface, Subject, Exceptio
 			occurredException = null;
 			deviation = 0;
 			lastFrameTime = 0;
+			isBuffering = true;
 			long previousSecond = getCurrentSecond();
 			double relativePosition =
 				(double) (me.getX() - rewindBarBorders.x) / rewindBarBorders.width;
@@ -291,9 +294,15 @@ public class Player extends JPanel implements PlayerInterface, Subject, Exceptio
 				if (getBuffer().length > 1)
 					nextSecondDecoder = new BMPDecoder(pi.videoContainer(), true, getBuffer()[1].video(), this);
 				setBuffer(Arrays.copyOfRange(getBuffer(), 1, getBuffer().length));
+				isBuffering = true;
 				sendNotification();
 				return;
-			} else if (!currentSecondDecoder.isDone()) return;
+			} else if (!currentSecondDecoder.isDone()) {
+				return;
+			} else if (isBuffering && currentSecondDecoder.isDone()) {
+				isBuffering = false;
+				sendNotification();
+			}
 
 			Image frame = currentSecondDecoder.getFrame(frameCounter);
 			g.drawImage(frame, 0, 0, null);
@@ -325,6 +334,7 @@ public class Player extends JPanel implements PlayerInterface, Subject, Exceptio
 						setBuffer(Arrays.copyOfRange(getBuffer(), 1, getBuffer().length));
 					} else {
 						playingPiece = null;
+						isBuffering = true;
 					}
 
 					sendNotification();
