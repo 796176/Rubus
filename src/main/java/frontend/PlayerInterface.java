@@ -43,4 +43,6 @@ public interface PlayerInterface {
 	boolean isBuffering();
 
 	Decoder getDecoder();
+
+	EncodedPlaybackPiece getPlayingPiece();
 }

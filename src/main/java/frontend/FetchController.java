@@ -119,7 +119,7 @@ public class FetchController implements Observer {
 		public void run() {
 			try {
 				RubusClient rubusClient = new RubusClient(socket);
-				int nextPieceIndex = player.isBuffering() ?
+				int nextPieceIndex = player.getPlayingPiece() == null ?
 					player.getCurrentSecond() :
 					player.getCurrentSecond() + player.getBuffer().length + 1;
 				int totalPieces =

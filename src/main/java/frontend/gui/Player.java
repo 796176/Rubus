@@ -163,6 +163,11 @@ public class Player extends JPanel implements PlayerInterface, Subject, Exceptio
 	}
 
 	@Override
+	public EncodedPlaybackPiece getPlayingPiece() {
+		return playingPiece;
+	}
+
+	@Override
 	public void attach(Observer o) {
 		assert o != null;
 
