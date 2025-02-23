@@ -286,7 +286,11 @@ public class Player extends JPanel implements PlayerInterface, Subject, Exceptio
 	private void drawFrame(Graphics g) {
 		try {
 			if (occurredException != null) throw occurredException;
-			if (getBuffer().length == 0 && isBuffering()) return;
+			if (getBuffer().length == 0 && isBuffering()) {
+				deviation = 0;
+				lastFrameTime = 0;
+				return;
+			}
 
 			if (currentSecondDecoder == null) {
 				playingPiece = getBuffer()[0];
