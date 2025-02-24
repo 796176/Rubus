@@ -39,7 +39,7 @@ public class RubusServer extends Thread {
 		assert maxConnections > 0;
 
 		try {
-			serverSocket = RubusSockets.getRubusServerSocket(58888);
+			serverSocket = RubusSockets.getRubusServerSocket(54300);
 		} catch (IOException ioException) {
 			throw new RuntimeException(ioException);
 		}
