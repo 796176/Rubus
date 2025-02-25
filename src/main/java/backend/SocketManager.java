@@ -63,9 +63,8 @@ public class SocketManager extends Thread {
 	public void add(RubusSocket socket) {
 		assert socket != null;
 
-		boolean isEmpty = sockets.isEmpty();
 		sockets.add(socket);
-		if (isEmpty) {
+		if (SocketManager.this.getState() == State.WAITING) {
 			synchronized (sockets) { sockets.notify(); }
 		}
 	}
