@@ -55,11 +55,18 @@ public class FetchController implements Observer {
 				bufferSize - pi.getBuffer().length >= minPiecesToFetch &&
 				pi.getVideoDuration() > pi.getCurrentSecond() + pi.getBuffer().length + 1
 			) {
+				int nextPieceIndex =
+					pi.getCurrentSecond() + pi.getBuffer().length;
+				if (pi.getPlayingPiece() != null) nextPieceIndex++;
+
 				if (backgroundFetch != null && backgroundFetch.isAlive()) {
-					backgroundFetch.interrupt();
+					if (backgroundFetch.getNextPieceIndex() != nextPieceIndex) {
+						backgroundFetch.setNextPieceIndex(nextPieceIndex);
+					}
+				} else {
+					backgroundFetch = new BackgroundFetch(pi, nextPieceIndex);
+					backgroundFetch.start();
 				}
-				backgroundFetch = new BackgroundFetch(pi);
-				backgroundFetch.start();
 			}
 		}
 	}
@@ -109,41 +116,55 @@ public class FetchController implements Observer {
 		private final PlayerInterface player;
 
 		private Exception exception;
-		private BackgroundFetch(PlayerInterface playerInterface) {
+
+		private int nextPieceIndex;
+		
+		private BackgroundFetch(PlayerInterface playerInterface, int nextPieceIndex) {
 			assert playerInterface != null;
 
+			this.nextPieceIndex = nextPieceIndex;
 			player = playerInterface;
+		}
+
+		public int getNextPieceIndex() {
+			return nextPieceIndex;
+		}
+
+		public void setNextPieceIndex(int value) {
+			nextPieceIndex = value;
 		}
 
 		@Override
 		public void run() {
 			try {
-				RubusClient rubusClient = new RubusClient(socket);
-				int nextPieceIndex =
-					player.getCurrentSecond() + player.getBuffer().length;
-				if (player.getPlayingPiece() != null) nextPieceIndex++;
-				int totalPieces =
-					Math.min(bufferSize - player.getBuffer().length, player.getVideoDuration() - nextPieceIndex);
-				RubusRequest request = RubusRequest
-					.newBuilder()
-					.FETCH()
-					.params(
-						"id " + id,
-						"from " + nextPieceIndex,
-						"total " + totalPieces
-					)
-					.build();
-				RubusResponse response = rubusClient.send(request, 15000);
-				if (response.getResponseType() != RubusResponseType.OK) {
-					throw new RubusException("Response type: " + response.getResponseType());
-				}
-				FetchedPieces fetchedPieces = response.FETCH();
-				EncodedPlaybackPiece[] encodedPlaybackPieces = new EncodedPlaybackPiece[fetchedPieces.video().length];
-				for (int i = 0; i < encodedPlaybackPieces.length; i++) {
-					encodedPlaybackPieces[i] = new EncodedPlaybackPiece(fetchedPieces.video()[i], fetchedPieces.audio()[i]);
-				}
-				EncodedPlaybackPiece[] buffer = Arrays.copyOf(player.getBuffer(), player.getBuffer().length + encodedPlaybackPieces.length);
-				System.arraycopy(encodedPlaybackPieces, 0, buffer, player.getBuffer().length, encodedPlaybackPieces.length);
+				int localNextPieceIndex;
+				EncodedPlaybackPiece[] buffer;
+				do {
+					localNextPieceIndex = getNextPieceIndex();
+					RubusClient rubusClient = new RubusClient(socket);
+					int totalPieces =
+						Math.min(bufferSize - player.getBuffer().length, player.getVideoDuration() - localNextPieceIndex);
+					RubusRequest request = RubusRequest
+						.newBuilder()
+						.FETCH()
+						.params(
+							"id " + id,
+							"from " + localNextPieceIndex,
+							"total " + totalPieces
+						)
+						.build();
+					RubusResponse response = rubusClient.send(request, Math.max(player.getBuffer().length, minPiecesToFetch) * 1000L);
+					if (response.getResponseType() != RubusResponseType.OK) {
+						throw new RubusException("Response type: " + response.getResponseType());
+					}
+					FetchedPieces fetchedPieces = response.FETCH();
+					EncodedPlaybackPiece[] encodedPlaybackPieces = new EncodedPlaybackPiece[fetchedPieces.video().length];
+					for (int i = 0; i < encodedPlaybackPieces.length; i++) {
+						encodedPlaybackPieces[i] = new EncodedPlaybackPiece(fetchedPieces.video()[i], fetchedPieces.audio()[i]);
+					}
+					buffer = Arrays.copyOf(player.getBuffer(), player.getBuffer().length + encodedPlaybackPieces.length);
+					System.arraycopy(encodedPlaybackPieces, 0, buffer, player.getBuffer().length, encodedPlaybackPieces.length);
+				} while (localNextPieceIndex != getNextPieceIndex());
 				if (!isInterrupted) player.setBuffer(buffer);
 			} catch (RubusException e) {
 				if (handler != null) handler.handleException(e);
