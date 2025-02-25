@@ -41,12 +41,15 @@ public class RequestHandler implements Runnable {
 
 	private final RubusSocket socket;
 
-	private final Consumer<RubusSocket> consumer;
+	private final Consumer<RubusSocket> keepConnection;
 
-	public RequestHandler(RubusSocket socket, Consumer<RubusSocket> releaseSocket) {
+	private final Consumer<RubusSocket> closeConnection;
+
+	public RequestHandler(RubusSocket socket, Consumer<RubusSocket> keepConnection, Consumer<RubusSocket> closeConnection) {
 		assert socket != null;
 
-		this.consumer = releaseSocket;
+		this.keepConnection = keepConnection;
+		this.closeConnection = closeConnection;
 		this.socket = socket;
 	}
 
@@ -57,10 +60,10 @@ public class RequestHandler implements Runnable {
 			try {
 				 request = retrieveRequest(socket);
 			} catch (SocketTimeoutException ignored) {
-				consumer.accept(socket);
+				keepConnection.accept(socket);
 				return;
 			} catch (EOFException e) {
-				socket.close();
+				closeConnection.accept(socket);
 				return;
 			}
 
@@ -158,7 +161,7 @@ public class RequestHandler implements Runnable {
 			} catch (IOException ignored) {}
 		}
 
-		consumer.accept(socket);
+		keepConnection.accept(socket);
 	}
 
 	public RubusSocket getSocket() {

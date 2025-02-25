@@ -32,6 +32,8 @@ public class SocketManager extends Thread {
 
 	private boolean isTerminated = false;
 
+	private int activeConnections = 0;
+
 	private SocketManager(int poolSize) {
 		assert poolSize > 0;
 
@@ -49,7 +51,7 @@ public class SocketManager extends Thread {
 						sockets.wait();
 					}
 				}
-				executorService.submit(new RequestHandler(socket, this::add));
+				executorService.submit(new RequestHandler(socket, this::keepConnection, this::closeConnection));
 			} catch (InterruptedException ignored) {}
 		}
 	}
@@ -63,6 +65,7 @@ public class SocketManager extends Thread {
 	public void add(RubusSocket socket) {
 		assert socket != null;
 
+		activeConnections++;
 		sockets.add(socket);
 		if (SocketManager.this.getState() == State.WAITING) {
 			synchronized (sockets) { sockets.notify(); }
@@ -81,7 +84,21 @@ public class SocketManager extends Thread {
 		} catch (InterruptedException | IOException ignored) {}
 	}
 
-	public int size() {
-		return sockets.size();
+	public int getActiveConnections() {
+		return activeConnections;
+	}
+
+	private void keepConnection(RubusSocket socket) {
+		sockets.add(socket);
+		if (SocketManager.this.getState() == State.WAITING) {
+			synchronized (sockets) { sockets.notify(); }
+		}
+	}
+
+	private void closeConnection(RubusSocket socket) {
+		try {
+		socket.close();
+		} catch (IOException ignored) {}
+		activeConnections--;
 	}
 }
