@@ -262,23 +262,25 @@ public class Player extends JPanel implements PlayerInterface, Subject, Exceptio
 			}
 			sendNotification();
 		} else if (rewindBarBorders.contains(me.getPoint())) {
-			playingPiece = null;
 			currentSecondDecoder = nextSecondDecoder = null;
 			occurredException = null;
 			deviation = 0;
 			lastFrameTime = 0;
 			isBuffering = true;
-			long previousSecond = getCurrentSecond();
+			int previousSecond = getCurrentSecond();
 			double relativePosition =
 				(double) (me.getX() - rewindBarBorders.x) / rewindBarBorders.width;
 			setPlayingSecond((int) (relativePosition * getVideoDuration()));
 			if (getCurrentSecond() > previousSecond && getCurrentSecond() - previousSecond < getBuffer().length) {
+				int piecesToSkip = getCurrentSecond() - previousSecond;
+				if (getPlayingPiece() != null) piecesToSkip--;
 				setBuffer(Arrays.copyOfRange(
 					getBuffer(),
-					getBuffer().length - (int) (getCurrentSecond() - previousSecond),
+					piecesToSkip,
 					getBuffer().length
 				));
 			} else setBuffer(new EncodedPlaybackPiece[0]);
+			playingPiece = null;
 			sendNotification();
 		}
 	}
