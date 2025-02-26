@@ -165,7 +165,10 @@ public class FetchController implements Observer {
 					buffer = Arrays.copyOf(player.getBuffer(), player.getBuffer().length + encodedPlaybackPieces.length);
 					System.arraycopy(encodedPlaybackPieces, 0, buffer, player.getBuffer().length, encodedPlaybackPieces.length);
 				} while (localNextPieceIndex != getNextPieceIndex());
-				if (!isInterrupted) player.setBuffer(buffer);
+				if (!isInterrupted) {
+					player.setBuffer(buffer);
+					((Subject) player).sendNotification();
+				}
 			} catch (RubusException e) {
 				if (handler != null) handler.handleException(e);
 			} catch (Exception e) {
