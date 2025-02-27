@@ -21,7 +21,15 @@ package common.net;
 
 import java.io.IOException;
 
+/**
+ * This exception is thrown by {@link frontend.FetchController} when the response type isn't OK.
+ */
 public class RubusException extends IOException {
+
+	/**
+	 * Constructs an instance of this class.
+	 * @param message the detail message containing the response type
+	 */
 	public RubusException(String message) {
 		super(message);
 	}

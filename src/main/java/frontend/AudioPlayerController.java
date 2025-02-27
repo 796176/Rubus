@@ -25,6 +25,13 @@ import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
 import java.io.ByteArrayInputStream;
 
+/**
+ * AudioPlayerController is responsible for synchronization the video and the audio playback between the {@link PlayerInterface}
+ * object and the {@link AudioPlayerInterface} object respectively. The controller keeps track of
+ * the {@link PlayerInterface}'s state and changes the state of {@link AudioPlayerInterface} accordingly.
+ * AudioPlaybackController retrieves the audio pieces to play from {@link PlayerInterface}' buffer. The client can
+ * choose the object responsible for exception handling.
+ */
 public class AudioPlayerController implements Observer {
 
 	private final AudioPlayerInterface audioPlayer;
@@ -33,6 +40,11 @@ public class AudioPlayerController implements Observer {
 
 	private ExceptionHandler handler;
 
+	/**
+	 * Constructs an instance of this class.
+	 * @param audioPlayer the audio player
+	 * @param handler an exception handler
+	 */
 	public AudioPlayerController(AudioPlayerInterface audioPlayer, ExceptionHandler handler) {
 		assert audioPlayer != null;
 
@@ -40,6 +52,10 @@ public class AudioPlayerController implements Observer {
 		this.audioPlayer = audioPlayer;
 	}
 
+	/**
+	 * Constructs an instance of this class without an exception handler.
+	 * @param audioPlayer the audio player
+	 */
 	public AudioPlayerController(AudioPlayerInterface audioPlayer) {
 		this(audioPlayer, null);
 	}
@@ -72,10 +88,24 @@ public class AudioPlayerController implements Observer {
 		}
 	}
 
+	/**
+	 * Returns the current exception handler.<br><br>
+	 *
+	 * The passed exceptions:
+	 *     {@link AudioDecodingException} if the controller failed to decode an audio piece
+	 * @return the current exception handler
+	 */
 	public ExceptionHandler getExceptionHandler() {
 		return handler;
 	}
 
+	/**
+	 * Sets a new exception handler.<br><br>
+	 *
+	 * The passed exceptions:
+	 *     {@link AudioDecodingException} if the controller failed to decode an audio piece
+	 * @param handler a new exception handler
+	 */
 	public void setExceptionHandler(ExceptionHandler handler) {
 		this.handler = handler;
 	}

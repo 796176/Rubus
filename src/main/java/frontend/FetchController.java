@@ -27,6 +27,12 @@ import common.net.response.body.FetchedPieces;
 
 import java.util.Arrays;
 
+/**
+ * FetchController is responsible for retrieving video and audio from the server and passing them to the video player.
+ * It determines what pieces to fetch based on the player's state; how many pieces and how frequently do so based on its
+ * internal configuration. The client can set how many pieces the controller has to fetch before starting playing
+ * the video, or the object that handles the network exceptions.
+ */
 public class FetchController implements Observer {
 
 	private RubusSocket socket;
@@ -41,6 +47,11 @@ public class FetchController implements Observer {
 
 	private ExceptionHandler handler = null;
 
+	/**
+	 * Constructs an instance of this class.
+	 * @param rubusSocket a network socket
+	 * @param playbackId a media id
+	 */
 	public FetchController(RubusSocket rubusSocket, String playbackId) {
 		assert rubusSocket != null && playbackId != null;
 
@@ -71,40 +82,80 @@ public class FetchController implements Observer {
 		}
 	}
 
+	/**
+	 * Sets a new socket.
+	 * @param rubusSocket a new socket
+	 */
 	public void setSocket(RubusSocket rubusSocket) {
 		assert rubusSocket != null;
 
 		socket = rubusSocket;
 	}
 
+	/**
+	 * Returns the current socket.
+	 * @return the current socket
+	 */
 	public RubusSocket getSocket() {
 		return socket;
 	}
 
+	/**
+	 * Sets a new media id.
+	 * @param playbackId a new media id
+	 */
 	public void setPlaybackId(String playbackId) {
 		assert playbackId != null;
 
 		id = playbackId;
 	}
 
+	/**
+	 * Returns the current media id.
+	 * @return the current media id
+	 */
 	public String getPlaybackId() {
 		return id;
 	}
 
+	/**
+	 * Sets a new buffer size.
+	 * @param newSize a new buffer size
+	 */
 	public void setBufferSize(int newSize) {
 		assert newSize > 0;
 
 		bufferSize = newSize;
 	}
 
+	/**
+	 * Returns the current buffer size.
+	 * @return the current buffer size
+	 */
 	public int getBufferSize() {
 		return bufferSize;
 	}
 
+	/**
+	 * Returns the current exception handler.<br<br>
+	 *
+	 * The passed exceptions:
+	 *     {@link RubusException} if the response type wasn't OK
+	 *     {@link FetchingException} if fetching has failed ( e.g. due to network errors etc. )
+	 * @return the current exception handler
+	 */
 	public ExceptionHandler getExceptionHandler() {
 		return handler;
 	}
 
+	/**
+	 * Sets a new exception handler.<br><br>
+	 *
+	 * The passed exceptions:
+	 *     {@link RubusException} if the response type wasn't OK
+	 *     {@link FetchingException} if fetching has failed ( e.g. due to network errors etc. )
+	 * @param handler a new exception handler
+	 */
 	public void setExceptionHandler(ExceptionHandler handler) {
 		this.handler = handler;
 	}

@@ -23,10 +23,18 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
+/**
+ * MediaPool is responsible for retrieval of all available media and their meta-information.
+ */
 public class MediaPool {
 
 	private static String dbLocation = "db";
 
+	/**
+	 * Returns an array containing all available media and their meta-information.
+	 * @return an array containing all available media and their meta-information
+	 * @throws IOException if some I/O error occurs
+	 */
 	public static Media[] availableMedia() throws IOException {
 		return Files.readAllLines(Path.of(getDBLocation())).stream().map(line -> {
 			String[] parameters = line.split("\u001e");
@@ -45,10 +53,22 @@ public class MediaPool {
 		}).toArray(Media[]::new);
 	}
 
+	/**
+	 * Same as {@link #availableMedia()} but potentially perform the retrieval faster because some information will be
+	 * retrieved dynamically.
+	 * @return an array containing all available media
+	 * @throws IOException if some I/O error occurs
+	 */
 	public static Media[] availableMediaFast() throws IOException {
 		return availableMedia();
 	}
 
+	/**
+	 * Returns the meta-information about the specified media.
+	 * @param mediaId the id of the media
+	 * @return the meta-information
+	 * @throws IOException if some I/O occurs
+	 */
 	public static Media getMedia(String mediaId) throws IOException {
 		for (Media media: availableMedia()) {
 			if (media.getID().equals(mediaId)) {
@@ -58,10 +78,18 @@ public class MediaPool {
 		return null;
 	}
 
+	/**
+	 * Returns the location to the file that stores the information about media.
+	 * @return the location to the file that stores the information about media
+	 */
 	public static String getDBLocation() {
 		return dbLocation;
 	}
 
+	/**
+	 * Sets a new location to the file containing the information about media.
+	 * @param newDBLocation a new location to the file containing the information about media
+	 */
 	public static void setDBLocation(String newDBLocation) {
 		assert newDBLocation != null;
 

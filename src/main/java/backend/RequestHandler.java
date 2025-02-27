@@ -37,6 +37,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.function.Consumer;
 
+/**
+ * RequestHandler is responsible for handling clients' requests and sending appropriate responses. It also detects
+ * if the client closed its session, but it doesn't close the socket on its on and instead allows the caller to handle
+ * it. If RequestHandler didn't receive a client's request it assumes that the client decided to keep the connection.
+ */
 public class RequestHandler implements Runnable {
 
 	private final RubusSocket socket;
@@ -45,6 +50,12 @@ public class RequestHandler implements Runnable {
 
 	private final Consumer<RubusSocket> closeConnection;
 
+	/**
+	 * Creates a new instance of this class.
+	 * @param socket socket the request of which needs to be handled
+	 * @param keepConnection calls if the client kept the connection
+	 * @param closeConnection calls if the client closed the connection
+	 */
 	public RequestHandler(RubusSocket socket, Consumer<RubusSocket> keepConnection, Consumer<RubusSocket> closeConnection) {
 		assert socket != null;
 

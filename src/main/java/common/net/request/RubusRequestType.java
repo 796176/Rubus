@@ -19,6 +19,23 @@
 
 package common.net.request;
 
+/**
+ * Every request message needs to be one of the following types.
+ */
 public enum RubusRequestType {
-	LIST, INFO, FETCH
+
+	/**
+	 * The LIST type requests the list of media available on the server.
+	 */
+	LIST,
+
+	/**
+	 * The INFO type requests the meta-information of the specified media.
+	 */
+	INFO,
+
+	/**
+	 * The FETCH type requests a range of playback pieces of the specified media.
+	 */
+	FETCH
 }

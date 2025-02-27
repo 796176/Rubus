@@ -25,26 +25,49 @@ import java.io.EOFException;
 import java.io.IOException;
 import java.util.Arrays;
 
+/**
+ * RubusClient is an auxiliary class designed to simplify sending rubus requests and receiving rubus responses.
+ */
 public class RubusClient {
 
 	private RubusSocket socket;
 
+	/**
+	 * Constructs this class using a network socket.
+	 * @param rubusSocket a network socket
+	 */
 	public RubusClient(RubusSocket rubusSocket) {
 		assert rubusSocket != null;
 
 		socket = rubusSocket;
 	}
 
+	/**
+	 * Sets a new socket.
+	 * @param rubusSocket a new socket
+	 */
 	public void setSocket(RubusSocket rubusSocket) {
 		assert rubusSocket != null;
 
 		socket = rubusSocket;
 	}
 
+	/**
+	 * Returns the current socket.
+	 * @return the current socket
+	 */
 	public RubusSocket getSocket() {
 		return socket;
 	}
 
+	/**
+	 * Sends the request and waits to receive the server response. If the sending or the receiving is not done withing
+	 * the specified time exits by throwing an exception.
+	 * @param request a request to send
+	 * @param timeout a timeout
+	 * @return a server response
+	 * @throws IOException if some I/O error occur
+	 */
 	public RubusResponse send(RubusRequest request, long timeout) throws IOException {
 		assert request != null && timeout > 0;
 

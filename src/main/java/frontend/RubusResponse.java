@@ -28,6 +28,9 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 
+/**
+ * RubusResponse is an auxiliary class designed to simplify response parsing.
+ */
 public class RubusResponse {
 
 	private final RubusResponseType responseType;
@@ -35,6 +38,10 @@ public class RubusResponse {
 	private final String responseMsg;
 	private final byte[] response;
 
+	/**
+	 * Constructs an instance of this class.
+	 * @param response a response represented as a byte array
+	 */
 	public RubusResponse(byte[] response) {
 		assert response != null;
 
@@ -49,10 +56,18 @@ public class RubusResponse {
 		bodyIndex = index + 1;
 	}
 
+	/**
+	 * Returns the response type.
+	 * @return the response type
+	 */
 	public RubusResponseType getResponseType() {
 		return responseType;
 	}
 
+	/**
+	 * Return the body part of the response to the LIST type request represented as {@link PlaybackList}.
+	 * @return a {@link PlaybackList} instance
+	 */
 	public PlaybackList LIST() {
 		String serializedObjName = responseMsg.substring(
 			responseMsg.indexOf("serialized-object ") + "serialized-object ".length(),
@@ -66,6 +81,10 @@ public class RubusResponse {
 		return null;
 	}
 
+	/**
+	 * Return the body part of the response to the INFO type request represented as {@link PlaybackInfo}.
+	 * @return a {@link PlaybackInfo} instance
+	 */
 	public PlaybackInfo INFO() {
 		String serializedObjName = responseMsg.substring(
 			responseMsg.indexOf("serialized-object ") + "serialized-object ".length(),
@@ -79,6 +98,10 @@ public class RubusResponse {
 		return null;
 	}
 
+	/**
+	 * Return the body part of the response to the FETCH type request represented as {@link FetchedPieces}.
+	 * @return a {@link FetchedPieces} instance
+	 */
 	public FetchedPieces FETCH() {
 		String serializedObjName = responseMsg.substring(
 			responseMsg.indexOf("serialized-object ") + "serialized-object ".length(),

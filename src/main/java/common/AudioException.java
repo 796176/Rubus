@@ -19,7 +19,15 @@
 
 package common;
 
+/**
+ * The exception is thrown when an audio file couldn't be processed because of various reasons.
+ */
 public class AudioException extends RuntimeException {
+
+	/**
+	 * Constructs an instance of this class.
+	 * @param message the detailed message
+	 */
 	public AudioException(String message) {
 		super(message);
 	}

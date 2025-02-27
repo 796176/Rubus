@@ -19,7 +19,15 @@
 
 package common;
 
+/**
+ * The exception is thrown when a video decoder class failed to decode the required video file.
+ */
 public class DecodingException extends RuntimeException {
+
+	/**
+	 * Constructs an instance of this class.
+	 * @param message the detail message
+	 */
 	public DecodingException(String message) {
 		super(message);
 	}

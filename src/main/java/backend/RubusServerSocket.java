@@ -23,10 +23,31 @@ import common.RubusSocket;
 
 import java.io.IOException;
 
+/**
+ * RubusServerSocket is an interface to establish a connection between a server and a client so that the server can
+ * use a {@link RubusSocket} instance to communicate with the client.<br><br>
+ * The instance can be indirectly created via {@link common.RubusSockets}; for that reason all concrete implementations
+ * must have a public constructor with int as a listening port parameter.
+ */
 public interface RubusServerSocket {
+
+	/**
+	 * Blocks until the connection is established.
+	 * @return a new socket
+	 * @throws IOException if some I/O error occurs
+	 */
 	RubusSocket accept() throws IOException;
 
+	/**
+	 * Waits specified time and if the connection isn't established throws an exception.
+	 * @param timeout the timeout in milliseconds
+	 * @return a new socket
+	 * @throws IOException is some I/O error occurs
+	 */
 	RubusSocket accept(long timeout) throws IOException;
 
+	/**
+	 * Releases the associated resources.
+	 */
 	void close();
 }

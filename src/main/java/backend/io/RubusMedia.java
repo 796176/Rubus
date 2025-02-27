@@ -25,6 +25,9 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
+/**
+ * A class-container to store the information about the media.
+ */
 public class RubusMedia implements Media {
 	private final String id;
 	private final String title;
@@ -37,6 +40,19 @@ public class RubusMedia implements Media {
 	private final String audioCodec;
 	private final Path contentPath;
 
+	/**
+	 * Constructs an instance of this class.
+	 * @param id the media id
+	 * @param title the title
+	 * @param duration the duration
+	 * @param videoWidth the video width in pixels
+	 * @param videoHeight the video height in pixels
+	 * @param videoContainer the video container
+	 * @param audioContainer the audio container
+	 * @param videoCodec the video codec
+	 * @param audioCodec the audio codec
+	 * @param contentPath the location to a directory where media pieces are stored in
+	 */
 	public RubusMedia(
 		String id,
 		String title,

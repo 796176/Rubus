@@ -21,20 +21,61 @@ package frontend;
 
 import java.util.concurrent.ConcurrentLinkedQueue;
 
+/**
+ * AudioPlayerInterface allows the client to control an audio player. The audio player contains a buffer containing
+ * PCM encoded ( raw ) audio pieces each 1 second long. If the audio player isn't paused an audio piece gets polled
+ * from the buffer and played. This process repeats until the buffer isn't empty. The client can choose what object
+ * handles the playback related exceptions.
+ */
 public interface AudioPlayerInterface {
+
+	/**
+	 * The buffer containing the audio pieces. The changes made by the client are visible to this audio player.
+	 * @return the buffer containing the audio pieces
+	 */
 	ConcurrentLinkedQueue<byte[]> getBuffer();
 
+	/**
+	 * Pauses the audio playback.
+	 */
 	void pause();
 
+	/**
+	 * Resumes the audio playback.
+	 */
 	void resume();
 
+	/**
+	 * Returns true if the audio playback is paused, false otherwise.
+	 * @return true if the audio playback is paused, false otherwise
+	 */
 	boolean isPaused();
 
+	/**
+	 * Returns the current exception handler.<br<br>
+	 *
+	 * The passed exceptions:
+	 *     {@link common.AudioException} if the audio can't be played ( e.g. the audio sinks aren't available etc.)
+	 * @return the current exception handler
+	 */
 	ExceptionHandler getExceptionHandler();
 
+	/**
+	 * Sets a new exception handler<br><br>
+	 *
+	 * The passed exceptions:
+	 *     {@link common.AudioException} if the audio can't be played ( e.g. the audio sinks aren't available etc.)
+	 * @param handler a new exception handler
+	 */
 	void setExceptionHandler(ExceptionHandler handler);
 
+	/**
+	 * Purges the currently playing and in the buffer audio pieces.
+	 */
 	void purge();
 
+	/**
+	 * Releases the associated resources and purges this audio player.
+	 */
 	void terminate();
 }

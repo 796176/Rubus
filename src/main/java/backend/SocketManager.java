@@ -24,6 +24,10 @@ import common.RubusSocket;
 import java.io.IOException;
 import java.util.concurrent.*;
 
+/**
+ * SocketManager keeps track of opened connections. It responsible for order in which connections are treated, closing
+ * them or keeping them opened.
+ */
 public class SocketManager extends Thread {
 
 	private final ConcurrentLinkedQueue<RubusSocket> sockets = new ConcurrentLinkedQueue<>();
@@ -56,12 +60,22 @@ public class SocketManager extends Thread {
 		}
 	}
 
+	/**
+	 * Constructs this class using the fixed amount of threads and starts the connection management process in
+	 * a different thread.
+	 * @param poolSize the number of how many connections can be treated simultaneously
+	 * @return an constructed instance
+	 */
 	public static SocketManager newSocketManager(int poolSize) {
 		SocketManager socketManager = new SocketManager(poolSize);
 		socketManager.start();
 		return socketManager;
 	}
 
+	/**
+	 * Adds an opened connection to further proceeds its requests.
+	 * @param socket an opened connection
+	 */
 	public void add(RubusSocket socket) {
 		assert socket != null;
 
@@ -72,6 +86,9 @@ public class SocketManager extends Thread {
 		}
 	}
 
+	/**
+	 * Terminate the connection management process and closes all the connections.
+	 */
 	public void terminate() {
 		isTerminated = true;
 		if (sockets.isEmpty()) synchronized (sockets) { sockets.notify(); }
@@ -84,6 +101,10 @@ public class SocketManager extends Thread {
 		} catch (InterruptedException | IOException ignored) {}
 	}
 
+	/**
+	 * Returns the number of currently opened connections.
+	 * @return the number of currently opened connections
+	 */
 	public int getActiveConnections() {
 		return activeConnections;
 	}

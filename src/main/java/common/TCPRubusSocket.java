@@ -23,6 +23,10 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.Socket;
 
+/**
+ * TCPRubusSocket is a concrete implementation of the {@link RubusSockets} interface. It uses TCP as its transport
+ * protocol, so it guarantees that the sent packets arrive and do so in the same order they were sent.
+ */
 public class TCPRubusSocket implements RubusSocket{
 
 	long openedTime;
@@ -32,6 +36,13 @@ public class TCPRubusSocket implements RubusSocket{
 
 	private final Socket underlyingSocket;
 	private final int defaultTimeout;
+
+	/**
+	 * Construct an instance of this class.
+	 * @param inetAddress a server address
+	 * @param port a server port
+	 * @throws IOException if some I/O error occurs
+	 */
 	public TCPRubusSocket(InetAddress inetAddress, int port) throws IOException {
 		assert inetAddress != null;
 
@@ -40,6 +51,12 @@ public class TCPRubusSocket implements RubusSocket{
 		defaultTimeout = underlyingSocket.getSoTimeout();
 	}
 
+	/**
+	 * Constructs an instance of this class.
+	 * @param socket an opened socket
+	 * @param openedTime the time the connection was established
+	 * @throws IOException if some I/O error occurs
+	 */
 	public TCPRubusSocket(Socket socket, long openedTime) throws IOException {
 		assert socket != null;
 

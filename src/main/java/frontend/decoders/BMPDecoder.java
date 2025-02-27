@@ -29,6 +29,13 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * This class is a temporary workaround ( i don't know how implement proper hardware decoding ) transcoding a video into
+ * frames represented by bmp images, that are stored in the temporary directory. The transcoding is backed by ffmpeg
+ * meaning it supports a variety of codecs and containers. The transcoding is obviously happens in a separate thread and
+ * the time to transcode depends on the original video quality and the cpu performance. In other words, it's recommended
+ * to have two decoders to run simultaneously to provide seamless video decoding.
+ */
 public class BMPDecoder implements Runnable {
 
 	private final Path dir;
@@ -47,6 +54,15 @@ public class BMPDecoder implements Runnable {
 
 	private String ffmpegLocation = "";
 
+	/**
+	 * Constructs an instance of this class.
+	 * @param containerFormat the video container
+	 * @param reversed if true stores frames in rubus/a, false stores rames in rubus/b
+	 * @param video the video piece
+	 * @param handler an exception handler
+	 * @param startImmediately true if to start decoding after this class is created
+	 * @throws DecodingException if decoding exception occurs
+	 */
 	public BMPDecoder(
 		String containerFormat, boolean reversed, byte[] video, ExceptionHandler handler, boolean startImmediately
 	) throws DecodingException {
@@ -68,16 +84,35 @@ public class BMPDecoder implements Runnable {
 		}
 	}
 
+	/**
+	 * Constructs an instance of this class and immediately starts the decoding.
+	 * @param containerFormat the video container
+	 * @param reversed if true stores frames in rubus/a, false stores rames in rubus/b
+	 * @param video the video piece
+	 * @param handler an exception handler
+	 * @throws DecodingException if decoding exception occurs
+	 */
 	public BMPDecoder(
 		String containerFormat, boolean reversed, byte[] video, ExceptionHandler handler
 	) throws DecodingException {
 		this(containerFormat, reversed, video, handler, true);
 	}
 
+	/**
+	 * Constructs an instance of this class without an exception handler and immediately starts the decoding.
+	 * @param containerFormat the video container
+	 * @param reversed if true stores frames in rubus/a, false stores rames in rubus/b
+	 * @param video the video piece
+	 * @throws DecodingException if decoding exception occurs
+	 */
 	public BMPDecoder(String containerFormat, boolean reversed, byte[] video) throws DecodingException {
 		this(containerFormat, reversed, video, null);
 	}
 
+	/**
+	 * Returns true if the directory is reversed, otherwise false.
+	 * @return true if the directory is reversed, otherwise false
+	 */
 	public boolean isReversed() {
 		return reversed;
 	}
@@ -135,10 +170,20 @@ public class BMPDecoder implements Runnable {
 		}
 	}
 
+	/**
+	 * Returns true if decoding is done.
+	 * @return true if decoding is done
+	 */
 	public boolean isDone() {
 		return !thread.isAlive();
 	}
 
+	/**
+	 * Returns a frame from the encoded video.
+	 * @param index the index of the frame
+	 * @return an Image instance
+	 * @throws DecodingException if decoding exception occurs
+	 */
 	public Image getFrame(int index) throws DecodingException {
 		try {
 			return ImageIO.read(Path.of(dir.toString(), "frame" + (index + 1) + ".bmp").toFile());
@@ -147,24 +192,44 @@ public class BMPDecoder implements Runnable {
 		}
 	}
 
+	/**
+	 * Returns the number of frames in the encoded video.
+	 * @return the number of frames in the encoded video
+	 */
 	public int getTotalFrames() {
 		return totalFrames;
 	}
 
+	/**
+	 * Returns the frame-pace in seconds.
+	 * @return the frame-pace in seconds
+	 */
 	public double framePace() {
 		return 1D / getTotalFrames();
 	}
 
+	/**
+	 * Returns the frame-pace in nanoseconds.
+	 * @return the frame-pace in nanoseconds
+	 */
 	public int framePaceNs() {
 		return 1_000_000_000 / getTotalFrames();
 	}
 
+	/**
+	 * Sets the location to ffmpeg.
+	 * @param loc the location to ffmpeg
+	 */
 	public void setFfmpegLocation(String loc) {
 		assert loc != null;
 		if (loc.isEmpty() || loc.endsWith(File.separator)) ffmpegLocation = loc;
 		else ffmpegLocation = ffmpegLocation + File.separator;
 	}
 
+	/**
+	 * Returns the current location to ffmpeg.
+	 * @return the current location to ffmpeg
+	 */
 	public String getFfmpegLocation() {
 		return ffmpegLocation;
 	}
@@ -173,10 +238,24 @@ public class BMPDecoder implements Runnable {
 		thread.start();
 	}
 
+	/**
+	 * Returns the current exception handler.<br><br>
+	 *
+	 * The passed exception:
+	 *     {@link DecodingException} if decoding failed
+	 * @return the current exception handler
+	 */
 	public ExceptionHandler getExceptionHandler() {
 		return handler;
 	}
 
+	/**
+	 * Sets a new exception handler.<br><br>
+	 *
+	 * The passed exception:
+	 *     {@link DecodingException} if decoding failed
+	 * @param handler a new exception handler
+	 */
 	public void setExceptionHandler(ExceptionHandler handler) {
 		this.handler = handler;
 	}

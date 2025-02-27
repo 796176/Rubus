@@ -19,7 +19,15 @@
 
 package common;
 
+/**
+ * The exception is thrown by {@link frontend.AudioPlayerController} when it failed to decode an audio file.
+ */
 public class AudioDecodingException extends RuntimeException {
+
+	/**
+	 * Constructs an instance of this class.
+	 * @param message the detail message
+	 */
 	public AudioDecodingException(String message) {
 		super(message);
 	}

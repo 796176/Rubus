@@ -26,11 +26,21 @@ import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.net.InetAddress;
 
+/**
+ * RubusSockets contains static methods related to {@link RubusSockets}.
+ */
 public class RubusSockets {
 	private static Class<? extends RubusSocket> rubusSocketClass = TCPRubusSocket.class;
 
 	private static Class<? extends RubusServerSocket> rubusServerSocketClass = TCPRubusServerSocket.class;
 
+	/**
+	 * Constructs an instance of RubusSocket using the specified server address and port.
+	 * @param inetAddress a server address
+	 * @param port a server port
+	 * @return an instance of RubusSocket
+	 * @throws IOException if an {@link InvocationTargetException} exception occurs
+	 */
 	public static RubusSocket getRubusSocket(InetAddress inetAddress, int port) throws IOException {
 		try {
 			return rubusSocketClass.getConstructor(InetAddress.class, int.class).newInstance(inetAddress, port);
@@ -43,6 +53,12 @@ public class RubusSockets {
 		}
 	}
 
+	/**
+	 * Constructs an instance of RubusServerSocket using the specified listening port.
+	 * @param port the listening port
+	 * @return an instance of RubusServerSocket
+	 * @throws IOException if an {@link InvocationTargetException} exception occurs
+	 */
 	public static RubusServerSocket getRubusServerSocket(int port) throws IOException {
 		try {
 			return rubusServerSocketClass.getConstructor(int.class).newInstance(port);
@@ -55,10 +71,18 @@ public class RubusSockets {
 		}
 	}
 
+	/**
+	 * Sets the concrete implementation that needs to be constructed by {@link #getRubusSocket(InetAddress, int)}
+	 * @param rubusSocketClass the class of a concrete implementation of RubusServer
+	 */
 	public static void setRubusSocketClass(Class<? extends RubusSocket> rubusSocketClass) {
 		RubusSockets.rubusSocketClass = rubusSocketClass;
 	}
 
+	/**
+	 * Sets the concrete implementation that needs to be constructed by {@link #getRubusServerSocket(int)}
+	 * @param rubusServerSocketClass the class of a concrete implementation of RubusServerSocket
+	 */
 	public static void setRubusServerSocketClass(Class<? extends RubusServerSocket> rubusServerSocketClass) {
 		RubusSockets.rubusServerSocketClass = rubusServerSocketClass;
 	}

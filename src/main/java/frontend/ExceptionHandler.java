@@ -19,6 +19,15 @@
 
 package frontend;
 
+/**
+ * ExceptionHandler is used when the caller isn't necessary responsible for handling callee's exceptions. This is
+ * a handler participant of the Handler pattern.
+ */
 public interface ExceptionHandler {
+
+	/**
+	 * Handles the passed exception.
+	 * @param e an exception to handle
+	 */
 	void handleException(Exception e);
 }

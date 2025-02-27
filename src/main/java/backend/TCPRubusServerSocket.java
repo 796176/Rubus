@@ -25,12 +25,21 @@ import common.TCPRubusSocket;
 import java.io.IOException;
 import java.net.ServerSocket;
 
+/**
+ * TCPRubusServerSocket is an implementation of {@link RubusServerSocket} that establishes TCP connections between
+ * a server and a client and returns instances of {@link TCPRubusSocket} after the connection is established.
+ */
 public class TCPRubusServerSocket implements RubusServerSocket {
 
 	private final ServerSocket serverSocket;
 
 	private final int defaultTimeout;
 
+	/**
+	 * Constructs an instance of this class.
+	 * @param port the listening port
+	 * @throws IOException if some I/O error occurs
+	 */
 	public TCPRubusServerSocket(int port) throws IOException {
 		serverSocket = new ServerSocket(port);
 		defaultTimeout = serverSocket.getSoTimeout();

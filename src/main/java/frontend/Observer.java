@@ -19,6 +19,14 @@
 
 package frontend;
 
+/**
+ * An observer participant of the Observer pattern.
+ */
 public interface Observer {
+
+	/**
+	 * Called by subject notify the change of the state.
+	 * @param s a subject whose state has changed
+	 */
 	void update(Subject s);
 }

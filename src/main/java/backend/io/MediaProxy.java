@@ -23,12 +23,21 @@ import common.net.response.body.PlaybackInfo;
 
 import java.io.IOException;
 
+/**
+ * MediaProxy is an abstract class to access the media information. Only the media id is stored locally; access to
+ * the rest of the information is delegated to the subject.
+ * It's a proxy participant of the proxy pattern.
+ */
 public abstract class MediaProxy implements Media {
 
 	private final String id;
 
 	private Media subject = null;
 
+	/**
+	 * Invoked by the subclasses.
+	 * @param mediaID the media id
+	 */
 	public MediaProxy(String mediaID) {
 		assert mediaID != null;
 

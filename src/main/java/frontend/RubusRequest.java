@@ -24,7 +24,14 @@ import common.net.request.RubusRequestType;
 import java.util.Arrays;
 import java.util.NoSuchElementException;
 
+/**
+ * RubusRequest is an auxiliary class designed to simplify the construction of rubus requests.
+ */
 public class RubusRequest {
+
+	/**
+	 * RubusRequest.Builder provide an interface to construct a new request.
+	 */
 	public static class Builder {
 		private Builder() {}
 
@@ -34,27 +41,48 @@ public class RubusRequest {
 
 		private String[] params = null;
 
+		/**
+		 * Constructs the LIST type request.
+		 * @return the current builder
+		 */
 		public Builder LIST() {
 			requestType = RubusRequestType.LIST;
 			return this;
 		}
 
+		/**
+		 * Constructs the INFO type request.
+		 * @return the current builder
+		 */
 		public Builder INFO() {
 			requestType = RubusRequestType.INFO;
 			return this;
 		}
 
+		/**
+		 * Constructs the FETCH type request.
+		 * @return the current builder
+		 */
 		public Builder FETCH() {
 			requestType = RubusRequestType.FETCH;
 			return this;
 		}
 
-
+		/**
+		 * Adds parameters to the request.
+		 * @param params extra parameters
+		 * @return the current builder
+		 */
 		public Builder params(String... params) {
 			this.params = params;
 			return this;
 		}
 
+		/**
+		 * Builds the request using the set type and parameters
+		 * @return a RubusRequest instance
+		 * @throws IllegalStateException if parameters are not acceptable
+		 */
 		public RubusRequest build() throws IllegalStateException {
 			StringBuilder stringBuilder = new StringBuilder();
 			stringBuilder.append("request-type ").append(requestType).append('\n');
@@ -122,10 +150,18 @@ public class RubusRequest {
 		this.request = request;
 	}
 
+	/**
+	 * Constructs a new RubusRequest.Builder.
+	 * @return a Builder instance
+	 */
 	public static RubusRequest.Builder newBuilder() {
 		return new Builder();
 	}
 
+	/**
+	 * Returns the built request represented as a byte array.
+	 * @return the built request represented as a byte array
+	 */
 	public byte[] getBytes() {
 		return request;
 	}

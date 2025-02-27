@@ -21,13 +21,31 @@ package frontend;
 
 import java.util.ArrayList;
 
+/**
+ * A subject participant of the Observer pattern.
+ */
 public interface Subject {
 
+	/**
+	 * Adds an observer to this subject.
+	 * @param o a new observer
+	 */
 	void attach(Observer o);
 
+	/**
+	 * Removes an observer from this subject
+	 * @param o an observer
+	 */
 	void detach(Observer o);
 
+	/**
+	 * Returns an array of all the observers.
+	 * @return an array of observers
+	 */
 	Observer[] getObservers();
 
+	/**
+	 * Notifies its subject about its state change.
+	 */
 	void sendNotification();
 }

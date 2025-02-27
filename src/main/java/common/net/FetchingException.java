@@ -21,7 +21,16 @@ package common.net;
 
 import java.io.IOException;
 
+/**
+ * This exception is thrown by {@link frontend.FetchController} when it couldn't retrieve the playback pieces from
+ * the server.
+ */
 public class FetchingException extends IOException {
+
+	/**
+	 * Constructs an instance of this class.
+	 * @param message the detail message
+	 */
 	public FetchingException(String message) {
 		super(message);
 	}
