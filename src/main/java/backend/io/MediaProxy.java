@@ -121,4 +121,18 @@ public abstract class MediaProxy implements Media {
 		if (subject == null) subject = MediaPool.getMedia(getID());
 		return subject.toPlaybackInfo();
 	}
+
+	/**
+	 * Compares this MediaProxy with another object. Returns true only the other object is an instance of MediaProxy and
+	 * its media id is equal to this media id.
+	 * @param obj an object
+	 * @return true if the object is a MediaProxy and has the same id, false otherwise
+	 */
+	@Override
+	public boolean equals(Object obj) {
+		if (obj instanceof MediaProxy mediaProxy) {
+			return getID().equals(mediaProxy.getID());
+		}
+		return false;
+	}
 }

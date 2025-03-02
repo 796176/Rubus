@@ -167,4 +167,28 @@ public class RubusMedia implements Media {
 			getAudioContainer()
 		);
 	}
+
+	/**
+	 * Compares the RubusMedia with another object. Returns true only if the other object is an instance of RubusMedia
+	 * and all its field are equal to these fields.
+	 * @param obj an object
+	 * @return true if the other object is a RubusMedia and has the fields, false otherwise
+	 */
+	@Override
+	public boolean equals(Object obj) {
+		if (obj instanceof RubusMedia rubusMedia) {
+			return
+				getID().equals(rubusMedia.getID()) &&
+				getTitle().equals(rubusMedia.getTitle()) &&
+				getDuration() == rubusMedia.getDuration() &&
+				getVideoWidth() == rubusMedia.getVideoWidth() &&
+				getVideoHeight() == rubusMedia.getVideoHeight() &&
+				getVideoCodec().equals(rubusMedia.getVideoCodec()) &&
+				getAudioCodec().equals(rubusMedia.getAudioCodec()) &&
+				getVideoContainer().equals(rubusMedia.getVideoContainer()) &&
+				getAudioContainer().equals(rubusMedia.getAudioContainer()) &&
+				getContentPath().equals(rubusMedia.getContentPath());
+		}
+		return false;
+	}
 }
