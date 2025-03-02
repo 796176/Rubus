@@ -22,6 +22,7 @@ package backend.io;
 import common.net.response.body.PlaybackInfo;
 
 import java.io.IOException;
+import java.nio.file.Path;
 
 /**
  * MediaProxy is an abstract class to access the media information. Only the media id is stored locally; access to
@@ -95,6 +96,12 @@ public abstract class MediaProxy implements Media {
 	public String getAudioContainer() throws IOException {
 		if (subject == null) subject = MediaPool.getMedia(getID());
 		return subject.getAudioContainer();
+	}
+
+	@Override
+	public Path getContentPath() throws IOException {
+		if (subject == null) subject = MediaPool.getMedia(getID());
+		return subject.getContentPath();
 	}
 
 	@Override

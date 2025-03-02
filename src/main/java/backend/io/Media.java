@@ -22,6 +22,7 @@ package backend.io;
 import common.net.response.body.PlaybackInfo;
 
 import java.io.IOException;
+import java.nio.file.Path;
 
 /**
  * An interface to access the information about the media.
@@ -90,6 +91,13 @@ public interface Media {
 	 * @throws IOException if some I/O error occurs
 	 */
 	String getAudioContainer() throws IOException;
+
+	/**
+	 * Returns the location to the directory containing this media specific files.
+	 * @return the location to the directory containing this media specific files
+	 * @throws IOException if some I/O exception occurs
+	 */
+	Path getContentPath() throws IOException;
 
 	/**
 	 * Retrieve audio pieces of the specified range where each piece is represented as a byte array.

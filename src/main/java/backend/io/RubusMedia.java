@@ -125,6 +125,11 @@ public class RubusMedia implements Media {
 	}
 
 	@Override
+	public Path getContentPath() {
+		return contentPath;
+	}
+
+	@Override
 	public byte[][] fetchAudioPieces(int pieceIndex, int number) throws IOException {
 		assert pieceIndex >= 0 && number > 0 && pieceIndex + number <= getDuration();
 
