@@ -149,14 +149,7 @@ public class RequestHandler implements Runnable {
 			byte[] response = Arrays.copyOf(responseMes.toString().getBytes(), responseMes.length() + body.size());
 			System.arraycopy(body.toByteArray(), 0, response, responseMes.length(), body.size());
 			socket.write(response);
-		} catch (IndexOutOfBoundsException indexOutOfBoundsException) {
-			try {
-				String errorMsg =
-					"response-type " + RubusResponseType.BAD_PARAMETERS + "\n" +
-					"body-length 0\n\n";
-				socket.write(errorMsg.getBytes());
-			} catch (IOException ignored) {}
-		} catch (IllegalArgumentException illegalArgumentException) {
+		} catch (IndexOutOfBoundsException | IllegalArgumentException e) {
 			try {
 				String errorMsg =
 					"response-type " + RubusResponseType.BAD_REQUEST + "\n" +

@@ -31,14 +31,9 @@ public enum RubusResponseType {
 	OK,
 
 	/**
-	 * The BAD_REQUEST type specifies that the request type was not acceptable.
+	 * The BAD_REQUEST type specifies that the request message was not acceptable.
 	 */
 	BAD_REQUEST,
-
-	/**
-	 * The BAD_PARAMETER type specifies that the required parameters were missing or contained wrong values.
-	 */
-	BAD_PARAMETERS,
 
 	/**
 	 * The SERVER_ERROR type specifies that the request wasn't handled appropriately because of a server error.
