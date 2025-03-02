@@ -29,10 +29,13 @@ import java.net.Socket;
  */
 public class TCPRubusSocket implements RubusSocket{
 
-	long openedTime;
-	long closedTime;
-	long lastReceived;
-	long lastSent;
+	private final long openedTime;
+
+	private long closedTime;
+
+	private long lastReceived;
+
+	private long lastSent;
 
 	private final Socket underlyingSocket;
 	private final int defaultTimeout;
@@ -48,6 +51,8 @@ public class TCPRubusSocket implements RubusSocket{
 
 		underlyingSocket = new Socket(inetAddress, port);
 		openedTime = System.currentTimeMillis();
+		lastSent = openedTime;
+		lastReceived = openedTime;
 		defaultTimeout = underlyingSocket.getSoTimeout();
 	}
 
@@ -62,6 +67,8 @@ public class TCPRubusSocket implements RubusSocket{
 
 		underlyingSocket = socket;
 		this.openedTime = openedTime;
+		lastSent = openedTime;
+		lastReceived = openedTime;
 		defaultTimeout = socket.getSoTimeout();
 	}
 
@@ -141,21 +148,21 @@ public class TCPRubusSocket implements RubusSocket{
 
 	@Override
 	public long openedTime() {
-		return 0;
+		return openedTime;
 	}
 
 	@Override
 	public long closedTime() {
-		return 0;
+		return closedTime;
 	}
 
 	@Override
 	public long lastReceivedTime() {
-		return 0;
+		return lastReceived;
 	}
 
 	@Override
 	public long lastSentTime() {
-		return 0;
+		return lastSent;
 	}
 }
