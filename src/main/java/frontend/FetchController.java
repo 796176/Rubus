@@ -197,12 +197,7 @@ public class FetchController implements Observer {
 						Math.min(bufferSize - player.getBuffer().length, player.getVideoDuration() - localNextPieceIndex);
 					RubusRequest request = RubusRequest
 						.newBuilder()
-						.FETCH()
-						.params(
-							"id " + id,
-							"from " + localNextPieceIndex,
-							"total " + totalPieces
-						)
+						.FETCH(id, localNextPieceIndex, totalPieces)
 						.build();
 					RubusResponse response = rubusClient.send(request, Math.max(player.getBuffer().length, minPiecesToFetch) * 1000L);
 					if (response.getResponseType() != RubusResponseType.OK) {

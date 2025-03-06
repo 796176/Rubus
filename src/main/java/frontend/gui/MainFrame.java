@@ -163,10 +163,10 @@ public class MainFrame extends JFrame {
 			}
 			if (fetchSocket == null) fetchSocket = buildSocket();
 
-			RubusRequest request = RubusRequest.newBuilder().INFO().params(id).build();
+			RubusRequest request = RubusRequest.newBuilder().INFO(id).build();
 			RubusResponse response = new RubusClient(fetchSocket).send(request, 10000);
 			PlaybackInfo playbackInfo = response.INFO();
-			request = RubusRequest.newBuilder().FETCH().params("id " + id, "from 0", "length 1").build();
+			request = RubusRequest.newBuilder().FETCH(id, 0, 1).build();
 			response = new RubusClient(fetchSocket).send(request, 10000);
 			byte[] audio = response.FETCH().audio()[0];
 			AudioFormat audioFormat = AudioSystem.getAudioFileFormat(new ByteArrayInputStream(audio)).getFormat();
