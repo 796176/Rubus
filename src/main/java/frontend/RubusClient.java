@@ -20,6 +20,7 @@
 package frontend;
 
 import common.RubusSocket;
+import common.RubusSockets;
 
 import java.io.EOFException;
 import java.io.IOException;
@@ -72,43 +73,10 @@ public class RubusClient {
 		assert request != null && timeout > 0;
 
 		socket.write(request.getBytes());
-
-		int maxHeaderAllocation = 1024 * 8;
-		byte[] response = new byte[1024];
-		int emptyLineIndex;
-		int byteReadTotal = 0;
-		while ((emptyLineIndex = searchSubArray(response, "\n\n".getBytes())) == -1) {
-			if (byteReadTotal > maxHeaderAllocation) throw new IllegalArgumentException();
-			if (byteReadTotal == response.length)
-				response = Arrays.copyOf(response, response.length * 2);
-			int byteRead = socket.read(response, timeout);
-			if (byteRead == -1) throw new EOFException();
-			byteReadTotal += byteRead;
-		}
-
-		String header = new String(response, 0, emptyLineIndex + 1);
-		int bodyLen = Integer.parseInt(header.substring(
-			header.indexOf("body-length ") + "body-length ".length(),
-			header.indexOf('\n', header.indexOf("body-length "))
-		));
-
-		response = Arrays.copyOf(response, header.length() + "\n".length() + bodyLen);
-		do {
-			int remaining = response.length - byteReadTotal;
-			byteReadTotal += socket.read(response, byteReadTotal, remaining, timeout);
-		} while (byteReadTotal < response.length);
-
+		byte[] response = RubusSockets.extractMessage(socket, timeout);
 		return new RubusResponse(response);
 	}
 
-	private int searchSubArray(byte[] oArr, byte[] sArr) {
-		int sArrayByteIndex = 0;
-		for (int i = 0; i < oArr.length - sArr.length + 1; i++) {
-			if (sArrayByteIndex == sArr.length) return i - sArr.length;
-			if (oArr[i] == sArr[sArrayByteIndex]) sArrayByteIndex++;
-			else sArrayByteIndex = 0;
-		}
-		return -1;
-	}
+
 }
 
