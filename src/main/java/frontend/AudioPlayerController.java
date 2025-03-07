@@ -64,24 +64,24 @@ public class AudioPlayerController implements Observer {
 	public void update(Subject s) {
 		if (s instanceof PlayerInterface videoPlayer) {
 			try {
-				if (lastTimestamp == -1) lastTimestamp = videoPlayer.getCurrentSecond();
+				if (lastTimestamp == -1) lastTimestamp = videoPlayer.getProgress();
 
 				boolean seekingDetected =
-					lastTimestamp > videoPlayer.getCurrentSecond() ||
-					lastTimestamp + 1 < videoPlayer.getCurrentSecond();
+					lastTimestamp > videoPlayer.getProgress() ||
+					lastTimestamp + 1 < videoPlayer.getProgress();
 				if (seekingDetected) audioPlayer.purge();
 
 
 				if (videoPlayer.isPaused()) audioPlayer.pause();
 				else audioPlayer.resume();
 
-				boolean secondLapsed = lastTimestamp + 1 == videoPlayer.getCurrentSecond();
+				boolean secondLapsed = lastTimestamp + 1 == videoPlayer.getProgress();
 				if (!videoPlayer.isBuffering() && (secondLapsed || audioPlayer.getBuffer().isEmpty())) {
 					byte[] audio = videoPlayer.getPlayingPiece().audio();
 					AudioInputStream ais = AudioSystem.getAudioInputStream(new ByteArrayInputStream(audio));
 					audioPlayer.getBuffer().add(ais.readAllBytes());
 				}
-				lastTimestamp = videoPlayer.getCurrentSecond();
+				lastTimestamp = videoPlayer.getProgress();
 			} catch (Exception e) {
 				if (handler != null) handler.handleException(new AudioDecodingException(e.getMessage()));
 			}

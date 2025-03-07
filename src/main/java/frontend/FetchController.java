@@ -64,10 +64,10 @@ public class FetchController implements Observer {
 		if (s instanceof PlayerInterface pi) {
 			if (
 				bufferSize - pi.getBuffer().length >= minPiecesToFetch &&
-				pi.getVideoDuration() > pi.getCurrentSecond() + pi.getBuffer().length + 1
+				pi.getVideoDuration() > pi.getProgress() + pi.getBuffer().length + 1
 			) {
 				int nextPieceIndex =
-					pi.getCurrentSecond() + pi.getBuffer().length;
+					pi.getProgress() + pi.getBuffer().length;
 				if (pi.getPlayingPiece() != null) nextPieceIndex++;
 
 				if (backgroundFetch != null && backgroundFetch.isAlive()) {

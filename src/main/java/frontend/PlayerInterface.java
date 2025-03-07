@@ -30,7 +30,7 @@ package frontend;
  * allow to access the entire video buffer, but it's recommended to use them only to append the current buffer. It's
  * because a video player may still keep references to {@link EncodedPlaybackPiece} objects to perform, for example,
  * pre-decoding. So modifying the data of the buffer may cause no effect on the actual playing content. If it's necessary
- * to flush the current buffer and the currently playing video piece setCurrentSecond(getCurrentSecond()) may be used.
+ * to flush the current buffer and the currently playing video piece setProgress(getProgress()) may be used.
  */
 public interface PlayerInterface extends Subject {
 
@@ -54,7 +54,7 @@ public interface PlayerInterface extends Subject {
 	 * Returns the playing progress in seconds.
 	 * @return the playing progress
 	 */
-	int getCurrentSecond();
+	int getProgress();
 
 	/**
 	 * Returns the duration of the video in seconds.
@@ -78,7 +78,7 @@ public interface PlayerInterface extends Subject {
 	 * Sets the playing progress.
 	 * @param timestamp a new playing progress
 	 */
-	void setPlayingSecond(int timestamp);
+	void setProgress(int timestamp);
 
 	/**
 	 * Returns the current video buffer.

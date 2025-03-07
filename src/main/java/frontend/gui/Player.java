@@ -37,7 +37,7 @@ public class Player extends JPanel implements PlayerInterface, ExceptionHandler 
 
 	private final ArrayList<Observer> observers = new ArrayList<>();
 
-	private int currentSecond;
+	private int progress;
 
 	private EncodedPlaybackPiece[] buffer = new EncodedPlaybackPiece[0];
 
@@ -67,11 +67,11 @@ public class Player extends JPanel implements PlayerInterface, ExceptionHandler 
 
 	private boolean isBuffering = true;
 
-	public Player(int startingTimestamp, PlaybackInfo playbackInfo) {
-		assert startingTimestamp >= 0 && playbackInfo != null;
+	public Player(int initialProgress, PlaybackInfo playbackInfo) {
+		assert initialProgress >= 0 && playbackInfo != null;
 
 		pi = playbackInfo;
-		setPlayingSecond(startingTimestamp);
+		setProgress(initialProgress);
 		setBackground(Color.BLACK);
 		addMouseListener(new MouseAdapter() {
 			@Override
@@ -115,8 +115,8 @@ public class Player extends JPanel implements PlayerInterface, ExceptionHandler 
 	}
 
 	@Override
-	public int getCurrentSecond() {
-		return currentSecond;
+	public int getProgress() {
+		return progress;
 	}
 
 	@Override
@@ -135,10 +135,10 @@ public class Player extends JPanel implements PlayerInterface, ExceptionHandler 
 	}
 
 	@Override
-	public void setPlayingSecond(int timestamp) {
+	public void setProgress(int timestamp) {
 		assert timestamp <= getVideoDuration();
 
-		currentSecond = timestamp;
+		progress = timestamp;
 		frameCounter = 0;
 	}
 
@@ -246,7 +246,7 @@ public class Player extends JPanel implements PlayerInterface, ExceptionHandler 
 		g.fillRect(
 			rewindBarBorders.x,
 			rewindBarBorders.y,
-			(int) (rewindBarBorders.width * ((double) getCurrentSecond() / getVideoDuration())),
+			(int) (rewindBarBorders.width * ((double) getProgress() / getVideoDuration())),
 			rewindBarBorders.height
 		);
 	}
@@ -267,12 +267,12 @@ public class Player extends JPanel implements PlayerInterface, ExceptionHandler 
 			deviation = 0;
 			lastFrameTime = 0;
 			isBuffering = true;
-			int previousSecond = getCurrentSecond();
+			int previousSecond = getProgress();
 			double relativePosition =
 				(double) (me.getX() - rewindBarBorders.x) / rewindBarBorders.width;
-			setPlayingSecond((int) (relativePosition * getVideoDuration()));
-			if (getCurrentSecond() > previousSecond && getCurrentSecond() - previousSecond < getBuffer().length) {
-				int piecesToSkip = getCurrentSecond() - previousSecond;
+			setProgress((int) (relativePosition * getVideoDuration()));
+			if (getProgress() > previousSecond && getProgress() - previousSecond < getBuffer().length) {
+				int piecesToSkip = getProgress() - previousSecond;
 				if (getPlayingPiece() != null) piecesToSkip--;
 				setBuffer(Arrays.copyOfRange(
 					getBuffer(),
@@ -319,7 +319,7 @@ public class Player extends JPanel implements PlayerInterface, ExceptionHandler 
 				lastFrameTime = System.nanoTime();
 				frameCounter++;
 				if (frameCounter == currentSecondDecoder.getTotalFrames()) {
-					setPlayingSecond(getCurrentSecond() + 1);
+					setProgress(getProgress() + 1);
 					currentSecondDecoder = nextSecondDecoder;
 
 					if (getBuffer().length > 1) {

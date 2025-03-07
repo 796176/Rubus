@@ -60,7 +60,7 @@ public class DummyPlayer implements PlayerInterface, Subject {
 	}
 
 	@Override
-	public int getCurrentSecond() {
+	public int getProgress() {
 		return playbackProgress;
 	}
 
@@ -80,7 +80,7 @@ public class DummyPlayer implements PlayerInterface, Subject {
 	}
 
 	@Override
-	public void setPlayingSecond(int timestamp) {
+	public void setProgress(int timestamp) {
 		playbackProgress = timestamp;
 	}
 
