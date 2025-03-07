@@ -22,9 +22,9 @@ package common.net.response.body;
 import java.io.Serializable;
 
 /**
- * PlaybackList is a body part of the response message to the LIST type of the request. It contains an array of
+ * MediaList is a body part of the response message to the LIST type of the request. It contains an array of
  * media ids and an array of media titles.
  * @param ids an array of ids
  * @param titles an array of titles
  */
-public record PlaybackList(String[] ids, String[] titles) implements Serializable { }
+public record MediaList(String[] ids, String[] titles) implements Serializable { }

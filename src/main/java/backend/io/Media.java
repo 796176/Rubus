@@ -19,7 +19,7 @@
 
 package backend.io;
 
-import common.net.response.body.PlaybackInfo;
+import common.net.response.body.MediaInfo;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -118,9 +118,9 @@ public interface Media {
 	byte[][] fetchVideoPieces(int pieceIndex, int number) throws IOException;
 
 	/**
-	 * Convert this Meta instance into {@link PlaybackInfo}.
-	 * @return a {@link PlaybackInfo} instance
+	 * Convert this Media instance into {@link MediaInfo}.
+	 * @return a {@link MediaInfo} instance
 	 * @throws IOException if some I/O error occurs
 	 */
-	PlaybackInfo toPlaybackInfo() throws IOException;
+	MediaInfo toMediaInfo() throws IOException;
 }

@@ -22,7 +22,7 @@ package frontend.gui;
 import common.DecodingException;
 import common.net.FetchingException;
 import common.net.RubusException;
-import common.net.response.body.PlaybackInfo;
+import common.net.response.body.MediaInfo;
 import frontend.*;
 import frontend.decoders.BMPDecoder;
 
@@ -53,7 +53,7 @@ public class Player extends JPanel implements PlayerInterface, ExceptionHandler 
 
 	private Rectangle rewindBarBorders = new Rectangle();
 
-	private final PlaybackInfo pi;
+	private final MediaInfo mi;
 
 	private BMPDecoder currentSecondDecoder = null;
 
@@ -67,10 +67,10 @@ public class Player extends JPanel implements PlayerInterface, ExceptionHandler 
 
 	private boolean isBuffering = true;
 
-	public Player(int initialProgress, PlaybackInfo playbackInfo) {
-		assert initialProgress >= 0 && playbackInfo != null;
+	public Player(int initialProgress, MediaInfo mediaInfo) {
+		assert initialProgress >= 0 && mediaInfo != null;
 
-		pi = playbackInfo;
+		mi = mediaInfo;
 		setProgress(initialProgress);
 		setBackground(Color.BLACK);
 		addMouseListener(new MouseAdapter() {
@@ -121,17 +121,17 @@ public class Player extends JPanel implements PlayerInterface, ExceptionHandler 
 
 	@Override
 	public int getVideoDuration() {
-		return pi.duration();
+		return mi.duration();
 	}
 
 	@Override
 	public int getVideoWidth() {
-		return pi.videoWidth();
+		return mi.videoWidth();
 	}
 
 	@Override
 	public int getVideoHeight() {
-		return pi.videoHeight();
+		return mi.videoHeight();
 	}
 
 	@Override
@@ -296,9 +296,9 @@ public class Player extends JPanel implements PlayerInterface, ExceptionHandler 
 
 			if (currentSecondDecoder == null) {
 				playingPiece = getBuffer()[0];
-				currentSecondDecoder = new BMPDecoder(pi.videoContainer(), false, playingPiece.video(), this);
+				currentSecondDecoder = new BMPDecoder(mi.videoContainer(), false, playingPiece.video(), this);
 				if (getBuffer().length > 1)
-					nextSecondDecoder = new BMPDecoder(pi.videoContainer(), true, getBuffer()[1].video(), this);
+					nextSecondDecoder = new BMPDecoder(mi.videoContainer(), true, getBuffer()[1].video(), this);
 				setBuffer(Arrays.copyOfRange(getBuffer(), 1, getBuffer().length));
 				isBuffering = true;
 				sendNotification();
@@ -326,7 +326,7 @@ public class Player extends JPanel implements PlayerInterface, ExceptionHandler 
 						currentSecondDecoder = nextSecondDecoder;
 						nextSecondDecoder =
 							new BMPDecoder(
-								pi.videoContainer(),
+								mi.videoContainer(),
 								!currentSecondDecoder.isReversed(),
 								getBuffer()[1].video(),
 								this

@@ -26,8 +26,8 @@ import common.RubusSockets;
 import common.net.request.RubusRequestType;
 import common.net.response.RubusResponseType;
 import common.net.response.body.FetchedPieces;
-import common.net.response.body.PlaybackInfo;
-import common.net.response.body.PlaybackList;
+import common.net.response.body.MediaInfo;
+import common.net.response.body.MediaList;
 
 import java.io.ByteArrayOutputStream;
 import java.io.EOFException;
@@ -98,10 +98,10 @@ public class RequestHandler implements Runnable {
 							titles.add(m.getTitle());
 						}
 					}
-					PlaybackList playbackList = new PlaybackList(ids.toArray(new String[0]), titles.toArray(new String[0]));
-					responseMes.append("serialized-object ").append(PlaybackList.class.getName()).append('\n');
+					MediaList mediaList = new MediaList(ids.toArray(new String[0]), titles.toArray(new String[0]));
+					responseMes.append("serialized-object ").append(MediaList.class.getName()).append('\n');
 					ObjectOutputStream oos = new ObjectOutputStream(body);
-					oos.writeObject(playbackList);
+					oos.writeObject(mediaList);
 				}
 
 				case INFO -> {
@@ -110,10 +110,10 @@ public class RequestHandler implements Runnable {
 						requestMes.indexOf('\n', requestMes.indexOf("media-id "))
 					);
 					Media media = MediaPool.getMedia(mediaID);
-					PlaybackInfo playbackInfo = media.toPlaybackInfo();
-					responseMes.append("serialized-object ").append(PlaybackInfo.class.getName()).append('\n');
+					MediaInfo mediaInfo = media.toMediaInfo();
+					responseMes.append("serialized-object ").append(MediaInfo.class.getName()).append('\n');
 					ObjectOutputStream oos = new ObjectOutputStream(body);
-					oos.writeObject(playbackInfo);
+					oos.writeObject(mediaInfo);
 				}
 
 				case FETCH -> {

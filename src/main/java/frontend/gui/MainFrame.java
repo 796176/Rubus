@@ -21,7 +21,7 @@ package frontend.gui;
 
 import common.RubusSocket;
 import common.TCPRubusSocket;
-import common.net.response.body.PlaybackInfo;
+import common.net.response.body.MediaInfo;
 import frontend.*;
 
 import javax.sound.sampled.AudioFormat;
@@ -165,7 +165,7 @@ public class MainFrame extends JFrame {
 
 			RubusRequest request = RubusRequest.newBuilder().INFO(id).build();
 			RubusResponse response = new RubusClient(fetchSocket).send(request, 10000);
-			PlaybackInfo playbackInfo = response.INFO();
+			MediaInfo mediaInfo = response.INFO();
 			request = RubusRequest.newBuilder().FETCH(id, 0, 1).build();
 			response = new RubusClient(fetchSocket).send(request, 10000);
 			byte[] audio = response.FETCH().audio()[0];
@@ -174,7 +174,7 @@ public class MainFrame extends JFrame {
 			fetchController = new FetchController(fetchSocket, id);
 			audioPlayer = new AudioPlayer(audioFormat);
 			audioController = new AudioPlayerController(audioPlayer);
-			player = new Player(0, playbackInfo);
+			player = new Player(0, mediaInfo);
 			player.attach(fetchController);
 			player.attach(audioController);
 			player.sendNotification();

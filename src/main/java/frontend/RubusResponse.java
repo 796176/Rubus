@@ -21,8 +21,8 @@ package frontend;
 
 import common.net.response.RubusResponseType;
 import common.net.response.body.FetchedPieces;
-import common.net.response.body.PlaybackInfo;
-import common.net.response.body.PlaybackList;
+import common.net.response.body.MediaInfo;
+import common.net.response.body.MediaList;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -65,34 +65,34 @@ public class RubusResponse {
 	}
 
 	/**
-	 * Return the body part of the response to the LIST type request represented as {@link PlaybackList}.
-	 * @return a {@link PlaybackList} instance
+	 * Return the body part of the response to the LIST type request represented as {@link MediaList}.
+	 * @return a {@link MediaList} instance
 	 */
-	public PlaybackList LIST() {
+	public MediaList LIST() {
 		String serializedObjName = responseMsg.substring(
 			responseMsg.indexOf("serialized-object ") + "serialized-object ".length(),
 			responseMsg.indexOf('\n', responseMsg.indexOf("serialized-object "))
 		);
-		if (serializedObjName.equals(PlaybackList.class.getName())) {
+		if (serializedObjName.equals(MediaList.class.getName())) {
 			try {
-				return (PlaybackList) new ObjectInputStream(new ByteArrayInputStream(response, bodyIndex, response.length - bodyIndex)).readObject();
+				return (MediaList) new ObjectInputStream(new ByteArrayInputStream(response, bodyIndex, response.length - bodyIndex)).readObject();
 			} catch (IOException | ClassNotFoundException ignored) {}
 		}
 		return null;
 	}
 
 	/**
-	 * Return the body part of the response to the INFO type request represented as {@link PlaybackInfo}.
-	 * @return a {@link PlaybackInfo} instance
+	 * Return the body part of the response to the INFO type request represented as {@link MediaInfo}.
+	 * @return a {@link MediaInfo} instance
 	 */
-	public PlaybackInfo INFO() {
+	public MediaInfo INFO() {
 		String serializedObjName = responseMsg.substring(
 			responseMsg.indexOf("serialized-object ") + "serialized-object ".length(),
 			responseMsg.indexOf('\n', responseMsg.indexOf("serialized-object "))
 		);
-		if (serializedObjName.equals(PlaybackInfo.class.getName())) {
+		if (serializedObjName.equals(MediaInfo.class.getName())) {
 			try {
-				return (PlaybackInfo) new ObjectInputStream(new ByteArrayInputStream(response, bodyIndex, response.length - bodyIndex)).readObject();
+				return (MediaInfo) new ObjectInputStream(new ByteArrayInputStream(response, bodyIndex, response.length - bodyIndex)).readObject();
 			} catch (IOException | ClassNotFoundException ignored) {}
 		}
 		return null;

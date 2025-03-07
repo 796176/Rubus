@@ -24,8 +24,8 @@ import backend.io.MediaPool;
 import common.RubusSocket;
 import common.net.response.RubusResponseType;
 import common.net.response.body.FetchedPieces;
-import common.net.response.body.PlaybackInfo;
-import common.net.response.body.PlaybackList;
+import common.net.response.body.MediaInfo;
+import common.net.response.body.MediaList;
 import org.junit.jupiter.api.*;
 
 import java.io.ByteArrayInputStream;
@@ -119,15 +119,15 @@ public class RequestHandlerTests {
 			while (++bodyIndex < responseLen && (response[bodyIndex - 2] != '\n' || response[bodyIndex - 1] != '\n'));
 
 			ByteArrayInputStream inputStream = new ByteArrayInputStream(response, bodyIndex, responseLen - bodyIndex);
-			PlaybackList pl = (PlaybackList) new ObjectInputStream(inputStream).readObject();
-			assertEquals(2, pl.ids().length, "The number of ids does not match");
-			assertEquals(2, pl.titles().length, "The number of titles does not match");
-			if (pl.ids()[0].equals("id1")) {
-				assertArrayEquals(new String[]{"id1", "id2"}, pl.ids(), "The ids are not matching");
-				assertArrayEquals(new String[]{"Title1", "Title2"}, pl.titles(), "The titles are not matching");
+			MediaList ml = (MediaList) new ObjectInputStream(inputStream).readObject();
+			assertEquals(2, ml.ids().length, "The number of ids does not match");
+			assertEquals(2, ml.titles().length, "The number of titles does not match");
+			if (ml.ids()[0].equals("id1")) {
+				assertArrayEquals(new String[]{"id1", "id2"}, ml.ids(), "The ids are not matching");
+				assertArrayEquals(new String[]{"Title1", "Title2"}, ml.titles(), "The titles are not matching");
 			} else {
-				assertArrayEquals(new String[]{"id2", "id1"}, pl.ids(), "The ids are not matching");
-				assertArrayEquals(new String[]{"Title2", "Title1"}, pl.titles(), "The titles are not matching");
+				assertArrayEquals(new String[]{"id2", "id1"}, ml.ids(), "The ids are not matching");
+				assertArrayEquals(new String[]{"Title2", "Title1"}, ml.titles(), "The titles are not matching");
 			}
 		}
 
@@ -148,18 +148,18 @@ public class RequestHandlerTests {
 			while (++bodyIndex < responseLen && (response[bodyIndex - 2] != '\n' || response[bodyIndex - 1] != '\n'));
 
 			ByteArrayInputStream inputStream = new ByteArrayInputStream(response, bodyIndex, responseLen - bodyIndex);
-			PlaybackList pl = (PlaybackList) new ObjectInputStream(inputStream).readObject();
-			assertEquals(1, pl.ids().length, "The number of ids does not match");
-			assertEquals(1, pl.titles().length, "The number of titles does not match");
-			assertEquals("id2", pl.ids()[0], "The id is different");
-			assertEquals("Title2", pl.titles()[0], "The title is different");
+			MediaList ml = (MediaList) new ObjectInputStream(inputStream).readObject();
+			assertEquals(1, ml.ids().length, "The number of ids does not match");
+			assertEquals(1, ml.titles().length, "The number of titles does not match");
+			assertEquals("id2", ml.ids()[0], "The id is different");
+			assertEquals("Title2", ml.titles()[0], "The title is different");
 		}
 	}
 
 	@Nested
 	class INFO {
 
-		PlaybackInfo mediaInfo = new PlaybackInfo(
+		MediaInfo mediaInfo = new MediaInfo(
 			"id2",
 			"Title2",
 			1280,
@@ -188,7 +188,7 @@ public class RequestHandlerTests {
 			while (++bodyIndex < responseLen && (response[bodyIndex - 2] != '\n' || response[bodyIndex - 1] != '\n'));
 
 			ByteArrayInputStream inputStream = new ByteArrayInputStream(response, bodyIndex, responseLen - bodyIndex);
-			PlaybackInfo info = (PlaybackInfo) new ObjectInputStream(inputStream).readObject();
+			MediaInfo info = (MediaInfo) new ObjectInputStream(inputStream).readObject();
 			assertEquals(mediaInfo, info);
 		}
 	}
