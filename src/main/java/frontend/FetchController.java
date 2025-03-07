@@ -50,13 +50,13 @@ public class FetchController implements Observer {
 	/**
 	 * Constructs an instance of this class.
 	 * @param rubusSocket a network socket
-	 * @param playbackId a media id
+	 * @param mediaId a media id
 	 */
-	public FetchController(RubusSocket rubusSocket, String playbackId) {
-		assert rubusSocket != null && playbackId != null;
+	public FetchController(RubusSocket rubusSocket, String mediaId) {
+		assert rubusSocket != null && mediaId != null;
 
 		setSocket(rubusSocket);
-		setPlaybackId(playbackId);
+		setMediaId(mediaId);
 	}
 
 	@Override
@@ -102,19 +102,19 @@ public class FetchController implements Observer {
 
 	/**
 	 * Sets a new media id.
-	 * @param playbackId a new media id
+	 * @param mediaId a new media id
 	 */
-	public void setPlaybackId(String playbackId) {
-		assert playbackId != null;
+	public void setMediaId(String mediaId) {
+		assert mediaId != null;
 
-		id = playbackId;
+		id = mediaId;
 	}
 
 	/**
 	 * Returns the current media id.
 	 * @return the current media id
 	 */
-	public String getPlaybackId() {
+	public String getMediaId() {
 		return id;
 	}
 
