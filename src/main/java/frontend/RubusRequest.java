@@ -21,8 +21,8 @@ package frontend;
 
 import common.net.request.RubusRequestType;
 
-import java.util.Arrays;
-import java.util.NoSuchElementException;
+import java.util.ArrayList;
+import java.util.Collections;
 
 /**
  * RubusRequest is an auxiliary class designed to simplify the construction of rubus requests.
@@ -39,42 +39,60 @@ public class RubusRequest {
 
 		private byte[] request = null;
 
-		private String[] params = null;
+		private final ArrayList<String> params = new ArrayList<>();
 
 		/**
-		 * Constructs the LIST type request.
+		 * Constructs the LIST type request with no title filter.
 		 * @return the current builder
 		 */
 		public Builder LIST() {
+			return LIST(".*");
+		}
+
+		/**
+		 * Constructs the LIST type request with the specified title filter.
+		 * @param titleContains request for titles containing the string
+		 * @return the current builder
+		 */
+		public Builder LIST(String titleContains) {
 			requestType = RubusRequestType.LIST;
+			params.add("title-contains " + titleContains);
 			return this;
 		}
 
 		/**
 		 * Constructs the INFO type request.
+		 * @param mediaId the media id
 		 * @return the current builder
 		 */
-		public Builder INFO() {
+		public Builder INFO(String mediaId) {
 			requestType = RubusRequestType.INFO;
+			params.add("media-id " + mediaId);
 			return this;
 		}
 
 		/**
 		 * Constructs the FETCH type request.
+		 * @param mediaID the media id
+		 * @param startingIndex the starting index of the playback piece
+		 * @param amount the amount of playback pieces to request
 		 * @return the current builder
 		 */
-		public Builder FETCH() {
+		public Builder FETCH(String mediaID, int startingIndex, int amount) {
 			requestType = RubusRequestType.FETCH;
+			params.add("media-id " + mediaID);
+			params.add("first-playback-piece " + startingIndex);
+			params.add("number-playback-pieces " + amount);
 			return this;
 		}
 
 		/**
 		 * Adds parameters to the request.
-		 * @param params extra parameters
+		 * @param extraParameters extra parameters
 		 * @return the current builder
 		 */
-		public Builder params(String... params) {
-			this.params = params;
+		public Builder addParameters(String... extraParameters) {
+			Collections.addAll(this.params, extraParameters);
 			return this;
 		}
 
@@ -85,58 +103,11 @@ public class RubusRequest {
 		 */
 		public RubusRequest build() throws IllegalStateException {
 			StringBuilder stringBuilder = new StringBuilder();
-			stringBuilder.append("request-type ").append(requestType).append('\n');
-			switch (requestType) {
-				case LIST -> {
-					if (params == null || params.length == 0) {
-						stringBuilder.append("title-contains .*\n");
-					} else {
-						stringBuilder.append("title-contains ").append(params[0]).append('\n');
-					}
-				}
-				case INFO -> {
-					if (params != null && params.length > 0) {
-						stringBuilder.append("media-id ").append(params[0]).append('\n');
-					} else {
-						throw new IllegalStateException("ID not specified");
-					}
-				}
-				case FETCH -> {
-					if (params != null && params.length > 1) {
-						try {
-							String stringVal1 = Arrays
-								.stream(params)
-								.filter(s -> s.toLowerCase().matches(".*(id|identifyer).* .+"))
-								.findFirst()
-								.get();
-							String stringVal2 = Arrays
-								.stream(params)
-								.filter(s -> s.toLowerCase().matches(".*(start|begin|from).* \\d+"))
-								.findFirst()
-								.get();
-							String stringVal3 = Arrays
-								.stream(params)
-								.filter(s -> s.toLowerCase().matches(".*(number|total|amount|length).* \\d+"))
-								.findFirst()
-								.get();
-							String val1 = stringVal1.substring(stringVal1.lastIndexOf(' ') + 1);
-							long val2 =
-								Long.parseLong(stringVal2.substring(stringVal2.lastIndexOf(' ') + 1));
-							long val3 =
-								Long.parseLong(stringVal3.substring(stringVal3.lastIndexOf(' ') + 1));
-							stringBuilder.append("media-id ").append(val1).append('\n');
-							stringBuilder.append("first-playback-piece ").append(val2).append('\n');
-							stringBuilder.append("number-playback-pieces ").append(val3).append('\n');
-						} catch (NoSuchElementException exception) {
-							throw new IllegalStateException(exception);
-						}
-					} else {
-						throw new IllegalStateException("Range not specified");
-					}
-				}
-				default -> throw new IllegalStateException("Request type not specified");
+			stringBuilder.append("request-type ").append(requestType);
+			for (String param: params) {
+				stringBuilder.append('\n').append(param);
 			}
-			stringBuilder.append("body-length 0\n\n");
+			stringBuilder.append("\nbody-length 0\n\n");
 			request = stringBuilder.toString().getBytes();
 			return new RubusRequest(request);
 		}

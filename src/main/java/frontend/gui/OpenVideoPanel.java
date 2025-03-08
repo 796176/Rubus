@@ -73,8 +73,9 @@ public class OpenVideoPanel extends JPanel implements Runnable {
 	@Override
 	public synchronized void run(){
 		try {
-			RubusRequest.Builder requestBuilder = RubusRequest.newBuilder().LIST();
-			if (!searchField.getText().isBlank()) requestBuilder.params(searchField.getText());
+			RubusRequest.Builder requestBuilder = RubusRequest.newBuilder();
+			if (searchField.getText().isBlank()) requestBuilder.LIST();
+			else requestBuilder.LIST(searchField.getText());
 			RubusResponse response = new RubusClient(socket).send(requestBuilder.build(), 10000);
 			PlaybackList playbackList = response.LIST();
 
