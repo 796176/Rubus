@@ -33,7 +33,7 @@ import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-public class Player extends JPanel implements PlayerInterface, Subject, ExceptionHandler {
+public class Player extends JPanel implements PlayerInterface, ExceptionHandler {
 
 	private final ArrayList<Observer> observers = new ArrayList<>();
 

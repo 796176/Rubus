@@ -32,7 +32,7 @@ package frontend;
  * pre-decoding. So modifying the data of the buffer may cause no effect on the actual playing content. If it's necessary
  * to flush the current buffer and the currently playing video piece setCurrentSecond(getCurrentSecond()) may be used.
  */
-public interface PlayerInterface {
+public interface PlayerInterface extends Subject {
 
 	/**
 	 * Pauses the video player.

@@ -213,7 +213,7 @@ public class FetchController implements Observer {
 				} while (localNextPieceIndex != getNextPieceIndex());
 				if (!isInterrupted) {
 					player.setBuffer(buffer);
-					((Subject) player).sendNotification();
+					player.sendNotification();
 				}
 			} catch (RubusException e) {
 				if (handler != null) handler.handleException(e);

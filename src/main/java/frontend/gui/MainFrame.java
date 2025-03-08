@@ -73,7 +73,7 @@ public class MainFrame extends JFrame {
 				fetchSocket = buildSocket();
 				if (fetchController != null) {
 					fetchController.setSocket(fetchSocket);
-					fetchController.update((Subject) player);
+					fetchController.update(player);
 				}
 			} catch (Exception e) {
 				JOptionPane.showMessageDialog(
@@ -155,8 +155,8 @@ public class MainFrame extends JFrame {
 	public void play(String id) {
 		try {
 			if (player != null) {
-				((Player) player).detach(fetchController);
-				((Player) player).detach(audioController);
+				player.detach(fetchController);
+				player.detach(audioController);
 				audioPlayer.terminate();
 				player.setBuffer(new EncodedPlaybackPiece[0]);
 				((Player) player).setVisible(false);
@@ -175,9 +175,9 @@ public class MainFrame extends JFrame {
 			audioPlayer = new AudioPlayer(audioFormat);
 			audioController = new AudioPlayerController(audioPlayer);
 			player = new Player(0, playbackInfo);
-			((Subject) player).attach(fetchController);
-			((Subject) player).attach(audioController);
-			((Subject) player).sendNotification();
+			player.attach(fetchController);
+			player.attach(audioController);
+			player.sendNotification();
 
 			bagLayout.setConstraints((Player) player, constraints);
 			add((Player) player);
