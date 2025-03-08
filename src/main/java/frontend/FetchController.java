@@ -50,13 +50,13 @@ public class FetchController implements Observer {
 	/**
 	 * Constructs an instance of this class.
 	 * @param rubusSocket a network socket
-	 * @param playbackId a media id
+	 * @param mediaId a media id
 	 */
-	public FetchController(RubusSocket rubusSocket, String playbackId) {
-		assert rubusSocket != null && playbackId != null;
+	public FetchController(RubusSocket rubusSocket, String mediaId) {
+		assert rubusSocket != null && mediaId != null;
 
 		setSocket(rubusSocket);
-		setPlaybackId(playbackId);
+		setMediaId(mediaId);
 	}
 
 	@Override
@@ -64,10 +64,10 @@ public class FetchController implements Observer {
 		if (s instanceof PlayerInterface pi) {
 			if (
 				bufferSize - pi.getBuffer().length >= minPiecesToFetch &&
-				pi.getVideoDuration() > pi.getCurrentSecond() + pi.getBuffer().length + 1
+				pi.getVideoDuration() > pi.getProgress() + pi.getBuffer().length + 1
 			) {
 				int nextPieceIndex =
-					pi.getCurrentSecond() + pi.getBuffer().length;
+					pi.getProgress() + pi.getBuffer().length;
 				if (pi.getPlayingPiece() != null) nextPieceIndex++;
 
 				if (backgroundFetch != null && backgroundFetch.isAlive()) {
@@ -102,19 +102,19 @@ public class FetchController implements Observer {
 
 	/**
 	 * Sets a new media id.
-	 * @param playbackId a new media id
+	 * @param mediaId a new media id
 	 */
-	public void setPlaybackId(String playbackId) {
-		assert playbackId != null;
+	public void setMediaId(String mediaId) {
+		assert mediaId != null;
 
-		id = playbackId;
+		id = mediaId;
 	}
 
 	/**
 	 * Returns the current media id.
 	 * @return the current media id
 	 */
-	public String getPlaybackId() {
+	public String getMediaId() {
 		return id;
 	}
 
@@ -197,12 +197,7 @@ public class FetchController implements Observer {
 						Math.min(bufferSize - player.getBuffer().length, player.getVideoDuration() - localNextPieceIndex);
 					RubusRequest request = RubusRequest
 						.newBuilder()
-						.FETCH()
-						.params(
-							"id " + id,
-							"from " + localNextPieceIndex,
-							"total " + totalPieces
-						)
+						.FETCH(id, localNextPieceIndex, totalPieces)
 						.build();
 					RubusResponse response = rubusClient.send(request, Math.max(player.getBuffer().length, minPiecesToFetch) * 1000L);
 					if (response.getResponseType() != RubusResponseType.OK) {
@@ -218,7 +213,7 @@ public class FetchController implements Observer {
 				} while (localNextPieceIndex != getNextPieceIndex());
 				if (!isInterrupted) {
 					player.setBuffer(buffer);
-					((Subject) player).sendNotification();
+					player.sendNotification();
 				}
 			} catch (RubusException e) {
 				if (handler != null) handler.handleException(e);

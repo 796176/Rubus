@@ -22,7 +22,7 @@ package common.net.response.body;
 import java.io.Serializable;
 
 /**
- * PlaybackInfo is a body part of the response message to the INFO type of the request. It contains the meta-information
+ * MediaInfo is a body part of the response message to the INFO type of the request. It contains the meta-information
  * of the specified media.
  * @param id the id of the media specified by the client
  * @param title the title of the media
@@ -34,7 +34,7 @@ import java.io.Serializable;
  * @param videoContainer the container of the video
  * @param audioContainer the container of the audio
  */
-public record PlaybackInfo(
+public record MediaInfo(
 	String id,
 	String title,
 	int videoWidth,

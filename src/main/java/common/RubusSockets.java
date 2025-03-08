@@ -22,9 +22,11 @@ package common;
 import backend.RubusServerSocket;
 import backend.TCPRubusServerSocket;
 
+import java.io.EOFException;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.net.InetAddress;
+import java.util.Arrays;
 
 /**
  * RubusSockets contains static methods related to {@link RubusSockets}.
@@ -86,4 +88,47 @@ public class RubusSockets {
 	public static void setRubusServerSocketClass(Class<? extends RubusServerSocket> rubusServerSocketClass) {
 		RubusSockets.rubusServerSocketClass = rubusServerSocketClass;
 	}
-}
+
+
+	public static byte[] extractMessage(RubusSocket socket, long timeout) throws IOException {
+		int maxHeaderAllocation = 1024 * 8;
+		byte[] response = new byte[1024];
+		int emptyLineIndex;
+		int byteReadTotal = 0;
+		while ((emptyLineIndex = searchSubArray(response, "\n\n".getBytes())) == -1) {
+			if (byteReadTotal > maxHeaderAllocation) throw new IllegalArgumentException();
+			if (byteReadTotal == response.length)
+				response = Arrays.copyOf(response, response.length * 2);
+			long time = System.currentTimeMillis();
+			int byteRead = socket.read(response, timeout);
+			if (timeout != 0) timeout = Math.max(timeout - time, 1);
+			if (byteRead == -1) throw new EOFException();
+			byteReadTotal += byteRead;
+		}
+
+		String header = new String(response, 0, emptyLineIndex + 1);
+		int bodyLen = Integer.parseInt(header.substring(
+			header.indexOf("body-length ") + "body-length ".length(),
+			header.indexOf('\n', header.indexOf("body-length "))
+		));
+
+		response = Arrays.copyOf(response, header.length() + "\n".length() + bodyLen);
+		do {
+			int remaining = response.length - byteReadTotal;
+			long time = System.currentTimeMillis();
+			byteReadTotal += socket.read(response, byteReadTotal, remaining, timeout);
+			if (timeout != 0) timeout = Math.max(timeout - time, 1);
+		} while (byteReadTotal < response.length);
+		return response;
+	}
+
+
+	private static int searchSubArray(byte[] oArr, byte[] sArr) {
+		int sArrayByteIndex = 0;
+		for (int i = 0; i < oArr.length - sArr.length + 1; i++) {
+			if (sArrayByteIndex == sArr.length) return i - sArr.length;
+			if (oArr[i] == sArr[sArrayByteIndex]) sArrayByteIndex++;
+			else sArrayByteIndex = 0;
+		}
+		return -1;
+	}}

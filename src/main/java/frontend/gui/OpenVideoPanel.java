@@ -20,7 +20,7 @@
 package frontend.gui;
 
 import common.RubusSocket;
-import common.net.response.body.PlaybackList;
+import common.net.response.body.MediaList;
 import frontend.RubusClient;
 import frontend.RubusRequest;
 import frontend.RubusResponse;
@@ -73,14 +73,15 @@ public class OpenVideoPanel extends JPanel implements Runnable {
 	@Override
 	public synchronized void run(){
 		try {
-			RubusRequest.Builder requestBuilder = RubusRequest.newBuilder().LIST();
-			if (!searchField.getText().isBlank()) requestBuilder.params(searchField.getText());
+			RubusRequest.Builder requestBuilder = RubusRequest.newBuilder();
+			if (searchField.getText().isBlank()) requestBuilder.LIST();
+			else requestBuilder.LIST(searchField.getText());
 			RubusResponse response = new RubusClient(socket).send(requestBuilder.build(), 10000);
-			PlaybackList playbackList = response.LIST();
+			MediaList mediaList = response.LIST();
 
-			for (int i = 0; i < playbackList.ids().length; i++) {
-				JLabel label = new JLabel(playbackList.titles()[i]);
-				label.putClientProperty("id", playbackList.ids()[i]);
+			for (int i = 0; i < mediaList.ids().length; i++) {
+				JLabel label = new JLabel(mediaList.titles()[i]);
+				label.putClientProperty("id", mediaList.ids()[i]);
 				label.addMouseListener(new MouseAdapter() {
 					@Override
 					public void mouseClicked(MouseEvent e) {

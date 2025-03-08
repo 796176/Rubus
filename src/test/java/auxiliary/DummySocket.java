@@ -103,20 +103,10 @@ public class DummySocket implements RubusSocket {
 	}
 
 	@Override
-	public void write(byte[] out, long timeout) throws IOException {
-		write(out);
-	}
-
-	@Override
 	public void write(byte[] out, int offset, int length) throws IOException {
 		if (buffer.length - occupied < length) throw new IOException("Low on memory");
 		System.arraycopy(out, offset, buffer, occupied, length);
 		occupied += length;
-	}
-
-	@Override
-	public void write(byte[] out, int offset, int length, long timeout) throws IOException {
-		write(out, offset, length);
 	}
 
 	@Override

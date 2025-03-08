@@ -22,11 +22,12 @@ package backend;
 import backend.io.Media;
 import backend.io.MediaPool;
 import common.RubusSocket;
+import common.RubusSockets;
 import common.net.request.RubusRequestType;
 import common.net.response.RubusResponseType;
 import common.net.response.body.FetchedPieces;
-import common.net.response.body.PlaybackInfo;
-import common.net.response.body.PlaybackList;
+import common.net.response.body.MediaInfo;
+import common.net.response.body.MediaList;
 
 import java.io.ByteArrayOutputStream;
 import java.io.EOFException;
@@ -69,7 +70,7 @@ public class RequestHandler implements Runnable {
 		try {
 			byte[] request;
 			try {
-				 request = retrieveRequest(socket);
+				 request = RubusSockets.extractMessage(socket,300);
 			} catch (SocketTimeoutException ignored) {
 				keepConnection.accept(socket);
 				return;
@@ -97,10 +98,10 @@ public class RequestHandler implements Runnable {
 							titles.add(m.getTitle());
 						}
 					}
-					PlaybackList playbackList = new PlaybackList(ids.toArray(new String[0]), titles.toArray(new String[0]));
-					responseMes.append("serialized-object ").append(PlaybackList.class.getName()).append('\n');
+					MediaList mediaList = new MediaList(ids.toArray(new String[0]), titles.toArray(new String[0]));
+					responseMes.append("serialized-object ").append(MediaList.class.getName()).append('\n');
 					ObjectOutputStream oos = new ObjectOutputStream(body);
-					oos.writeObject(playbackList);
+					oos.writeObject(mediaList);
 				}
 
 				case INFO -> {
@@ -109,10 +110,10 @@ public class RequestHandler implements Runnable {
 						requestMes.indexOf('\n', requestMes.indexOf("media-id "))
 					);
 					Media media = MediaPool.getMedia(mediaID);
-					PlaybackInfo playbackInfo = media.toPlaybackInfo();
-					responseMes.append("serialized-object ").append(PlaybackInfo.class.getName()).append('\n');
+					MediaInfo mediaInfo = media.toMediaInfo();
+					responseMes.append("serialized-object ").append(MediaInfo.class.getName()).append('\n');
 					ObjectOutputStream oos = new ObjectOutputStream(body);
-					oos.writeObject(playbackInfo);
+					oos.writeObject(mediaInfo);
 				}
 
 				case FETCH -> {
@@ -172,42 +173,4 @@ public class RequestHandler implements Runnable {
 		return socket;
 	}
 
-	private byte[] retrieveRequest(RubusSocket socket) throws IOException {
-		int maxHeaderAllocation = 1024 * 8;
-		byte[] request = new byte[1024];
-		int emptyLineIndex;
-		int byteReadTotal = 0;
-		while ((emptyLineIndex = searchSubArray(request, "\n\n".getBytes())) == -1) {
-			if (request.length > maxHeaderAllocation) throw new IllegalArgumentException();
-			if (byteReadTotal == request.length)
-				request = Arrays.copyOf(request, request.length * 2);
-			int byteRead = socket.read(request, byteReadTotal, request.length - byteReadTotal, 10);
-			if (byteRead == -1) throw new EOFException();
-			byteReadTotal += byteRead;
-		}
-
-		String header = new String(request, 0, emptyLineIndex + 1);
-		int bodyLen = Integer.parseInt(header.substring(
-			header.indexOf("body-length ") + "body-length ".length(),
-			header.indexOf('\n', header.indexOf("body-length "))
-		));
-
-		request = Arrays.copyOf(request, header.length() + "\n".length() + bodyLen);
-		do {
-			int remaining = request.length - byteReadTotal;
-			byteReadTotal += socket.read(request, byteReadTotal, remaining, 2000);
-		} while (byteReadTotal < request.length);
-
-		return request;
-	}
-
-	private int searchSubArray(byte[] oArr, byte[] sArr) {
-		int sArrayByteIndex = 0;
-		for (int i = 0; i < oArr.length - sArr.length + 1; i++) {
-			if (sArrayByteIndex == sArr.length) return i - sArr.length;
-			if (oArr[i] == sArr[sArrayByteIndex]) sArrayByteIndex++;
-			else sArrayByteIndex = 0;
-		}
-		return -1;
-	}
 }

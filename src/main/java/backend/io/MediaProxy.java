@@ -19,7 +19,7 @@
 
 package backend.io;
 
-import common.net.response.body.PlaybackInfo;
+import common.net.response.body.MediaInfo;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -117,9 +117,9 @@ public abstract class MediaProxy implements Media {
 	}
 
 	@Override
-	public PlaybackInfo toPlaybackInfo() throws IOException {
+	public MediaInfo toMediaInfo() throws IOException {
 		if (subject == null) subject = MediaPool.getMedia(getID());
-		return subject.toPlaybackInfo();
+		return subject.toMediaInfo();
 	}
 
 	/**

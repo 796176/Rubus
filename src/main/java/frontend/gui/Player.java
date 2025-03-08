@@ -22,7 +22,7 @@ package frontend.gui;
 import common.DecodingException;
 import common.net.FetchingException;
 import common.net.RubusException;
-import common.net.response.body.PlaybackInfo;
+import common.net.response.body.MediaInfo;
 import frontend.*;
 import frontend.decoders.BMPDecoder;
 
@@ -33,11 +33,11 @@ import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-public class Player extends JPanel implements PlayerInterface, Subject, ExceptionHandler {
+public class Player extends JPanel implements PlayerInterface, ExceptionHandler {
 
 	private final ArrayList<Observer> observers = new ArrayList<>();
 
-	private int currentSecond;
+	private int progress;
 
 	private EncodedPlaybackPiece[] buffer = new EncodedPlaybackPiece[0];
 
@@ -53,7 +53,7 @@ public class Player extends JPanel implements PlayerInterface, Subject, Exceptio
 
 	private Rectangle rewindBarBorders = new Rectangle();
 
-	private final PlaybackInfo pi;
+	private final MediaInfo mi;
 
 	private BMPDecoder currentSecondDecoder = null;
 
@@ -67,11 +67,11 @@ public class Player extends JPanel implements PlayerInterface, Subject, Exceptio
 
 	private boolean isBuffering = true;
 
-	public Player(int startingTimestamp, PlaybackInfo playbackInfo) {
-		assert startingTimestamp >= 0 && playbackInfo != null;
+	public Player(int initialProgress, MediaInfo mediaInfo) {
+		assert initialProgress >= 0 && mediaInfo != null;
 
-		pi = playbackInfo;
-		setPlayingSecond(startingTimestamp);
+		mi = mediaInfo;
+		setProgress(initialProgress);
 		setBackground(Color.BLACK);
 		addMouseListener(new MouseAdapter() {
 			@Override
@@ -115,30 +115,30 @@ public class Player extends JPanel implements PlayerInterface, Subject, Exceptio
 	}
 
 	@Override
-	public int getCurrentSecond() {
-		return currentSecond;
+	public int getProgress() {
+		return progress;
 	}
 
 	@Override
 	public int getVideoDuration() {
-		return pi.duration();
+		return mi.duration();
 	}
 
 	@Override
 	public int getVideoWidth() {
-		return pi.videoWidth();
+		return mi.videoWidth();
 	}
 
 	@Override
 	public int getVideoHeight() {
-		return pi.videoHeight();
+		return mi.videoHeight();
 	}
 
 	@Override
-	public void setPlayingSecond(int timestamp) {
+	public void setProgress(int timestamp) {
 		assert timestamp <= getVideoDuration();
 
-		currentSecond = timestamp;
+		progress = timestamp;
 		frameCounter = 0;
 	}
 
@@ -246,7 +246,7 @@ public class Player extends JPanel implements PlayerInterface, Subject, Exceptio
 		g.fillRect(
 			rewindBarBorders.x,
 			rewindBarBorders.y,
-			(int) (rewindBarBorders.width * ((double) getCurrentSecond() / getVideoDuration())),
+			(int) (rewindBarBorders.width * ((double) getProgress() / getVideoDuration())),
 			rewindBarBorders.height
 		);
 	}
@@ -267,12 +267,12 @@ public class Player extends JPanel implements PlayerInterface, Subject, Exceptio
 			deviation = 0;
 			lastFrameTime = 0;
 			isBuffering = true;
-			int previousSecond = getCurrentSecond();
+			int previousSecond = getProgress();
 			double relativePosition =
 				(double) (me.getX() - rewindBarBorders.x) / rewindBarBorders.width;
-			setPlayingSecond((int) (relativePosition * getVideoDuration()));
-			if (getCurrentSecond() > previousSecond && getCurrentSecond() - previousSecond < getBuffer().length) {
-				int piecesToSkip = getCurrentSecond() - previousSecond;
+			setProgress((int) (relativePosition * getVideoDuration()));
+			if (getProgress() > previousSecond && getProgress() - previousSecond < getBuffer().length) {
+				int piecesToSkip = getProgress() - previousSecond;
 				if (getPlayingPiece() != null) piecesToSkip--;
 				setBuffer(Arrays.copyOfRange(
 					getBuffer(),
@@ -296,9 +296,9 @@ public class Player extends JPanel implements PlayerInterface, Subject, Exceptio
 
 			if (currentSecondDecoder == null) {
 				playingPiece = getBuffer()[0];
-				currentSecondDecoder = new BMPDecoder(pi.videoContainer(), false, playingPiece.video(), this);
+				currentSecondDecoder = new BMPDecoder(mi.videoContainer(), false, playingPiece.video(), this);
 				if (getBuffer().length > 1)
-					nextSecondDecoder = new BMPDecoder(pi.videoContainer(), true, getBuffer()[1].video(), this);
+					nextSecondDecoder = new BMPDecoder(mi.videoContainer(), true, getBuffer()[1].video(), this);
 				setBuffer(Arrays.copyOfRange(getBuffer(), 1, getBuffer().length));
 				isBuffering = true;
 				sendNotification();
@@ -319,14 +319,14 @@ public class Player extends JPanel implements PlayerInterface, Subject, Exceptio
 				lastFrameTime = System.nanoTime();
 				frameCounter++;
 				if (frameCounter == currentSecondDecoder.getTotalFrames()) {
-					setPlayingSecond(getCurrentSecond() + 1);
+					setProgress(getProgress() + 1);
 					currentSecondDecoder = nextSecondDecoder;
 
 					if (getBuffer().length > 1) {
 						currentSecondDecoder = nextSecondDecoder;
 						nextSecondDecoder =
 							new BMPDecoder(
-								pi.videoContainer(),
+								mi.videoContainer(),
 								!currentSecondDecoder.isReversed(),
 								getBuffer()[1].video(),
 								this

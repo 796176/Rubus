@@ -99,15 +99,6 @@ public interface RubusSocket {
 	void write(byte[] out) throws IOException;
 
 	/**
-	 * Sends bytes to the receiving side. If byte cannot be sent immediately it waits the specified time. If bytes still
-	 * can't be sent after the timeout it throws an exception.
-	 * @param out the data to send
-	 * @param timeout the timeout in milliseconds
-	 * @throws IOException if some I/O error occurs
-	 */
-	void write(byte[] out, long timeout) throws IOException;
-
-	/**
 	 * Sends byte to the receiving side.
 	 * @param out the data to send
 	 * @param offset the index of the first byte to send
@@ -115,17 +106,6 @@ public interface RubusSocket {
 	 * @throws IOException if some I/O error occurs
 	 */
 	void write(byte[] out, int offset, int length) throws IOException;
-
-	/**
-	 * Sends bytes to the receiving side. If byte cannot be sent immediately it waits the specified time. If bytes still
-	 * can't be sent after the timeout it throws an exception.
-	 * @param out the data to send
-	 * @param offset the index of the first byte to send
-	 * @param length the number of bytes to send
-	 * @param timeout the timeout in milliseconds
-	 * @throws IOException if some I/O error occurs
-	 */
-	void write(byte[] out, int offset, int length, long timeout) throws IOException;
 
 	/**
 	 * Returns true if the established connection is closed, false otherwise.

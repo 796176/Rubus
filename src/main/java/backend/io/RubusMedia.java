@@ -19,7 +19,7 @@
 
 package backend.io;
 
-import common.net.response.body.PlaybackInfo;
+import common.net.response.body.MediaInfo;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -154,8 +154,8 @@ public class RubusMedia implements Media {
 	}
 
 	@Override
-	public PlaybackInfo toPlaybackInfo() {
-		return new PlaybackInfo(
+	public MediaInfo toMediaInfo() {
+		return new MediaInfo(
 			getID(),
 			getTitle(),
 			getVideoWidth(),

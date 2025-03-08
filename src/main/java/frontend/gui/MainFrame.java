@@ -21,7 +21,7 @@ package frontend.gui;
 
 import common.RubusSocket;
 import common.TCPRubusSocket;
-import common.net.response.body.PlaybackInfo;
+import common.net.response.body.MediaInfo;
 import frontend.*;
 
 import javax.sound.sampled.AudioFormat;
@@ -73,7 +73,7 @@ public class MainFrame extends JFrame {
 				fetchSocket = buildSocket();
 				if (fetchController != null) {
 					fetchController.setSocket(fetchSocket);
-					fetchController.update((Subject) player);
+					fetchController.update(player);
 				}
 			} catch (Exception e) {
 				JOptionPane.showMessageDialog(
@@ -155,18 +155,18 @@ public class MainFrame extends JFrame {
 	public void play(String id) {
 		try {
 			if (player != null) {
-				((Player) player).detach(fetchController);
-				((Player) player).detach(audioController);
+				player.detach(fetchController);
+				player.detach(audioController);
 				audioPlayer.terminate();
 				player.setBuffer(new EncodedPlaybackPiece[0]);
 				((Player) player).setVisible(false);
 			}
 			if (fetchSocket == null) fetchSocket = buildSocket();
 
-			RubusRequest request = RubusRequest.newBuilder().INFO().params(id).build();
+			RubusRequest request = RubusRequest.newBuilder().INFO(id).build();
 			RubusResponse response = new RubusClient(fetchSocket).send(request, 10000);
-			PlaybackInfo playbackInfo = response.INFO();
-			request = RubusRequest.newBuilder().FETCH().params("id " + id, "from 0", "length 1").build();
+			MediaInfo mediaInfo = response.INFO();
+			request = RubusRequest.newBuilder().FETCH(id, 0, 1).build();
 			response = new RubusClient(fetchSocket).send(request, 10000);
 			byte[] audio = response.FETCH().audio()[0];
 			AudioFormat audioFormat = AudioSystem.getAudioFileFormat(new ByteArrayInputStream(audio)).getFormat();
@@ -174,10 +174,10 @@ public class MainFrame extends JFrame {
 			fetchController = new FetchController(fetchSocket, id);
 			audioPlayer = new AudioPlayer(audioFormat);
 			audioController = new AudioPlayerController(audioPlayer);
-			player = new Player(0, playbackInfo);
-			((Subject) player).attach(fetchController);
-			((Subject) player).attach(audioController);
-			((Subject) player).sendNotification();
+			player = new Player(0, mediaInfo);
+			player.attach(fetchController);
+			player.attach(audioController);
+			player.sendNotification();
 
 			bagLayout.setConstraints((Player) player, constraints);
 			add((Player) player);

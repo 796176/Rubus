@@ -122,23 +122,9 @@ public class TCPRubusSocket implements RubusSocket{
 	}
 
 	@Override
-	public void write(byte[] out, long timeout) throws IOException {
-		underlyingSocket.setSoTimeout((int) timeout);
-		underlyingSocket.getOutputStream().write(out);
-		underlyingSocket.setSoTimeout(defaultTimeout);
-	}
-
-	@Override
 	public void write(byte[] out, int offset, int length) throws IOException {
 		underlyingSocket.getOutputStream().write(out, offset, length);
 		lastSent = System.currentTimeMillis();
-	}
-
-	@Override
-	public void write(byte[] out, int offset, int length, long timeout) throws IOException {
-		underlyingSocket.setSoTimeout((int) timeout);
-		underlyingSocket.getOutputStream().write(out, offset, length);
-		underlyingSocket.setSoTimeout(defaultTimeout);
 	}
 
 	@Override
