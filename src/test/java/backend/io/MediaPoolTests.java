@@ -67,7 +67,6 @@ public class MediaPoolTests {
 		assertEquals(2, media.length);
 
 		if (media[0].getID().equals("id1")) {
-			System.out.println(media1.equals(media[0]));
 			assertEquals(media1, media[0], "The media don't match");
 			assertEquals(media2, media[1], "The media don't match");
 		} else {

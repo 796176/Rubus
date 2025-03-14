@@ -59,8 +59,8 @@ public class FetchControllerTests {
 			String request = new String(receive, 0, len);
 			assertTrue(request.startsWith("request-type " + RubusRequestType.FETCH), "Wrong request type");
 			assertTrue(request.contains("media-id dummy_id"), "Wrong id");
-			assertTrue(request.contains("first-playback-piece 0"), "Wrong starting playback piece index");
-			assertTrue(request.contains("number-playback-pieces 10"), "Wrong number of playback pieces");
+			assertTrue(request.contains("starting-playback-piece 0"), "Wrong starting playback piece index");
+			assertTrue(request.contains("total-playback-pieces 10"), "Wrong number of playback pieces");
 		}
 
 		@Test
@@ -74,8 +74,8 @@ public class FetchControllerTests {
 			String request = new String(receive, 0, len);
 			assertTrue(request.startsWith("request-type " + RubusRequestType.FETCH), "Wrong request type");
 			assertTrue(request.contains("media-id dummy_id"), "Wrong id");
-			assertTrue(request.contains("first-playback-piece 5"), "Wrong starting playback piece index");
-			assertTrue(request.contains("number-playback-pieces 5"), "Wrong number of playback pieces");
+			assertTrue(request.contains("starting-playback-piece 5"), "Wrong starting playback piece index");
+			assertTrue(request.contains("total-playback-pieces 5"), "Wrong number of playback pieces");
 		}
 	}
 
@@ -101,8 +101,8 @@ public class FetchControllerTests {
 				String request = new String(receive, 0, len);
 				assertTrue(request.startsWith("request-type " + RubusRequestType.FETCH), "Wrong request type");
 				assertTrue(request.contains("media-id dummy_id"), "Wrong id");
-				assertTrue(request.contains("first-playback-piece 1"), "Wrong starting playback piece index");
-				assertTrue(request.contains("number-playback-pieces 9"), "Wrong number of playback pieces");
+				assertTrue(request.contains("starting-playback-piece 1"), "Wrong starting playback piece index");
+				assertTrue(request.contains("total-playback-pieces 9"), "Wrong number of playback pieces");
 			}
 
 			@Test
@@ -116,8 +116,8 @@ public class FetchControllerTests {
 				String request = new String(receive, 0, len);
 				assertTrue(request.startsWith("request-type " + RubusRequestType.FETCH), "Wrong request type");
 				assertTrue(request.contains("media-id dummy_id"), "Wrong id");
-				assertTrue(request.contains("first-playback-piece 9"), "Wrong starting playback piece index");
-				assertTrue(request.contains("number-playback-pieces 1"), "Wrong number of playback pieces");
+				assertTrue(request.contains("starting-playback-piece 9"), "Wrong starting playback piece index");
+				assertTrue(request.contains("total-playback-pieces 1"), "Wrong number of playback pieces");
 			}
 		}
 
@@ -159,8 +159,8 @@ public class FetchControllerTests {
 				String request = new String(receive, 0, len);
 				assertTrue(request.startsWith("request-type " + RubusRequestType.FETCH), "Wrong request type");
 				assertTrue(request.contains("media-id dummy_id"), "Wrong id");
-				assertTrue(request.contains("first-playback-piece 2"), "Wrong starting playback piece index");
-				assertTrue(request.contains("number-playback-pieces 8"), "Wrong number of playback pieces");
+				assertTrue(request.contains("starting-playback-piece 2"), "Wrong starting playback piece index");
+				assertTrue(request.contains("total-playback-pieces 8"), "Wrong number of playback pieces");
 			}
 
 			@Test
@@ -175,8 +175,8 @@ public class FetchControllerTests {
 				String request = new String(receive, 0, len);
 				assertTrue(request.startsWith("request-type " + RubusRequestType.FETCH), "Wrong request type");
 				assertTrue(request.contains("media-id dummy_id"), "Wrong id");
-				assertTrue(request.contains("first-playback-piece 9"), "Wrong starting playback piece index");
-				assertTrue(request.contains("number-playback-pieces 1"), "Wrong number of playback pieces");
+				assertTrue(request.contains("starting-playback-piece 9"), "Wrong starting playback piece index");
+				assertTrue(request.contains("total-playback-pieces 1"), "Wrong number of playback pieces");
 			}
 
 			@Test

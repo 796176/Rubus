@@ -101,7 +101,7 @@ public class RubusSockets {
 				response = Arrays.copyOf(response, response.length * 2);
 			long time = System.currentTimeMillis();
 			int byteRead = socket.read(response, timeout);
-			if (timeout != 0) timeout = Math.max(timeout - time, 1);
+			if (timeout != 0) timeout = Math.max(timeout - (System.currentTimeMillis() - time), 1);
 			if (byteRead == -1) throw new EOFException();
 			byteReadTotal += byteRead;
 		}
@@ -117,7 +117,7 @@ public class RubusSockets {
 			int remaining = response.length - byteReadTotal;
 			long time = System.currentTimeMillis();
 			byteReadTotal += socket.read(response, byteReadTotal, remaining, timeout);
-			if (timeout != 0) timeout = Math.max(timeout - time, 1);
+			if (timeout != 0) timeout = Math.max(timeout - (System.currentTimeMillis() - time), 1);
 		} while (byteReadTotal < response.length);
 		return response;
 	}

@@ -86,8 +86,8 @@ public class RequestHandlerTests {
 		byte[] request = """
 			request-type FETCH
 			media-id id1
-			first-playback-piece a
-			number-playback-pieces b
+			starting-playback-piece a
+			total-playback-pieces b
 			body-length 0
 			
 			""".getBytes();
@@ -201,8 +201,8 @@ public class RequestHandlerTests {
 			byte[] request = """
 				request-type FETCH
 				media-id id1
-				first-playback-piece 0
-				number-playback-pieces 1
+				starting-playback-piece 0
+				total-playback-pieces 1
 				body-length 0
 				
 				""".getBytes();
@@ -231,8 +231,8 @@ public class RequestHandlerTests {
 			byte[] request = """
 				request-type FETCH
 				media-id id2
-				first-playback-piece 0
-				number-playback-pieces 2
+				starting-playback-piece 0
+				total-playback-pieces 2
 				body-length 0
 				
 				""".getBytes();
@@ -263,8 +263,8 @@ public class RequestHandlerTests {
 			byte[] request = """
 				request-type FETCH
 				media-id id2
-				first-playback-piece 1
-				number-playback-pieces 1
+				starting-playback-piece 1
+				total-playback-pieces 1
 				body-length 0
 				
 				""".getBytes();

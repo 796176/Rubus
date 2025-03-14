@@ -123,14 +123,14 @@ public class RequestHandler implements Runnable {
 					);
 					int beginningPieceIndex = Integer.parseInt(
 						requestMes.substring(
-							requestMes.indexOf("first-playback-piece ") + "first-playback-piece ".length(),
-							requestMes.indexOf('\n', requestMes.indexOf("first-playback-piece "))
+							requestMes.indexOf("starting-playback-piece ") + "starting-playback-piece ".length(),
+							requestMes.indexOf('\n', requestMes.indexOf("starting-playback-piece "))
 						)
 					);
 					int piecesToFetch = Integer.parseInt(
 						requestMes.substring(
-							requestMes.indexOf("number-playback-pieces ") + "number-playback-pieces ".length(),
-							requestMes.indexOf('\n', requestMes.indexOf("number-playback-pieces "))
+							requestMes.indexOf("total-playback-pieces ") + "total-playback-pieces ".length(),
+							requestMes.indexOf('\n', requestMes.indexOf("total-playback-pieces "))
 						)
 					);
 					Media media = MediaPool.getMedia(mediaID);
