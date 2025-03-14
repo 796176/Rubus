@@ -81,8 +81,8 @@ public class RubusRequest {
 		public Builder FETCH(String mediaID, int startingIndex, int amount) {
 			requestType = RubusRequestType.FETCH;
 			params.add("media-id " + mediaID);
-			params.add("first-playback-piece " + startingIndex);
-			params.add("number-playback-pieces " + amount);
+			params.add("starting-playback-piece " + startingIndex);
+			params.add("total-playback-pieces " + amount);
 			return this;
 		}
 
