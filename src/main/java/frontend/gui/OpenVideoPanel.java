@@ -40,10 +40,12 @@ public class OpenVideoPanel extends JPanel implements Runnable {
 	private final JTextField searchField;
 	private final RubusSocket socket;
 	private final OpenVideoDialog openVideoDialog;
+	private final OpenVideoDialog parent;
 
 	public OpenVideoPanel(OpenVideoDialog parent, RubusSocket socket) {
 		assert parent != null && socket != null;
 
+		this.parent = parent;
 		this.socket = socket;
 		openVideoDialog = parent;
 		setLayout(bagLayout);
@@ -79,26 +81,34 @@ public class OpenVideoPanel extends JPanel implements Runnable {
 			RubusResponse response = new RubusClient(socket).send(requestBuilder.build(), 10000);
 			MediaList mediaList = response.LIST();
 
-			for (int i = 0; i < mediaList.ids().length; i++) {
-				JLabel label = new JLabel(mediaList.titles()[i]);
-				label.putClientProperty("id", mediaList.ids()[i]);
-				label.addMouseListener(new MouseAdapter() {
-					@Override
-					public void mouseClicked(MouseEvent e) {
-						openVideoDialog.handleLabelClick(e);
-					}
-				});
-				bagLayout.setConstraints(label, constraints);
-				add(label);
-				labels.add(label);
-			}
+			SwingUtilities.invokeLater(() -> {
+				for (int i = 0; i < mediaList.ids().length; i++) {
+					JLabel label = new JLabel(mediaList.titles()[i]);
+					label.putClientProperty("id", mediaList.ids()[i]);
+					label.addMouseListener(new MouseAdapter() {
+						@Override
+						public void mouseClicked(MouseEvent e) {
+							openVideoDialog.handleLabelClick(e);
+						}
+					});
+					bagLayout.setConstraints(label, constraints);
+					add(label);
+					labels.add(label);
+				}
+				doLayout();
+			});
 		} catch (Exception e) {
-			JOptionPane.showMessageDialog(
-				openVideoDialog,
-				e.getMessage(),
-				"Network Error",
-				JOptionPane.ERROR_MESSAGE
-			);
+			try {
+				SwingUtilities.invokeLater(() -> {
+					parent.setVisible(false);
+					JOptionPane.showMessageDialog(
+						openVideoDialog,
+						e.getMessage(),
+						"Network Error",
+						JOptionPane.ERROR_MESSAGE
+					);
+				});
+			} catch (Exception ignored) { }
 		}
 	}
 }
