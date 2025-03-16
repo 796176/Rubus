@@ -116,7 +116,9 @@ public class RubusSockets {
 		do {
 			int remaining = response.length - byteReadTotal;
 			long time = System.currentTimeMillis();
-			byteReadTotal += socket.read(response, byteReadTotal, remaining, timeout);
+			int byteRead = socket.read(response, byteReadTotal, remaining, timeout);
+			if (byteRead == -1) throw new EOFException();
+			byteReadTotal+= byteRead;
 			if (timeout != 0) timeout = Math.max(timeout - (System.currentTimeMillis() - time), 1);
 		} while (byteReadTotal < response.length);
 		return response;
