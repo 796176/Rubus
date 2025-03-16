@@ -152,7 +152,9 @@ public class RequestHandler implements Runnable {
 			responseMes.append("body-length ").append(body.size()).append("\n\n");
 			byte[] response = Arrays.copyOf(responseMes.toString().getBytes(), responseMes.length() + body.size());
 			System.arraycopy(body.toByteArray(), 0, response, responseMes.length(), body.size());
-			socket.write(response);
+			try {
+				socket.write(response);
+			} catch (IOException ignored) { }
 		} catch (IndexOutOfBoundsException | IllegalArgumentException e) {
 			try {
 				String errorMsg =
