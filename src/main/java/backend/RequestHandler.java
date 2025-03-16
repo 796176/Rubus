@@ -66,6 +66,10 @@ public class RequestHandler implements Runnable {
 
 	@Override
 	public void run() {
+		if (socket.isClosed()) {
+			closeConnection.accept(socket);
+			return;
+		}
 		try {
 			byte[] request;
 			try {
