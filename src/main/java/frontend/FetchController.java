@@ -25,7 +25,9 @@ import common.net.RubusException;
 import common.net.response.RubusResponseType;
 import common.net.response.body.FetchedPieces;
 
+import java.io.IOException;
 import java.util.Arrays;
+import java.util.function.Supplier;
 
 /**
  * FetchController is responsible for retrieving video and audio from the server and passing them to the video player.
@@ -33,9 +35,9 @@ import java.util.Arrays;
  * internal configuration. The client can set how many pieces the controller has to fetch before starting playing
  * the video, or the object that handles the network exceptions.
  */
-public class FetchController implements Observer {
+public class FetchController implements Observer, AutoCloseable {
 
-	private RubusSocket socket;
+	private Supplier<RubusSocket> socketSupplier;
 
 	private String id;
 
@@ -47,16 +49,19 @@ public class FetchController implements Observer {
 
 	private ExceptionHandler handler = null;
 
+	private final RubusClient rubusClient;
+
 	/**
 	 * Constructs an instance of this class.
-	 * @param rubusSocket a network socket
+	 * @param socketSupplier a socket supplier
 	 * @param mediaId a media id
 	 */
-	public FetchController(RubusSocket rubusSocket, String mediaId) {
-		assert rubusSocket != null && mediaId != null;
+	public FetchController(Supplier<RubusSocket> socketSupplier, String mediaId) {
+		assert socketSupplier != null && mediaId != null;
 
-		setSocket(rubusSocket);
+		setSocketSupplier(socketSupplier);
 		setMediaId(mediaId);
+		rubusClient = new RubusClient(socketSupplier);
 	}
 
 	@Override
@@ -83,21 +88,22 @@ public class FetchController implements Observer {
 	}
 
 	/**
-	 * Sets a new socket.
-	 * @param rubusSocket a new socket
+	 * Sets a new socket supplier. If it's necessary to reinitialize the already created sockets using this socket
+	 * supplier, the invocation of {@link #close()} is required.
+	 * @param socketSupplier a new socket supplier
 	 */
-	public void setSocket(RubusSocket rubusSocket) {
-		assert rubusSocket != null;
+	public void setSocketSupplier(Supplier<RubusSocket> socketSupplier) {
+		assert socketSupplier != null;
 
-		socket = rubusSocket;
+		this.socketSupplier = socketSupplier;
 	}
 
 	/**
-	 * Returns the current socket.
-	 * @return the current socket
+	 * Returns the current socket supplier.
+	 * @return the current socket supplier
 	 */
-	public RubusSocket getSocket() {
-		return socket;
+	public Supplier<RubusSocket> getSocketSupplier() {
+		return socketSupplier;
 	}
 
 	/**
@@ -160,6 +166,11 @@ public class FetchController implements Observer {
 		this.handler = handler;
 	}
 
+	@Override
+	public void close() throws IOException {
+		rubusClient.close();
+	}
+
 	private class BackgroundFetch extends Thread {
 
 		private boolean isInterrupted = false;
@@ -192,7 +203,6 @@ public class FetchController implements Observer {
 				EncodedPlaybackPiece[] buffer;
 				do {
 					localNextPieceIndex = getNextPieceIndex();
-					RubusClient rubusClient = new RubusClient(socket);
 					int totalPieces =
 						Math.min(bufferSize - player.getBuffer().length, player.getVideoDuration() - localNextPieceIndex);
 					RubusRequest request = RubusRequest

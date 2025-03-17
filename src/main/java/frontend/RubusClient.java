@@ -25,40 +25,45 @@ import common.RubusSockets;
 import java.io.EOFException;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.function.Supplier;
 
 /**
  * RubusClient is an auxiliary class designed to simplify sending rubus requests and receiving rubus responses.
  */
-public class RubusClient {
+public class RubusClient implements AutoCloseable {
 
 	private RubusSocket socket;
 
+	private Supplier<RubusSocket> socketSupplier;
+
 	/**
 	 * Constructs this class using a network socket.
-	 * @param rubusSocket a network socket
+	 * @param socketSupplier a socket supplier
 	 */
-	public RubusClient(RubusSocket rubusSocket) {
-		assert rubusSocket != null;
+	public RubusClient(Supplier<RubusSocket> socketSupplier) {
+		assert socketSupplier != null;
 
-		socket = rubusSocket;
+		setSocketSupplier(socketSupplier);
+		socket = socketSupplier.get();
 	}
 
 	/**
-	 * Sets a new socket.
-	 * @param rubusSocket a new socket
+	 * Sets a new socket. If it's necessary to reinitialize the already created sockets using this socket
+	 * supplier, the invocation of {@link #close()} is required.
+	 * @param socketSupplier a new socket supplier
 	 */
-	public void setSocket(RubusSocket rubusSocket) {
-		assert rubusSocket != null;
+	public void setSocketSupplier(Supplier<RubusSocket> socketSupplier) {
+		assert socketSupplier != null;
 
-		socket = rubusSocket;
+		this.socketSupplier = socketSupplier;
 	}
 
 	/**
-	 * Returns the current socket.
-	 * @return the current socket
+	 * Returns the current socket supplier.
+	 * @return the current socket supplier
 	 */
-	public RubusSocket getSocket() {
-		return socket;
+	public Supplier<RubusSocket> getSocketSupplier() {
+		return socketSupplier;
 	}
 
 	/**
@@ -72,11 +77,16 @@ public class RubusClient {
 	public RubusResponse send(RubusRequest request, long timeout) throws IOException {
 		assert request != null && timeout > 0;
 
+		if (socket.isClosed()) socket = socketSupplier.get();
+
 		socket.write(request.getBytes());
 		byte[] response = RubusSockets.extractMessage(socket, timeout);
 		return new RubusResponse(response);
 	}
 
-
+	@Override
+	public void close() throws IOException {
+		socket.close();
+	}
 }
 

@@ -22,10 +22,12 @@ package frontend;
 import auxiliary.DummyPlayer;
 import auxiliary.DummySocket;
 import common.net.request.RubusRequestType;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
+import java.io.IOException;
 import java.util.Arrays;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -43,7 +45,12 @@ public class FetchControllerTests {
 		videoPlayer = new DummyPlayer();
 		dummySocket = new DummySocket(100_000);
 		dummySocket.blockReading = true;
-		controller = new FetchController(dummySocket, "dummy_id");
+		controller = new FetchController(() -> dummySocket, "dummy_id");
+	}
+
+	@AfterEach
+	void afterEach() throws IOException {
+		controller.close();
 	}
 
 	@Nested

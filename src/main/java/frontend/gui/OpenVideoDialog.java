@@ -24,13 +24,14 @@ import common.RubusSocket;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseEvent;
+import java.util.function.Supplier;
 
 public class OpenVideoDialog extends JDialog {
 	private final MainFrame mainFrame;
 
-	public OpenVideoDialog(MainFrame mainFrame, RubusSocket socket) {
+	public OpenVideoDialog(MainFrame mainFrame, Supplier<RubusSocket> socketSupplier) {
 		super(mainFrame, "Open a new video", true);
-		assert mainFrame != null && socket != null;
+		assert mainFrame != null && socketSupplier != null;
 
 		this.mainFrame = mainFrame;
 		setSize(600, 1200);
@@ -43,7 +44,7 @@ public class OpenVideoDialog extends JDialog {
 			getHeight()
 		);
 
-		JScrollPane scrollPane = new JScrollPane(new OpenVideoPanel(this, socket));
+		JScrollPane scrollPane = new JScrollPane(new OpenVideoPanel(this, socketSupplier));
 		setContentPane(scrollPane);
 	}
 
