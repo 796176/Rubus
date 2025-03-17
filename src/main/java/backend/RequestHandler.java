@@ -30,7 +30,6 @@ import common.net.response.body.MediaInfo;
 import common.net.response.body.MediaList;
 
 import java.io.ByteArrayOutputStream;
-import java.io.EOFException;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.net.SocketTimeoutException;
@@ -67,6 +66,10 @@ public class RequestHandler implements Runnable {
 
 	@Override
 	public void run() {
+		if (socket.isClosed()) {
+			closeConnection.accept(socket);
+			return;
+		}
 		try {
 			byte[] request;
 			try {
@@ -74,7 +77,7 @@ public class RequestHandler implements Runnable {
 			} catch (SocketTimeoutException ignored) {
 				keepConnection.accept(socket);
 				return;
-			} catch (EOFException e) {
+			} catch (IOException e) {
 				closeConnection.accept(socket);
 				return;
 			}
@@ -149,7 +152,9 @@ public class RequestHandler implements Runnable {
 			responseMes.append("body-length ").append(body.size()).append("\n\n");
 			byte[] response = Arrays.copyOf(responseMes.toString().getBytes(), responseMes.length() + body.size());
 			System.arraycopy(body.toByteArray(), 0, response, responseMes.length(), body.size());
-			socket.write(response);
+			try {
+				socket.write(response);
+			} catch (IOException ignored) { }
 		} catch (IndexOutOfBoundsException | IllegalArgumentException e) {
 			try {
 				String errorMsg =

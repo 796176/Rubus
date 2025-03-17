@@ -20,6 +20,7 @@
 package frontend.gui;
 
 import common.RubusSocket;
+import common.RubusSocketConstructionException;
 import common.TCPRubusSocket;
 import common.net.response.body.MediaInfo;
 import frontend.*;
@@ -35,7 +36,6 @@ import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.net.InetAddress;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
@@ -44,8 +44,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class MainFrame extends JFrame {
-	private RubusSocket mainFrameSocket = null;
-	private RubusSocket fetchSocket = null;
 	private final InnerThread thread;
 	private final GridBagLayout bagLayout = new GridBagLayout();
 	private final GridBagConstraints constraints = new GridBagConstraints();
@@ -67,12 +65,9 @@ public class MainFrame extends JFrame {
 
 		menuBar.reloadButton().addActionListener(actionEvent -> {
 			try {
-				if (mainFrameSocket != null) mainFrameSocket.close();
-				mainFrameSocket = buildSocket();
-				if (fetchSocket != null) fetchSocket.close();
-				fetchSocket = buildSocket();
 				if (fetchController != null) {
-					fetchController.setSocket(fetchSocket);
+					fetchController.setSocketSupplier(this::buildSocket);
+					fetchController.close();
 					fetchController.update(player);
 				}
 			} catch (Exception e) {
@@ -86,8 +81,7 @@ public class MainFrame extends JFrame {
 		});
 		menuBar.openVideoItem().addActionListener(actionEvent -> {
 			try {
-				if (mainFrameSocket == null) mainFrameSocket = buildSocket();
-				OpenVideoDialog openVideoDialog = new OpenVideoDialog(this, mainFrameSocket);
+				OpenVideoDialog openVideoDialog = new OpenVideoDialog(this, this::buildSocket);
 				openVideoDialog.setVisible(true);
 			} catch (Exception e) {
 				JOptionPane.showMessageDialog(
@@ -122,8 +116,7 @@ public class MainFrame extends JFrame {
 			@Override
 			public void windowClosing(WindowEvent e) {
 			try {
-				if (mainFrameSocket != null) mainFrameSocket.close();
-				if (fetchSocket != null) fetchSocket.close();
+				if (fetchController != null) fetchController.close();
 				if (audioPlayer != null) audioPlayer.terminate();
 
 				Path configPath = Path.of(System.getProperty("user.home"), ".rubus", "client_config");
@@ -153,25 +146,24 @@ public class MainFrame extends JFrame {
 	}
 
 	public void play(String id) {
-		try {
+		try (RubusClient rubusClient = new RubusClient(this::buildSocket)) {
 			if (player != null) {
 				player.detach(fetchController);
+				fetchController.close();
 				player.detach(audioController);
 				audioPlayer.terminate();
 				player.setBuffer(new EncodedPlaybackPiece[0]);
 				((Player) player).setVisible(false);
 			}
-			if (fetchSocket == null) fetchSocket = buildSocket();
-
 			RubusRequest request = RubusRequest.newBuilder().INFO(id).build();
-			RubusResponse response = new RubusClient(fetchSocket).send(request, 10000);
+			RubusResponse response = rubusClient.send(request, 10000);
 			MediaInfo mediaInfo = response.INFO();
 			request = RubusRequest.newBuilder().FETCH(id, 0, 1).build();
-			response = new RubusClient(fetchSocket).send(request, 10000);
+			response = rubusClient.send(request, 10000);
 			byte[] audio = response.FETCH().audio()[0];
 			AudioFormat audioFormat = AudioSystem.getAudioFileFormat(new ByteArrayInputStream(audio)).getFormat();
 
-			fetchController = new FetchController(fetchSocket, id);
+			fetchController = new FetchController(this::buildSocket, id);
 			audioPlayer = new AudioPlayer(audioFormat);
 			audioController = new AudioPlayerController(audioPlayer);
 			player = new Player(0, mediaInfo);
@@ -187,17 +179,21 @@ public class MainFrame extends JFrame {
 		}
 	}
 
-	private RubusSocket buildSocket() throws IOException, URISyntaxException {
-		String configBody = Files.readString(Path.of(System.getProperty("user.home"), ".rubus", "client_config"));
-		Matcher matcher = Pattern.compile("server-uri [a-z]+://\\S+:\\d{1,5}").matcher(configBody);
-		if (!matcher.find()) throw new IllegalArgumentException("Server URI not found");
+	private RubusSocket buildSocket() {
+		try {
+			String configBody = Files.readString(Path.of(System.getProperty("user.home"), ".rubus", "client_config"));
+			Matcher matcher = Pattern.compile("server-uri [a-z]+://\\S+:\\d{1,5}").matcher(configBody);
+			if (!matcher.find()) throw new IllegalArgumentException("Server URI not found");
 
-		URI uri = new URI(configBody.substring(configBody.indexOf(' ', matcher.start()) + 1, matcher.end()));
-		String protocol = uri.getScheme();
-		if (protocol.equals("tcp")) {
-			return new TCPRubusSocket(InetAddress.getByName(uri.getHost()), uri.getPort());
-		} else {
-			throw new IllegalArgumentException("Protocol " + protocol + " isn't supported");
+			URI uri = new URI(configBody.substring(configBody.indexOf(' ', matcher.start()) + 1, matcher.end()));
+			String protocol = uri.getScheme();
+			if (protocol.equals("tcp")) {
+				return new TCPRubusSocket(InetAddress.getByName(uri.getHost()), uri.getPort());
+			} else {
+				throw new IllegalArgumentException("Protocol " + protocol + " isn't supported");
+			}
+		} catch (Exception e) {
+			throw new RubusSocketConstructionException(e.getMessage(), e);
 		}
 	}
 

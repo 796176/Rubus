@@ -32,21 +32,22 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
+import java.util.function.Supplier;
 
 public class OpenVideoPanel extends JPanel implements Runnable {
 	private final GridBagLayout bagLayout = new GridBagLayout();
 	private final GridBagConstraints constraints = new GridBagConstraints();
 	private final ArrayList<JLabel> labels = new ArrayList<>(1024);
 	private final JTextField searchField;
-	private final RubusSocket socket;
+	private final Supplier<RubusSocket> socketSupplier;
 	private final OpenVideoDialog openVideoDialog;
 	private final OpenVideoDialog parent;
 
-	public OpenVideoPanel(OpenVideoDialog parent, RubusSocket socket) {
-		assert parent != null && socket != null;
+	public OpenVideoPanel(OpenVideoDialog parent, Supplier<RubusSocket> socketSupplier) {
+		assert parent != null && socketSupplier != null;
 
 		this.parent = parent;
-		this.socket = socket;
+		this.socketSupplier = socketSupplier;
 		openVideoDialog = parent;
 		setLayout(bagLayout);
 
@@ -74,11 +75,11 @@ public class OpenVideoPanel extends JPanel implements Runnable {
 
 	@Override
 	public synchronized void run(){
-		try {
+		try (RubusClient rubusClient = new RubusClient(socketSupplier)) {
 			RubusRequest.Builder requestBuilder = RubusRequest.newBuilder();
 			if (searchField.getText().isBlank()) requestBuilder.LIST();
 			else requestBuilder.LIST(searchField.getText());
-			RubusResponse response = new RubusClient(socket).send(requestBuilder.build(), 10000);
+			RubusResponse response = rubusClient.send(requestBuilder.build(), 10000);
 			MediaList mediaList = response.LIST();
 
 			SwingUtilities.invokeLater(() -> {
