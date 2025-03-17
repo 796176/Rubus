@@ -30,7 +30,6 @@ import common.net.response.body.MediaInfo;
 import common.net.response.body.MediaList;
 
 import java.io.ByteArrayOutputStream;
-import java.io.EOFException;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.net.SocketTimeoutException;
@@ -74,7 +73,7 @@ public class RequestHandler implements Runnable {
 			} catch (SocketTimeoutException ignored) {
 				keepConnection.accept(socket);
 				return;
-			} catch (EOFException e) {
+			} catch (IOException e) {
 				closeConnection.accept(socket);
 				return;
 			}

@@ -21,6 +21,7 @@ package common;
 
 import backend.RubusServerSocket;
 import backend.TCPRubusServerSocket;
+import common.net.CorruptedMessageHeaderException;
 
 import java.io.EOFException;
 import java.io.IOException;
@@ -96,7 +97,9 @@ public class RubusSockets {
 		int emptyLineIndex;
 		int byteReadTotal = 0;
 		while ((emptyLineIndex = searchSubArray(response, "\n\n".getBytes())) == -1) {
-			if (byteReadTotal > maxHeaderAllocation) throw new IllegalArgumentException();
+			if (byteReadTotal > maxHeaderAllocation) {
+				throw new CorruptedMessageHeaderException("Header size exceeds " + maxHeaderAllocation);
+			}
 			if (byteReadTotal == response.length)
 				response = Arrays.copyOf(response, response.length * 2);
 			long time = System.currentTimeMillis();
@@ -107,10 +110,16 @@ public class RubusSockets {
 		}
 
 		String header = new String(response, 0, emptyLineIndex + 1);
-		int bodyLen = Integer.parseInt(header.substring(
-			header.indexOf("body-length ") + "body-length ".length(),
-			header.indexOf('\n', header.indexOf("body-length "))
-		));
+		int bodyLen;
+		try {
+			int fieldOffset = header.indexOf("body-length ");
+			bodyLen = Integer.parseInt(header.substring(
+				fieldOffset + "body-length ".length(),
+				header.indexOf('\n', fieldOffset)
+			));
+		} catch (Exception e) {
+			throw new CorruptedMessageHeaderException("Body length property not found");
+		}
 
 		response = Arrays.copyOf(response, header.length() + "\n".length() + bodyLen);
 		do {
