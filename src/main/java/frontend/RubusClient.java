@@ -22,9 +22,9 @@ package frontend;
 import common.RubusSocket;
 import common.RubusSockets;
 
-import java.io.EOFException;
 import java.io.IOException;
-import java.util.Arrays;
+import java.net.SocketTimeoutException;
+import java.util.concurrent.*;
 import java.util.function.Supplier;
 
 /**
@@ -74,13 +74,31 @@ public class RubusClient implements AutoCloseable {
 	 * @return a server response
 	 * @throws IOException if some I/O error occur
 	 */
-	public RubusResponse send(RubusRequest request, long timeout) throws IOException {
+	public RubusResponse send(RubusRequest request, long timeout) throws InterruptedException, IOException {
 		assert request != null && timeout > 0;
 
+		long sendingStartsTime = System.currentTimeMillis();
 		if (socket.isClosed()) socket = socketSupplier.get();
 
-		socket.write(request.getBytes());
-		byte[] response = RubusSockets.extractMessage(socket, timeout);
+		ExecutorService executor = Executors.newSingleThreadExecutor();
+		Future<?> future = executor.submit(() -> {
+			socket.write(request.getBytes());
+			return null;
+		});
+		executor.shutdown();
+		if(!executor.awaitTermination(timeout, TimeUnit.MILLISECONDS)) {
+			throw new SocketTimeoutException();
+		} else if (future.state() == Future.State.FAILED) {
+			if (future.exceptionNow() instanceof IOException ioException) {
+				throw ioException;
+			} else if (future.exceptionNow() instanceof RuntimeException runtimeException) {
+				throw runtimeException;
+			}
+		}
+
+		long timeSpentToSend = System.currentTimeMillis() - sendingStartsTime;
+		if (timeout != 0 && timeout - timeSpentToSend <= 0) throw new SocketTimeoutException();
+		byte[] response = RubusSockets.extractMessage(socket, timeout - timeSpentToSend);
 		return new RubusResponse(response);
 	}
 
