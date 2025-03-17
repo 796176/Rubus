@@ -77,29 +77,34 @@ public class RubusClient implements AutoCloseable {
 	public RubusResponse send(RubusRequest request, long timeout) throws InterruptedException, IOException {
 		assert request != null && timeout > 0;
 
-		long sendingStartsTime = System.currentTimeMillis();
-		if (socket.isClosed()) socket = socketSupplier.get();
+		try {
+			long sendingStartsTime = System.currentTimeMillis();
+			if (socket.isClosed()) socket = socketSupplier.get();
 
-		ExecutorService executor = Executors.newSingleThreadExecutor();
-		Future<?> future = executor.submit(() -> {
-			socket.write(request.getBytes());
-			return null;
-		});
-		executor.shutdown();
-		if(!executor.awaitTermination(timeout, TimeUnit.MILLISECONDS)) {
-			throw new SocketTimeoutException();
-		} else if (future.state() == Future.State.FAILED) {
-			if (future.exceptionNow() instanceof IOException ioException) {
-				throw ioException;
-			} else if (future.exceptionNow() instanceof RuntimeException runtimeException) {
-				throw runtimeException;
+			ExecutorService executor = Executors.newSingleThreadExecutor();
+			Future<?> future = executor.submit(() -> {
+				socket.write(request.getBytes());
+				return null;
+			});
+			executor.shutdown();
+			if(!executor.awaitTermination(timeout, TimeUnit.MILLISECONDS)) {
+				throw new SocketTimeoutException();
+			} else if (future.state() == Future.State.FAILED) {
+				if (future.exceptionNow() instanceof IOException ioException) {
+					throw ioException;
+				} else if (future.exceptionNow() instanceof RuntimeException runtimeException) {
+					throw runtimeException;
+				}
 			}
-		}
 
-		long timeSpentToSend = System.currentTimeMillis() - sendingStartsTime;
-		if (timeout != 0 && timeout - timeSpentToSend <= 0) throw new SocketTimeoutException();
-		byte[] response = RubusSockets.extractMessage(socket, timeout - timeSpentToSend);
-		return new RubusResponse(response);
+			long timeSpentToSend = System.currentTimeMillis() - sendingStartsTime;
+			if (timeout != 0 && timeout - timeSpentToSend <= 0) throw new SocketTimeoutException();
+			byte[] response = RubusSockets.extractMessage(socket, timeout - timeSpentToSend);
+			return new RubusResponse(response);
+		} catch (IOException | InterruptedException e) {
+			socket.close();
+			throw e;
+		}
 	}
 
 	@Override
