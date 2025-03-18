@@ -67,15 +67,16 @@ public class RubusClient implements AutoCloseable {
 	}
 
 	/**
-	 * Sends the request and waits to receive the server response. If the sending or the receiving is not done withing
-	 * the specified time exits by throwing an exception.
+	 * Sends the request and waits to receive the server response. 0 ms long timeout makes the method to wait
+	 * indefinitely. If the sending and the receiving is not completed within the specified time it exits by throwing
+	 * an exception.
 	 * @param request a request to send
 	 * @param timeout a timeout
 	 * @return a server response
 	 * @throws IOException if some I/O error occur
 	 */
 	public RubusResponse send(RubusRequest request, long timeout) throws InterruptedException, IOException {
-		assert request != null && timeout > 0;
+		assert request != null && timeout >= 0;
 
 		try {
 			long sendingStartsTime = System.currentTimeMillis();
@@ -87,7 +88,7 @@ public class RubusClient implements AutoCloseable {
 				return null;
 			});
 			executor.shutdown();
-			if(!executor.awaitTermination(timeout, TimeUnit.MILLISECONDS)) {
+			if(!executor.awaitTermination(timeout > 0 ? timeout : Long.MAX_VALUE, TimeUnit.MILLISECONDS)) {
 				throw new SocketTimeoutException();
 			} else if (future.state() == Future.State.FAILED) {
 				if (future.exceptionNow() instanceof IOException ioException) {
@@ -99,7 +100,7 @@ public class RubusClient implements AutoCloseable {
 
 			long timeSpentToSend = System.currentTimeMillis() - sendingStartsTime;
 			if (timeout != 0 && timeout - timeSpentToSend <= 0) throw new SocketTimeoutException();
-			byte[] response = RubusSockets.extractMessage(socket, timeout - timeSpentToSend);
+			byte[] response = RubusSockets.extractMessage(socket, timeout > 0 ? timeout - timeSpentToSend : 0);
 			return new RubusResponse(response);
 		} catch (IOException | InterruptedException e) {
 			socket.close();
