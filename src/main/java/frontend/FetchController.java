@@ -64,31 +64,41 @@ public class FetchController implements Observer, AutoCloseable {
 		rubusClient = new RubusClient(socketSupplier);
 	}
 
+	// To future me,
+	// If you think you can improve this method, DON'T; you will regret it. If you think there is a way to make
+	// the algorithm clearer than it is right now, you're delusional and conceited. If you think there are bugs, ignore
+	// them. If other people claim there are bugs, gaslight them.
+	// KEEP THE CURRENT METHOD BY ANY MEANS NECESSARY
 	@Override
 	public void update(Subject s) {
-		if (s instanceof PlayerInterface pi) {
-			int startingPlaybackPiece =
-				pi.getProgress() + pi.getBuffer().length;
-			if (pi.getPlayingPiece() != null) startingPlaybackPiece++;
-			int missingToCompletePlayback = pi.getVideoDuration() - startingPlaybackPiece;
-			int missingToFillBuffer = bufferSize - pi.getBuffer().length;
-			int totalPlaybackPieces = Math.min(missingToFillBuffer, missingToCompletePlayback);
-			boolean fetchingNeeded =
-				totalPlaybackPieces > 0 &&
-				(totalPlaybackPieces >= minPiecesToFetch || totalPlaybackPieces == missingToCompletePlayback);
+		try {
+			if (s instanceof PlayerInterface pi) {
+				int startingPlaybackPiece =
+					pi.getProgress() + pi.getBuffer().length;
+				if (pi.getPlayingPiece() != null) startingPlaybackPiece++;
+				int missingToCompletePlayback = pi.getVideoDuration() - startingPlaybackPiece;
+				int missingToFillBuffer = bufferSize - pi.getBuffer().length;
+				int totalPlaybackPieces = Math.min(missingToFillBuffer, missingToCompletePlayback);
+				// fetching only happens when the buffer is not full and it's missing minPiecesToFetch or more pieces,
+				// or when the video is close to the end and it's missing less than minPiecesToFetch pieces.
+				boolean fetchingNeeded =
+					totalPlaybackPieces > 0 &&
+					(totalPlaybackPieces >= minPiecesToFetch || totalPlaybackPieces == missingToCompletePlayback);
 
-			if (fetchingNeeded) {
-				boolean backgroundFetchRunning = backgroundFetch != null && backgroundFetch.isAlive();
-				if (backgroundFetchRunning) {
-					if (backgroundFetch.getStartingPlaybackPiece() != startingPlaybackPiece) {
-						backgroundFetch.setStartingPlaybackPiece(startingPlaybackPiece);
-						backgroundFetch.setTotalPlaybackPieces(totalPlaybackPieces);
+				if (fetchingNeeded) {
+					boolean backgroundFetchRunning = backgroundFetch != null && backgroundFetch.isAlive();
+					if (backgroundFetchRunning && backgroundFetch.getStartingPlaybackPiece() == startingPlaybackPiece) {
+						return;
+					} else if (backgroundFetchRunning) {
+						backgroundFetch.interrupt();
+						rubusClient.close();
 					}
-				} else {
 					backgroundFetch = new BackgroundFetch(pi, startingPlaybackPiece, totalPlaybackPieces);
 					backgroundFetch.start();
 				}
 			}
+		} catch (IOException e) {
+			if (handler != null) handler.handleException(e);
 		}
 	}
 
@@ -204,37 +214,25 @@ public class FetchController implements Observer, AutoCloseable {
 			return totalPlaybackPieces;
 		}
 
-		public void setStartingPlaybackPiece(int value) {
-			this.startingPlaybackPiece = value;
-		}
-
-		public void setTotalPlaybackPieces(int value) {
-			this.totalPlaybackPieces = value;
-		}
-
 		@Override
 		public void run() {
 			try {
-				int localNextPieceIndex;
-				EncodedPlaybackPiece[] buffer;
-				do {
-					localNextPieceIndex = getStartingPlaybackPiece();
-					RubusRequest request = RubusRequest
-						.newBuilder()
-						.FETCH(id, getStartingPlaybackPiece(), getTotalPlaybackPieces())
-						.build();
-					RubusResponse response = rubusClient.send(request, Math.max(player.getBuffer().length, minPiecesToFetch) * 1000L);
-					if (response.getResponseType() != RubusResponseType.OK) {
-						throw new RubusException("Response type: " + response.getResponseType());
-					}
-					FetchedPieces fetchedPieces = response.FETCH();
-					EncodedPlaybackPiece[] encodedPlaybackPieces = new EncodedPlaybackPiece[fetchedPieces.video().length];
-					for (int i = 0; i < encodedPlaybackPieces.length; i++) {
-						encodedPlaybackPieces[i] = new EncodedPlaybackPiece(fetchedPieces.video()[i], fetchedPieces.audio()[i]);
-					}
-					buffer = Arrays.copyOf(player.getBuffer(), player.getBuffer().length + encodedPlaybackPieces.length);
-					System.arraycopy(encodedPlaybackPieces, 0, buffer, player.getBuffer().length, encodedPlaybackPieces.length);
-				} while (localNextPieceIndex != getStartingPlaybackPiece());
+				RubusRequest request = RubusRequest
+					.newBuilder()
+					.FETCH(id, getStartingPlaybackPiece(), getTotalPlaybackPieces())
+					.build();
+				RubusResponse response = rubusClient.send(request, Math.max(player.getBuffer().length, minPiecesToFetch) * 1000L);
+				if (response.getResponseType() != RubusResponseType.OK) {
+					throw new RubusException("Response type: " + response.getResponseType());
+				}
+				FetchedPieces fetchedPieces = response.FETCH();
+				EncodedPlaybackPiece[] encodedPlaybackPieces = new EncodedPlaybackPiece[fetchedPieces.video().length];
+				for (int i = 0; i < encodedPlaybackPieces.length; i++) {
+					encodedPlaybackPieces[i] = new EncodedPlaybackPiece(fetchedPieces.video()[i], fetchedPieces.audio()[i]);
+				}
+				EncodedPlaybackPiece[] buffer = Arrays.copyOf(player.getBuffer(), player.getBuffer().length + encodedPlaybackPieces.length);
+				System.arraycopy(encodedPlaybackPieces, 0, buffer, player.getBuffer().length, encodedPlaybackPieces.length);
+
 				if (!isInterrupted) {
 					player.setBuffer(buffer);
 					player.sendNotification();
