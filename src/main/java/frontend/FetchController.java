@@ -67,20 +67,25 @@ public class FetchController implements Observer, AutoCloseable {
 	@Override
 	public void update(Subject s) {
 		if (s instanceof PlayerInterface pi) {
-			if (
-				bufferSize - pi.getBuffer().length >= minPiecesToFetch &&
-				pi.getVideoDuration() > pi.getProgress() + pi.getBuffer().length + 1
-			) {
-				int nextPieceIndex =
-					pi.getProgress() + pi.getBuffer().length;
-				if (pi.getPlayingPiece() != null) nextPieceIndex++;
+			int startingPlaybackPiece =
+				pi.getProgress() + pi.getBuffer().length;
+			if (pi.getPlayingPiece() != null) startingPlaybackPiece++;
+			int missingToCompletePlayback = pi.getVideoDuration() - startingPlaybackPiece;
+			int missingToFillBuffer = bufferSize - pi.getBuffer().length;
+			int totalPlaybackPieces = Math.min(missingToFillBuffer, missingToCompletePlayback);
+			boolean fetchingNeeded =
+				totalPlaybackPieces > 0 &&
+				(totalPlaybackPieces >= minPiecesToFetch || totalPlaybackPieces == missingToCompletePlayback);
 
-				if (backgroundFetch != null && backgroundFetch.isAlive()) {
-					if (backgroundFetch.getNextPieceIndex() != nextPieceIndex) {
-						backgroundFetch.setNextPieceIndex(nextPieceIndex);
+			if (fetchingNeeded) {
+				boolean backgroundFetchRunning = backgroundFetch != null && backgroundFetch.isAlive();
+				if (backgroundFetchRunning) {
+					if (backgroundFetch.getStartingPlaybackPiece() != startingPlaybackPiece) {
+						backgroundFetch.setStartingPlaybackPiece(startingPlaybackPiece);
+						backgroundFetch.setTotalPlaybackPieces(totalPlaybackPieces);
 					}
 				} else {
-					backgroundFetch = new BackgroundFetch(pi, nextPieceIndex);
+					backgroundFetch = new BackgroundFetch(pi, startingPlaybackPiece, totalPlaybackPieces);
 					backgroundFetch.start();
 				}
 			}
@@ -179,21 +184,32 @@ public class FetchController implements Observer, AutoCloseable {
 
 		private Exception exception;
 
-		private int nextPieceIndex;
+		private final int startingPlaybackPiece;
+
+		private final int totalPlaybackPieces;
 		
-		private BackgroundFetch(PlayerInterface playerInterface, int nextPieceIndex) {
-			assert playerInterface != null;
+		private BackgroundFetch(PlayerInterface playerInterface, int startingPlaybackPiece, int totalPlaybackPieces) {
+			assert playerInterface != null && startingPlaybackPiece >= 0 && totalPlaybackPieces > 0;
 
-			this.nextPieceIndex = nextPieceIndex;
 			player = playerInterface;
+			this.startingPlaybackPiece = startingPlaybackPiece;
+			this.totalPlaybackPieces = totalPlaybackPieces;
 		}
 
-		public int getNextPieceIndex() {
-			return nextPieceIndex;
+		public int getStartingPlaybackPiece() {
+			return startingPlaybackPiece;
 		}
 
-		public void setNextPieceIndex(int value) {
-			nextPieceIndex = value;
+		public int getTotalPlaybackPieces() {
+			return totalPlaybackPieces;
+		}
+
+		public void setStartingPlaybackPiece(int value) {
+			this.startingPlaybackPiece = value;
+		}
+
+		public void setTotalPlaybackPieces(int value) {
+			this.totalPlaybackPieces = value;
 		}
 
 		@Override
@@ -202,12 +218,10 @@ public class FetchController implements Observer, AutoCloseable {
 				int localNextPieceIndex;
 				EncodedPlaybackPiece[] buffer;
 				do {
-					localNextPieceIndex = getNextPieceIndex();
-					int totalPieces =
-						Math.min(bufferSize - player.getBuffer().length, player.getVideoDuration() - localNextPieceIndex);
+					localNextPieceIndex = getStartingPlaybackPiece();
 					RubusRequest request = RubusRequest
 						.newBuilder()
-						.FETCH(id, localNextPieceIndex, totalPieces)
+						.FETCH(id, getStartingPlaybackPiece(), getTotalPlaybackPieces())
 						.build();
 					RubusResponse response = rubusClient.send(request, Math.max(player.getBuffer().length, minPiecesToFetch) * 1000L);
 					if (response.getResponseType() != RubusResponseType.OK) {
@@ -220,7 +234,7 @@ public class FetchController implements Observer, AutoCloseable {
 					}
 					buffer = Arrays.copyOf(player.getBuffer(), player.getBuffer().length + encodedPlaybackPieces.length);
 					System.arraycopy(encodedPlaybackPieces, 0, buffer, player.getBuffer().length, encodedPlaybackPieces.length);
-				} while (localNextPieceIndex != getNextPieceIndex());
+				} while (localNextPieceIndex != getStartingPlaybackPiece());
 				if (!isInterrupted) {
 					player.setBuffer(buffer);
 					player.sendNotification();
