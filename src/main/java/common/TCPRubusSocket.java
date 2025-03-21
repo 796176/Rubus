@@ -133,22 +133,22 @@ public class TCPRubusSocket implements RubusSocket{
 	}
 
 	@Override
-	public long openedTime() {
+	public long openTime() {
 		return openedTime;
 	}
 
 	@Override
-	public long closedTime() {
+	public long closeTime() {
 		return closedTime;
 	}
 
 	@Override
-	public long lastReceivedTime() {
+	public long lastReceiveTime() {
 		return lastReceived;
 	}
 
 	@Override
-	public long lastSentTime() {
+	public long lastSendTime() {
 		return lastSent;
 	}
 }

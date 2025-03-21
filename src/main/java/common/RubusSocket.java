@@ -117,23 +117,23 @@ public interface RubusSocket {
 	 * Returns the time in milliseconds when the connection was established.
 	 * @return the time in milliseconds when the connection was established
 	 */
-	long openedTime();
+	long openTime();
 
 	/**
 	 * Returns the time in milliseconds when the connection was closed.
 	 * @return the time in milliseconds when the connection was closed
 	 */
-	long closedTime();
+	long closeTime();
 
 	/**
 	 * Returns the time in milliseconds of recently received data, or 0 if no data has been received.
 	 * @return the time in milliseconds of recently received data, or 0 if no data has been received
 	 */
-	long lastReceivedTime();
+	long lastReceiveTime();
 
 	/**
 	 * Returns the time in milliseconds of recently sent data, or 0 if no data has been sent.
 	 * @return the time in milliseconds of recently sent data, or 0 if no data has been sent
 	 */
-	long lastSentTime();
+	long lastSendTime();
 }

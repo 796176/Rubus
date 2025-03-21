@@ -115,22 +115,22 @@ public class DummySocket implements RubusSocket {
 	}
 
 	@Override
-	public long openedTime() {
+	public long openTime() {
 		return oTime;
 	}
 
 	@Override
-	public long closedTime() {
+	public long closeTime() {
 		return cTime;
 	}
 
 	@Override
-	public long lastReceivedTime() {
+	public long lastReceiveTime() {
 		return rTime;
 	}
 
 	@Override
-	public long lastSentTime() {
+	public long lastSendTime() {
 		return sTime;
 	}
 }
