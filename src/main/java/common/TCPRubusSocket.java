@@ -29,13 +29,13 @@ import java.net.Socket;
  */
 public class TCPRubusSocket implements RubusSocket{
 
-	private final long openedTime;
+	private final long oTime;
 
-	private long closedTime;
+	private long cTime = 0;
 
-	private long lastReceived;
+	private long rTime = 0;
 
-	private long lastSent;
+	private long sTime = 0;
 
 	private final Socket underlyingSocket;
 	private final int defaultTimeout;
@@ -50,32 +50,28 @@ public class TCPRubusSocket implements RubusSocket{
 		assert inetAddress != null;
 
 		underlyingSocket = new Socket(inetAddress, port);
-		openedTime = System.currentTimeMillis();
-		lastSent = openedTime;
-		lastReceived = openedTime;
+		oTime = System.currentTimeMillis();
 		defaultTimeout = underlyingSocket.getSoTimeout();
 	}
 
 	/**
 	 * Constructs an instance of this class.
 	 * @param socket an opened socket
-	 * @param openedTime the time the connection was established
+	 * @param openTime the time the connection was established
 	 * @throws IOException if some I/O error occurs
 	 */
-	public TCPRubusSocket(Socket socket, long openedTime) throws IOException {
+	public TCPRubusSocket(Socket socket, long openTime) throws IOException {
 		assert socket != null;
 
 		underlyingSocket = socket;
-		this.openedTime = openedTime;
-		lastSent = openedTime;
-		lastReceived = openedTime;
+		this.oTime = openTime;
 		defaultTimeout = socket.getSoTimeout();
 	}
 
 	@Override
 	public void close() throws IOException {
 		underlyingSocket.close();
-		closedTime = System.currentTimeMillis();
+		cTime = System.currentTimeMillis();
 	}
 
 	@Override
@@ -88,7 +84,7 @@ public class TCPRubusSocket implements RubusSocket{
 	@Override
 	public int read(byte[] in) throws IOException {
 		int byteRead = underlyingSocket.getInputStream().read(in);
-		lastReceived = System.currentTimeMillis();
+		rTime = System.currentTimeMillis();
 		return byteRead;
 	}
 
@@ -103,7 +99,7 @@ public class TCPRubusSocket implements RubusSocket{
 	@Override
 	public int read(byte[] in, int offset, int length) throws IOException {
 		int byteRead = underlyingSocket.getInputStream().read(in, offset, length);
-		lastReceived = System.currentTimeMillis();
+		rTime = System.currentTimeMillis();
 		return byteRead;
 	}
 
@@ -118,13 +114,13 @@ public class TCPRubusSocket implements RubusSocket{
 	@Override
 	public void write(byte[] out) throws IOException {
 		underlyingSocket.getOutputStream().write(out);
-		lastSent = System.currentTimeMillis();
+		sTime = System.currentTimeMillis();
 	}
 
 	@Override
 	public void write(byte[] out, int offset, int length) throws IOException {
 		underlyingSocket.getOutputStream().write(out, offset, length);
-		lastSent = System.currentTimeMillis();
+		sTime = System.currentTimeMillis();
 	}
 
 	@Override
@@ -134,21 +130,21 @@ public class TCPRubusSocket implements RubusSocket{
 
 	@Override
 	public long openTime() {
-		return openedTime;
+		return oTime;
 	}
 
 	@Override
 	public long closeTime() {
-		return closedTime;
+		return cTime;
 	}
 
 	@Override
 	public long lastReceiveTime() {
-		return lastReceived;
+		return rTime;
 	}
 
 	@Override
 	public long lastSendTime() {
-		return lastSent;
+		return sTime;
 	}
 }

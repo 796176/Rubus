@@ -30,13 +30,13 @@ public class DummySocket implements RubusSocket {
 
 	public final byte[] buffer;
 
-	public long sTime = System.currentTimeMillis();
+	public long sTime = 0;
 
-	public long rTime = System.currentTimeMillis();
+	public long rTime = 0;
 
 	public long oTime = System.currentTimeMillis();
 
-	public long cTime;
+	public long cTime = 0;
 
 	public boolean isClosed = false;
 
