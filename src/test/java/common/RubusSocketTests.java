@@ -42,9 +42,9 @@ public abstract class RubusSocketTests {
 	void openAndCloseTime() throws IOException {
 		RubusSocket socket = getSocket();
 		socket.close();
-		assertTrue(socket.openedTime() > 0, "The open time is not set");
+		assertTrue(socket.openTime() > 0, "The open time is not set");
 		assertTrue(
-			socket.closedTime() >= socket.openedTime(),
+			socket.closeTime() >= socket.openTime(),
 			"The close time is not greater than the open time"
 		);
 	}
@@ -104,9 +104,9 @@ public abstract class RubusSocketTests {
 			byteArray[i] = (byte) i;
 		}
 		RubusSocket socket = getSocket();
-		long sTime0 = socket.lastSentTime();
+		long sTime0 = socket.lastSendTime();
 		RubusSocket peer = getPeerSocket();
-		long rTime0 = socket.lastReceivedTime();
+		long rTime0 = socket.lastReceiveTime();
 
 		socket.write(byteArray);
 		byte[] receiveBuffer = new byte[byteArray.length];
@@ -114,8 +114,8 @@ public abstract class RubusSocketTests {
 		do {
 			byteRead += peer.read(receiveBuffer, byteRead, receiveBuffer.length - byteRead);
 		} while (byteRead < receiveBuffer.length);
-		long sTime1 = socket.lastSentTime();
-		long rTime1 = peer.lastReceivedTime();
+		long sTime1 = socket.lastSendTime();
+		long rTime1 = peer.lastReceiveTime();
 		assertTrue(sTime1 >= sTime0, "The first send time is less than the initial send time");
 		assertTrue(
 			rTime1 >= rTime0,
@@ -128,11 +128,11 @@ public abstract class RubusSocketTests {
 			byteRead += peer.read(receiveBuffer, byteRead, receiveBuffer.length - byteRead);
 		} while (byteRead < receiveBuffer.length);
 		assertTrue(
-			socket.lastSentTime() >= sTime1,
+			socket.lastSendTime() >= sTime1,
 			"The second send time is less than the first send time"
 		);
 		assertTrue(
-			peer.lastReceivedTime() >= rTime1,
+			peer.lastReceiveTime() >= rTime1,
 			"The second receive time less greater than the receive send time"
 		);
 	}

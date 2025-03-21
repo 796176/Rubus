@@ -288,7 +288,7 @@ public class Player extends JPanel implements PlayerInterface, ExceptionHandler 
 	private void drawFrame(Graphics g) {
 		try {
 			if (occurredException != null) throw occurredException;
-			if (getBuffer().length == 0 && isBuffering()) {
+			if (getBuffer().length == 0 && currentSecondDecoder == null) {
 				deviation = 0;
 				lastFrameTime = 0;
 				return;
@@ -323,7 +323,6 @@ public class Player extends JPanel implements PlayerInterface, ExceptionHandler 
 					currentSecondDecoder = nextSecondDecoder;
 
 					if (getBuffer().length > 1) {
-						currentSecondDecoder = nextSecondDecoder;
 						nextSecondDecoder =
 							new BMPDecoder(
 								mi.videoContainer(),
@@ -334,7 +333,6 @@ public class Player extends JPanel implements PlayerInterface, ExceptionHandler 
 						playingPiece = getBuffer()[0];
 						setBuffer(Arrays.copyOfRange(getBuffer(), 1, getBuffer().length));
 					} else if (getBuffer().length > 0) {
-						currentSecondDecoder = nextSecondDecoder;
 						nextSecondDecoder = null;
 						playingPiece = getBuffer()[0];
 						setBuffer(Arrays.copyOfRange(getBuffer(), 1, getBuffer().length));
