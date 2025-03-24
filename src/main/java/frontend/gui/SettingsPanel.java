@@ -19,24 +19,20 @@
 
 package frontend.gui;
 
+import common.Config;
+
 import javax.swing.*;
 import java.awt.*;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class SettingsPanel extends JPanel {
 	public SettingsPanel(SettingsDialog parent) throws IOException {
 		assert parent != null;
 
 		Path configPath = Path.of(System.getProperty("user.home"), ".rubus", "client_config");
-		String configBody = Files.readString(configPath);
-		Pattern pattern = Pattern.compile("server-uri [a-z]+://\\S+:\\d{1,5}");
-		Matcher matcher = pattern.matcher(configBody);
-		matcher.find();
-		String uri = configBody.substring(configBody.indexOf(' ', matcher.start()) + 1, matcher.end());
+		Config config = new Config(configPath);
+		String uri = config.get("server-uri");
 
 		GridBagLayout bagLayout = new GridBagLayout();
 		setLayout(bagLayout);
@@ -60,9 +56,9 @@ public class SettingsPanel extends JPanel {
 		JButton saveButton = new JButton("Save");
 		saveButton.addActionListener(actionEvent -> {
 			String newUri = uriTextField.getText();
-			String newConfigBody = configBody.replace("server-uri " + uri, "server-uri " + newUri);
+			config.set("server-uri", newUri);
 			try {
-				Files.writeString(configPath, newConfigBody);
+				config.save();
 				parent.setVisible(false);
 			} catch (IOException ignored) {}
 		});
