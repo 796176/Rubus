@@ -19,6 +19,7 @@
 
 package frontend.gui;
 
+import common.Config;
 import common.RubusSocket;
 import common.RubusSocketConstructionException;
 import common.TCPRubusSocket;
@@ -40,8 +41,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class MainFrame extends JFrame {
 	private final InnerThread thread;
@@ -120,18 +119,12 @@ public class MainFrame extends JFrame {
 				if (audioPlayer != null) audioPlayer.terminate();
 
 				Path configPath = Path.of(System.getProperty("user.home"), ".rubus", "client_config");
-				String configBody = Files.readString(configPath);
-				configBody = configBody.replaceFirst("main-frame-x \\d+", "main-frame-x " + getX());
-				configBody = configBody.replaceFirst("main-frame-y \\d+", "main-frame-y " + getY());
-				configBody = configBody.replaceFirst(
-					"main-frame-width \\d+",
-					"main-frame-width " + getWidth()
-				);
-				configBody = configBody.replaceFirst(
-					"main-frame-height \\d+",
-					"main-frame-height " + getHeight()
-				);
-				Files.writeString(configPath, configBody);
+				Config config = new Config(configPath);
+				config.set("main-frame-x", getX() + "");
+				config.set("main-frame-y", getY() + "");
+				config.set("main-frame-width", getWidth() + "");
+				config.set("main-frame-height", getHeight() + "");
+				config.save();
 			} catch (IOException ignored) {}
 			finally {
 				dispose();
@@ -181,11 +174,9 @@ public class MainFrame extends JFrame {
 
 	private RubusSocket buildSocket() {
 		try {
-			String configBody = Files.readString(Path.of(System.getProperty("user.home"), ".rubus", "client_config"));
-			Matcher matcher = Pattern.compile("server-uri [a-z]+://\\S+:\\d{1,5}").matcher(configBody);
-			if (!matcher.find()) throw new IllegalArgumentException("Server URI not found");
-
-			URI uri = new URI(configBody.substring(configBody.indexOf(' ', matcher.start()) + 1, matcher.end()));
+			Path configPath = Path.of(System.getProperty("user.home"), ".rubus", "client_config");
+			Config config = new Config(configPath);
+			URI uri = new URI(config.get("server-uri"));
 			String protocol = uri.getScheme();
 			if (protocol.equals("tcp")) {
 				return new TCPRubusSocket(InetAddress.getByName(uri.getHost()), uri.getPort());
@@ -198,32 +189,25 @@ public class MainFrame extends JFrame {
 	}
 
 	public static void main(String[] args) throws InvocationTargetException, InterruptedException, IOException {
-		Path path = Path.of(System.getProperty("user.home"), ".rubus", "client_config");
-		if (Files.notExists(path)) {
-			Files.createDirectories(Path.of(System.getProperty("user.home"), ".rubus"));
-			String configBody =
-				"""
-				server-uri tcp://localhost:54300
-				main-frame-x 0
-				main-frame-y 0
-				main-frame-width 1920
-				main-frame-height 1080""";
-			Files.writeString(path, configBody);
+		Path configPath = Path.of(System.getProperty("user.home"), ".rubus", "client_config");
+		Config config;
+		if (Files.notExists(configPath)) {
+			config = Config.create(configPath,
+				"server-uri", "tcp://localhost:54300",
+				"server-uri", "tcp://localhost:54300",
+				"main-frame-x", "0",
+				"main-frame-y", "0",
+				"main-frame-width", "1920",
+				"main-frame-height", "1080"
+			);
+		} else {
+			config = new Config(configPath);
 		}
 
-		String configBody = Files.readString(path);
-		Matcher matcher = Pattern.compile("main-frame-x \\d+").matcher(configBody);
-		matcher.find();
-		String x = configBody.substring(configBody.indexOf(' ', matcher.start()) + 1, matcher.end());
-		matcher = Pattern.compile("main-frame-y \\d+").matcher(configBody);
-		matcher.find();
-		String y = configBody.substring(configBody.indexOf(' ', matcher.start()) + 1, matcher.end());
-		matcher = Pattern.compile("main-frame-width \\d+").matcher(configBody);
-		matcher.find();
-		String width = configBody.substring(configBody.indexOf(' ', matcher.start()) + 1, matcher.end());
-		matcher = Pattern.compile("main-frame-height \\d+").matcher(configBody);
-		matcher.find();
-		String height = configBody.substring(configBody.indexOf(' ', matcher.start()) + 1, matcher.end());
+		String x = config.get("main-frame-x");
+		String y = config.get("main-frame-y");
+		String width = config.get("main-frame-width");
+		String height = config.get("main-frame-height");
 
 		SwingUtilities.invokeAndWait(() -> {
 			MainFrame mw = new MainFrame();
