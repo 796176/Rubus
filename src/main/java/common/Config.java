@@ -71,6 +71,31 @@ public class Config {
 	}
 
 	/**
+	 * Creates a new instance of this class, populates it with the kay-value pairs,
+	 * and saves it to the specified location. If the specified files or the parent directory don't exist, the method
+	 * creates them. If the specified file exists, its content is rewritten.
+	 * @param configPath the location of the created config file
+	 * @param values alternating keys and values, the amount must be even
+	 * @return an instance of this class
+	 * @throws IOException if some I/O error occurs
+	 */
+	public static Config create(Path configPath, String... values) throws IOException {
+		assert configPath != null && values != null && values.length % 2 == 0;
+
+		Files.createDirectories(configPath.getParent());
+		Files.newByteChannel(
+			configPath,
+			StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.WRITE
+		).close();
+		Config config = new Config(configPath);
+		for (int i = 0; i < values.length; i += 2) {
+			config.set(values[i], values[i + 1]);
+		}
+		config.save();
+		return config;
+	}
+
+	/**
 	 * Adds or replaces a field.
 	 * @param key the key
 	 * @param value the value
