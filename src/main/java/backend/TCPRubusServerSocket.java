@@ -58,11 +58,7 @@ public class TCPRubusServerSocket implements RubusServerSocket {
 	}
 
 	@Override
-	public void close() {
-		try {
-			serverSocket.close();
-		} catch (IOException ioException) {
-
-		}
+	public void close() throws IOException {
+		serverSocket.close();
 	}
 }
