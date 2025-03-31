@@ -48,6 +48,7 @@ public interface RubusServerSocket {
 
 	/**
 	 * Releases the associated resources.
+	 * @throws IOException if some I/O error occurs
 	 */
-	void close();
+	void close() throws IOException;
 }

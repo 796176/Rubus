@@ -20,6 +20,7 @@
 package common;
 
 import backend.TCPRubusServerSocket;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -52,6 +53,10 @@ public class TCPRubusSocketTests extends RubusSocketTests {
 		assertDoesNotThrow(() -> socket = new TCPRubusSocket(InetAddress.getByName("localhost"), 55000));
 	}
 
+	@AfterAll
+	static void afterAll() {
+		assertDoesNotThrow(() -> serverSocket.close());
+	}
 
 	@Override
 	protected RubusSocket getSocket() {
