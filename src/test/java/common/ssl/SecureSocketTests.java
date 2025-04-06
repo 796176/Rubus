@@ -164,8 +164,8 @@ public class SecureSocketTests extends RubusSocketTests {
 	class FailHandshake {
 
 		@Test
-		void clientDoesNotSupportEncryption() throws InterruptedException, IOException {
-			clientConfig.set("encryption-enabled", "false");
+		void clientDoesNotSupportSC() throws InterruptedException, IOException {
+			clientConfig.set("secure-connection-enabled", "false");
 			Thread serverThread = new Thread(() -> {
 				try {
 					RubusSocket localPeerSocket = serverSocket.accept();
@@ -190,8 +190,8 @@ public class SecureSocketTests extends RubusSocketTests {
 		}
 
 		@Test
-		void serverDoesNotSupportEncryption() throws InterruptedException, IOException {
-			serverConfig.set("encryption-enabled", "false");
+		void serverDoesNotSupportSC() throws InterruptedException, IOException {
+			serverConfig.set("secure-connection-enabled", "false");
 			Thread serverThread = new Thread(() -> {
 				try {
 					RubusSocket localPeerSocket = serverSocket.accept();
@@ -222,9 +222,9 @@ public class SecureSocketTests extends RubusSocketTests {
 		}
 
 		@Test
-		void clientAndServerDoNotSupportEncryption() throws InterruptedException, IOException{
-			serverConfig.set("encryption-enabled", "false");
-			clientConfig.set("encryption-enabled", "false");
+		void clientAndServerDoNotSupportSC() throws InterruptedException, IOException{
+			serverConfig.set("secure-connection-enabled", "false");
+			clientConfig.set("secure-connection-enabled", "false");
 			Thread serverThread = new Thread(() -> {
 				try {
 					RubusSocket localPeerSocket = serverSocket.accept();

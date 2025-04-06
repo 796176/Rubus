@@ -52,7 +52,7 @@ public class SecureServerSocketDecorator implements RubusServerSocket {
 
 	private final int connectionLimit;
 
-	private final boolean encryptionRequired;
+	private final boolean scRequired;
 
 	private final long handshakeTimeout;
 
@@ -73,7 +73,7 @@ public class SecureServerSocketDecorator implements RubusServerSocket {
 	 * and SecureServerSocketDecorator won't store references to sockets as well, this significantly worsens
 	 * the performance so it's intended for debugging only. maxThreadUtilization limits how many handshakes can be
 	 * performed at a time. handshakeTimeout is a timeout of the handshake. The config instance must contain
-	 * the "encryption-required" value to determine if unsecure connections are allowed.
+	 * the "secure-connection-required" value to determine if unsecure connections are allowed.
 	 * @param serverSocket the instance of RubusServerSocket that establishes actual connections
 	 * @param config the config
 	 * @param maxOpenConnections the maximum amount of opened connections
@@ -96,7 +96,7 @@ public class SecureServerSocketDecorator implements RubusServerSocket {
 		this.serverSocket = serverSocket;
 		this.config = config;
 		connectionLimit = maxOpenConnections;
-		encryptionRequired = Boolean.parseBoolean(config.get("encryption-required"));
+		scRequired = Boolean.parseBoolean(config.get("secure-connection-required"));
 		sharedSockets = new SharedSocket[connectionLimit];
 		this.handshakeTimeout = handshakeTimeout;
 		if (maxOpenConnections > 0) {
@@ -235,7 +235,7 @@ public class SecureServerSocketDecorator implements RubusServerSocket {
 				}
 			} catch (HandshakeFailedException e) {
 				try {
-					if (!encryptionRequired) {
+					if (!scRequired) {
 						if(!put(localSocket)) {
 							openConnections--;
 							localSocket.close();
