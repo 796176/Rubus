@@ -54,16 +54,16 @@ public class MediaPoolTests {
 		Path.of(System.getProperty("user.dir"), "src", "test", "resources", "data2")
 	);
 
+	static MediaPool mediaPool;
+
 	@BeforeAll
 	static void beforeAll() {
-		MediaPool.setDBLocation(
-			Path.of(System.getProperty("user.dir"), "src", "test", "resources", "testDB").toString()
-		);
+		mediaPool = new MediaPool(Path.of(System.getProperty("user.dir"), "src", "test", "resources", "testDB"));
 	}
 
 	@Test
 	void getAvailableMedia() throws IOException {
-		Media[] media = MediaPool.availableMedia();
+		Media[] media = mediaPool.availableMedia();
 		assertEquals(2, media.length);
 
 		if (media[0].getID().equals("id1")) {
@@ -77,7 +77,7 @@ public class MediaPoolTests {
 
 	@Test
 	void getAvailableMediaFast() throws IOException {
-		Media[] media = MediaPool.availableMediaFast();
+		Media[] media = mediaPool.availableMediaFast();
 		assertEquals(2, media.length);
 
 		if (media[0].getID().equals("id1")) {
@@ -91,7 +91,7 @@ public class MediaPoolTests {
 
 	@Test
 	void getMediaByID() throws IOException {
-		Media media = MediaPool.getMedia("id2");
+		Media media = mediaPool.getMedia("id2");
 		assertEquals(media2, media);
 	}
 }

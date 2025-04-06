@@ -39,7 +39,8 @@ public class TCPRubusSocketTests extends RubusSocketTests {
 
 	@BeforeAll
 	static void beforeAll() {
-		assertDoesNotThrow(() -> serverSocket = new TCPRubusServerSocket(55000));
+		assertDoesNotThrow(() -> serverSocket =
+			new TCPRubusServerSocket(InetAddress.getByName("localhost"), 55000));
 	}
 
 	@BeforeEach

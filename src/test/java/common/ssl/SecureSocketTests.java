@@ -59,7 +59,7 @@ public class SecureSocketTests extends RubusSocketTests {
 
 	@BeforeAll
 	static void beforeAll() throws IOException {
-		serverSocket = new TCPRubusServerSocket(55000);
+		serverSocket = new TCPRubusServerSocket(InetAddress.getByName("localhost"), 55000);
 	}
 
 	@BeforeEach
@@ -77,7 +77,7 @@ public class SecureSocketTests extends RubusSocketTests {
 		peerThread.start();
 
 		assertDoesNotThrow(() -> socket = new SecureSocket(
-			new TCPRubusSocket(InetAddress.getLocalHost(), 55000), clientConfig, true
+			new TCPRubusSocket(InetAddress.getByName("localhost"), 55000), clientConfig, true
 		));
 		peerThread.join();
 	}
@@ -164,8 +164,8 @@ public class SecureSocketTests extends RubusSocketTests {
 	class FailHandshake {
 
 		@Test
-		void clientDoesNotSupportEncryption() throws InterruptedException, IOException {
-			clientConfig.set("encryption-enabled", "false");
+		void clientDoesNotSupportSC() throws InterruptedException, IOException {
+			clientConfig.set("secure-connection-enabled", "false");
 			Thread serverThread = new Thread(() -> {
 				try {
 					RubusSocket localPeerSocket = serverSocket.accept();
@@ -180,7 +180,7 @@ public class SecureSocketTests extends RubusSocketTests {
 			});
 			serverThread.start();
 
-			RubusSocket localSocket = new TCPRubusSocket(InetAddress.getLocalHost(), 55000);
+			RubusSocket localSocket = new TCPRubusSocket(InetAddress.getByName("localhost"), 55000);
 			assertThrowsExactly(
 				HandshakeFailedException.class,
 				() -> new SecureSocket(localSocket, clientConfig, true),
@@ -190,8 +190,8 @@ public class SecureSocketTests extends RubusSocketTests {
 		}
 
 		@Test
-		void serverDoesNotSupportEncryption() throws InterruptedException, IOException {
-			serverConfig.set("encryption-enabled", "false");
+		void serverDoesNotSupportSC() throws InterruptedException, IOException {
+			serverConfig.set("secure-connection-enabled", "false");
 			Thread serverThread = new Thread(() -> {
 				try {
 					RubusSocket localPeerSocket = serverSocket.accept();
@@ -207,7 +207,7 @@ public class SecureSocketTests extends RubusSocketTests {
 			});
 			serverThread.start();
 
-			RubusSocket localSocket = new TCPRubusSocket(InetAddress.getLocalHost(), 55000);
+			RubusSocket localSocket = new TCPRubusSocket(InetAddress.getByName("localhost"), 55000);
 			assertThrowsExactly(
 				HandshakeFailedException.class,
 				() -> new SecureSocket(
@@ -222,9 +222,9 @@ public class SecureSocketTests extends RubusSocketTests {
 		}
 
 		@Test
-		void clientAndServerDoNotSupportEncryption() throws InterruptedException, IOException{
-			serverConfig.set("encryption-enabled", "false");
-			clientConfig.set("encryption-enabled", "false");
+		void clientAndServerDoNotSupportSC() throws InterruptedException, IOException{
+			serverConfig.set("secure-connection-enabled", "false");
+			clientConfig.set("secure-connection-enabled", "false");
 			Thread serverThread = new Thread(() -> {
 				try {
 					RubusSocket localPeerSocket = serverSocket.accept();
@@ -240,7 +240,7 @@ public class SecureSocketTests extends RubusSocketTests {
 			});
 			serverThread.start();
 
-			RubusSocket localSocket = new TCPRubusSocket(InetAddress.getLocalHost(), 55000);
+			RubusSocket localSocket = new TCPRubusSocket(InetAddress.getByName("localhost"), 55000);
 			assertThrowsExactly(
 				HandshakeFailedException.class,
 				() -> new SecureSocket(localSocket, clientConfig, true),

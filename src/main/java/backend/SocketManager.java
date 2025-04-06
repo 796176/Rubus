@@ -19,14 +19,15 @@
 
 package backend;
 
+import backend.io.MediaPool;
 import common.RubusSocket;
 
 import java.io.IOException;
 import java.util.concurrent.*;
 
 /**
- * SocketManager keeps track of opened connections. It responsible for order in which connections are treated, closing
- * them or keeping them opened.
+ * SocketManager keeps track of open connections. It's responsible for handing the incoming requests, closing
+ * the connections or keeping them open.
  */
 public class SocketManager extends Thread {
 
@@ -38,10 +39,13 @@ public class SocketManager extends Thread {
 
 	private int activeConnections = 0;
 
-	private SocketManager(int poolSize) {
-		assert poolSize > 0;
+	private final MediaPool mediaPool;
 
-		executorService = Executors.newFixedThreadPool(poolSize);
+	private SocketManager(MediaPool mediaPool, ExecutorService requestExecutorService) {
+		assert mediaPool != null && requestExecutorService != null;
+
+		this.mediaPool = mediaPool;
+		executorService = requestExecutorService;
 	}
 
 	@Override
@@ -55,26 +59,28 @@ public class SocketManager extends Thread {
 						sockets.wait();
 					}
 				}
-				executorService.submit(new RequestHandler(socket, this::keepConnection, this::closeConnection));
+				executorService.submit(
+					new RequestHandler(mediaPool, socket, this::keepConnection, this::closeConnection)
+				);
 			} catch (InterruptedException ignored) {}
 		}
 	}
 
 	/**
-	 * Constructs this class using the fixed amount of threads and starts the connection management process in
-	 * a different thread.
-	 * @param poolSize the number of how many connections can be treated simultaneously
-	 * @return an constructed instance
+	 * Constructs a new SocketManager and immediately starts handling the incoming requests.
+	 * @param mediaPool the media pool containing the available media
+	 * @param requestExecutorService the executor service that performs request handling
+	 * @return a new instance of SocketManager
 	 */
-	public static SocketManager newSocketManager(int poolSize) {
-		SocketManager socketManager = new SocketManager(poolSize);
+	public static SocketManager newSocketManager(MediaPool mediaPool, ExecutorService requestExecutorService) {
+		SocketManager socketManager = new SocketManager(mediaPool, requestExecutorService);
 		socketManager.start();
 		return socketManager;
 	}
 
 	/**
-	 * Adds an opened connection to further proceeds its requests.
-	 * @param socket an opened connection
+	 * Adds a socket to handle its requests.
+	 * @param socket the socket requests of which need to be handled
 	 */
 	public void add(RubusSocket socket) {
 		assert socket != null;
@@ -87,7 +93,7 @@ public class SocketManager extends Thread {
 	}
 
 	/**
-	 * Terminate the connection management process and closes all the connections.
+	 * Terminate this SocketManager and closes all the open connections.
 	 */
 	public void terminate() {
 		isTerminated = true;
@@ -102,10 +108,10 @@ public class SocketManager extends Thread {
 	}
 
 	/**
-	 * Returns the number of currently opened connections.
-	 * @return the number of currently opened connections
+	 * Returns the number of the currently open connections.
+	 * @return the number of the currently open connections
 	 */
-	public int getActiveConnections() {
+	public int getOpenConnections() {
 		return activeConnections;
 	}
 
@@ -118,7 +124,7 @@ public class SocketManager extends Thread {
 
 	private void closeConnection(RubusSocket socket) {
 		try {
-		socket.close();
+			socket.close();
 		} catch (IOException ignored) {}
 		activeConnections--;
 	}

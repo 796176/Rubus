@@ -27,20 +27,19 @@ import common.ssl.SecureSocket;
 import java.io.IOException;
 import java.net.SocketTimeoutException;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 /**
  * SecureServerSocketDecorator is designed to augment an instance of {@link RubusServerSocket} by establishing secure
- * connections on sockets returned by the accept methods. The reasoning behind creating this class was (1) to isolate
- * {@link RubusServerSocket} and the client that the sockets use a secure connection and (2) to allow establishing many
- * ssl handshakes at a time. The implementation of the latter is achieved by continuous establishing regular
- * connections and performing handshakes in separate threads.<br<br>
+ * connections on sockets returned by the accept methods. The reasoning behind creating this class was (1) to delegate
+ * secure connection establishing to this class and not to the underlying {@link RubusServerSocket} or the client
+ * and (2) to allow establishing multiple ssl handshakes at a time. The implementation of the latter is achieved by
+ * continuous establishing regular connections and performing handshakes in separate threads.<br<br>
  *
  * The client may have a limit on the amount of established connections, and this class won't go over this limit if
  * their limits are the same. It's achieved by SecureServerSocketDecorator storing references to every socket even ones
  * it already passed to the client. So if the client closes one of its sockets, SecureServerSocketDecorator sees it and
- * allowing itself to establish a new connection if before that the limit had been reached.
+ * allows itself to establish a new connection if before that the limit had been reached.
  */
 public class SecureServerSocketDecorator implements RubusServerSocket {
 
@@ -52,7 +51,7 @@ public class SecureServerSocketDecorator implements RubusServerSocket {
 
 	private final int connectionLimit;
 
-	private final boolean encryptionRequired;
+	private final boolean scRequired;
 
 	private final long handshakeTimeout;
 
@@ -68,39 +67,39 @@ public class SecureServerSocketDecorator implements RubusServerSocket {
 
 	/**
 	 * Constructs an instance of this class and immediately starts accepting new sockets and establishing secure
-	 * connections. maxOpenConnection sets a limit on how many secure connections can be opened at any given time; setting
-	 * it to zero means secure connections will be established one at a time regardless of the maxThreadUtilization value
-	 * and SecureServerSocketDecorator won't store references to sockets as well, this significantly worsens
-	 * the performance so it's intended for debugging only. maxThreadUtilization limits how many handshakes can be
-	 * performed at a time. handshakeTimeout is a timeout of the handshake. The config instance must contain
-	 * the "encryption-required" value to determine if unsecure connections are allowed.
+	 * connections. openConnectionsLimit sets a limit of how many secure connections SecureServerSocketDecorator can
+	 * keep open at a time; setting it to zero means secure connections will be established one at a time in the same
+	 * thread and SecureServerSocketDecorator won't store references to sockets as well; this significantly worsens
+	 * the performance so it's intended for debugging only. handshakeExecutorService is responsible for performing
+	 * handshakes. handshakeTimeout is a timeout of the handshake. The config instance must contain
+	 * the "secure-connection-required" value to determine if unsecure connections are allowed.
 	 * @param serverSocket the instance of RubusServerSocket that establishes actual connections
-	 * @param config the config
-	 * @param maxOpenConnections the maximum amount of opened connections
-	 * @param maxThreadUtilization the maximum amount of handshakes performed at a time
+	 * @param config the config containing the necessary values
+	 * @param openConnectionsLimit the limit of how many connections this SecureServerSocketDecorator can keep open
+	 * @param handshakeExecutorService the execution service that performs handshakes
 	 * @param handshakeTimeout the handshake timeout in milliseconds
 	 */
 	public SecureServerSocketDecorator(
 		RubusServerSocket serverSocket,
 		Config config,
-		int maxOpenConnections,
-		int maxThreadUtilization,
+		int openConnectionsLimit,
+		ExecutorService handshakeExecutorService,
 		long handshakeTimeout
 	) {
 		assert serverSocket != null &&
 			   config != null &&
-			   maxOpenConnections >= 0 &&
-			   maxThreadUtilization > 0 &&
+			   openConnectionsLimit >= 0 &&
+			   handshakeExecutorService != null &&
 			   handshakeTimeout >= 0;
 
 		this.serverSocket = serverSocket;
 		this.config = config;
-		connectionLimit = maxOpenConnections;
-		encryptionRequired = Boolean.parseBoolean(config.get("encryption-required"));
+		connectionLimit = openConnectionsLimit;
+		scRequired = Boolean.parseBoolean(config.get("secure-connection-required"));
 		sharedSockets = new SharedSocket[connectionLimit];
 		this.handshakeTimeout = handshakeTimeout;
-		if (maxOpenConnections > 0) {
-			executorService = Executors.newFixedThreadPool(maxThreadUtilization);
+		if (openConnectionsLimit > 0) {
+			executorService = handshakeExecutorService;
 			backgroundThread.start();
 		}
 	}
@@ -235,7 +234,7 @@ public class SecureServerSocketDecorator implements RubusServerSocket {
 				}
 			} catch (HandshakeFailedException e) {
 				try {
-					if (!encryptionRequired) {
+					if (!scRequired) {
 						if(!put(localSocket)) {
 							openConnections--;
 							localSocket.close();

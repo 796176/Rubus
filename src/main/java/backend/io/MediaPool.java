@@ -24,19 +24,33 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 /**
- * MediaPool is responsible for retrieval of all available media and their meta-information.
+ * MediaPool class allows the client to query information about the available media. It stores a reference to
+ * the database containing the meta-information about the available media, and when the client makes a query MediaPool
+ * parses the database and returns objects where each object represent a single media. Those objects allow the client
+ * to get the meta-information. The client can also invoke the appropriate methods to get the data associated with
+ * the media.
  */
 public class MediaPool {
 
-	private static String dbLocation = "db";
+	private Path dbPath;
 
 	/**
-	 * Returns an array containing all available media and their meta-information.
-	 * @return an array containing all available media and their meta-information
+	 * Creates an instance of this class using the specified database location as the main resource of information.
+	 * @param mainDBPath the location to the database
+	 */
+	public MediaPool(Path mainDBPath) {
+		assert mainDBPath != null;
+
+		setMainDBPath(mainDBPath);
+	}
+
+	/**
+	 * Returns an array containing all the available media represented as {@link Media}.
+	 * @return an array containing all the available media represented as {@link Media}
 	 * @throws IOException if some I/O error occurs
 	 */
-	public static Media[] availableMedia() throws IOException {
-		return Files.readAllLines(Path.of(getDBLocation())).stream().map(line -> {
+	public Media[] availableMedia() throws IOException {
+		return Files.readAllLines(getMainDBPath()).stream().map(line -> {
 			String[] parameters = line.split("\u001e");
 			return new RubusMedia(
 				parameters[0],
@@ -54,22 +68,22 @@ public class MediaPool {
 	}
 
 	/**
-	 * Same as {@link #availableMedia()} but potentially perform the retrieval faster because some information will be
-	 * retrieved dynamically.
-	 * @return an array containing all available media
+	 * Same as {@link #availableMedia} but potentially performs the retrieval faster because it's not necessary refer
+	 * to the database.
+	 * @return an array containing all the available media represented as {@link Media}
 	 * @throws IOException if some I/O error occurs
 	 */
-	public static Media[] availableMediaFast() throws IOException {
+	public Media[] availableMediaFast() throws IOException {
 		return availableMedia();
 	}
 
 	/**
-	 * Returns the meta-information about the specified media.
+	 * Returns the media represented as {@link Media} with the specified media id.
 	 * @param mediaId the id of the media
-	 * @return the meta-information
+	 * @return the {@link Media} object
 	 * @throws IOException if some I/O occurs
 	 */
-	public static Media getMedia(String mediaId) throws IOException {
+	public Media getMedia(String mediaId) throws IOException {
 		for (Media media: availableMedia()) {
 			if (media.getID().equals(mediaId)) {
 				return media;
@@ -79,20 +93,28 @@ public class MediaPool {
 	}
 
 	/**
-	 * Returns the location to the file that stores the information about media.
-	 * @return the location to the file that stores the information about media
+	 * Returns the location to the database.
+	 * @return the location to the database
 	 */
-	public static String getDBLocation() {
-		return dbLocation;
+	public Path getMainDBPath() {
+		return dbPath;
 	}
 
 	/**
-	 * Sets a new location to the file containing the information about media.
-	 * @param newDBLocation a new location to the file containing the information about media
+	 * Sets a new location to the database.
+	 * @param newMainDBPath a new location to the database
 	 */
-	public static void setDBLocation(String newDBLocation) {
-		assert newDBLocation != null;
+	public void setMainDBPath(Path newMainDBPath) {
+		assert newMainDBPath != null;
 
-		dbLocation = newDBLocation;
+		dbPath = newMainDBPath;
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (o instanceof MediaPool mediaPool) {
+			return getMainDBPath().equals(mediaPool.getMainDBPath());
+		}
+		return false;
 	}
 }

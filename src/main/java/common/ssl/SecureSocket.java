@@ -115,19 +115,20 @@ public class SecureSocket implements RubusSocket {
 
 	private final Cipher cipher;
 
-	private final boolean encryptionSupported;
+	private final boolean scSupported;
 
 	/**
 	 * Constructs an instance of this class and performs the handshake. If this socket is a handshake initiator, the
 	 * handshake starts by sending the hello message. If this socket is not a handshake initiator, it waits to receive
 	 * the hello message. If the handshake isn't done within the specified time, the constructor throws
 	 * {@link InterruptedException} and closes the socket.<br>
-	 * During the construction, this SecureSocket looks for the "encryption-enabled" value in the config. If this socket
-	 * doesn't initiate a handshake it also looks for the "certificate-location" and "private-key-location" values.<br>
+	 * During the construction, this SecureSocket is looking for the "secure-connection-enabled" value in the config.
+	 * If this socket doesn't initiate a handshake it also looks for the "certificate-location" and
+	 * "private-key-location" values.<br>
 	 * If this socket or/and the peer socket don't support a secure connection, the construction fails by throwing
 	 * {@link HandshakeFailedException}.
-	 * @param socket the concrete socket
-	 * @param config the config
+	 * @param socket the instance of {@link RubusSocket}
+	 * @param config the config containing the necessary values
 	 * @param handshakeTimeout the timeout in milliseconds to establish a secure connection, or 0 to wait indefinitely
 	 * @param handshakeInitiator specifies if this socket is a handshake initiator
 	 * @throws IOException if some I/O error occurs
@@ -141,7 +142,7 @@ public class SecureSocket implements RubusSocket {
 	) throws IOException, InterruptedException {
 		assert socket != null && config != null && handshakeTimeout >= 0;
 
-		encryptionSupported = Boolean.parseBoolean(config.get("encryption-enabled"));
+		scSupported = Boolean.parseBoolean(config.get("secure-connection-enabled"));
 
 		ExecutorService executorService = Executors.newSingleThreadExecutor();
 		Future<?> future = executorService.submit(() -> {
@@ -175,12 +176,13 @@ public class SecureSocket implements RubusSocket {
 	 * Constructs an instance of this class and performs the handshake. If this socket is a handshake initiator, the
 	 * handshake starts by sending the hello message. If this socket is not a handshake initiator, it waits to receive
 	 * the hello message. Both peers wait indefinitely to establish a secure connection<br>
-	 * During the construction this SecureSocket looks for the "encryption-enabled" value in the config. If this socket
-	 * doesn't initiate a handshake it also looks for the "certificate-location" and "private-key-location" values.<br>
+	 * During the construction, this SecureSocket is looking for the "secure-connection-enabled" value in the config.
+	 * If this socket doesn't initiate a handshake it also looks for the "certificate-location" and
+	 * "private-key-location" values.<br>
 	 * If this socket or/and the peer socket don't support a secure connection, the construction fails by throwing
 	 * {@link HandshakeFailedException}.
-	 * @param socket the concrete socket
-	 * @param config the config
+	 * @param socket the instance of {@link RubusSocket}
+	 * @param config the config containing the necessary values
 	 * @param handshakeInitiator specifies if this socket is the handshake initiator
 	 * @throws IOException if some I/O error occurs
 	 * @throws SocketTimeoutException if the secure connection wasn't established within the specified time
@@ -375,13 +377,13 @@ public class SecureSocket implements RubusSocket {
 		try {
 			String helloMes = """
 					hello
-					encryption-support:%b
-					""".formatted(encryptionSupported);
+					secure-connection-support:%b
+					""".formatted(scSupported);
 			sendMessage(socket, helloMes.getBytes());
 
 			byte[] helloResponse = readMessage(socket, 0);
-			if (new String(helloResponse).toLowerCase().contains("encryption-support:false") || !encryptionSupported) {
-				throw new HandshakeFailedException("This or the peer socket don't support a secure connection");
+			if (new String(helloResponse).toLowerCase().contains("secure-connection-support:false") || !scSupported) {
+				throw new HandshakeFailedException("This socket or the peer socket don't support a secure connection");
 			}
 			ByteArrayInputStream cert =
 				new ByteArrayInputStream(
@@ -412,13 +414,13 @@ public class SecureSocket implements RubusSocket {
 		try {
 			byte[] helloMes = readMessage(socket, 0);
 
-			if (new String(helloMes).toLowerCase().contains("encryption-support:false") || !encryptionSupported) {
+			if (new String(helloMes).toLowerCase().contains("secure-connection-support:false") || !scSupported) {
 				String helloResponse = """
 						hello
-						encryption-support:%b
-						""".formatted(encryptionSupported);
+						secure-connection-support:%b
+						""".formatted(scSupported);
 				sendMessage(socket, helloResponse.getBytes());
-				throw new HandshakeFailedException("This or the peer socket doesn't support secure connection");
+				throw new HandshakeFailedException("This socket or the peer socket doesn't support secure connection");
 			}
 
 			Path certificatePath = Path.of(config.get("certificate-location"));

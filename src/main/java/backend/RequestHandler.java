@@ -38,9 +38,11 @@ import java.util.Arrays;
 import java.util.function.Consumer;
 
 /**
- * RequestHandler is responsible for handling clients' requests and sending appropriate responses. It also detects
- * if the client closed its session, but it doesn't close the socket on its on and instead allows the caller to handle
- * it. If RequestHandler didn't receive a client's request it assumes that the client decided to keep the connection.
+ * RequestHandler is responsible for receiving clients' requests and sending the appropriate responses. It also detects
+ * if the client terminated the connection, but it doesn't close the socket on its on and invokes the closeConnection
+ * consumer and passes the socket as its parameter. If the request was handled successfully or no request has been
+ * received with the specified time, RequestHandler invokes the keepConnection consumer and passes the socket as its
+ * parameter.
  */
 public class RequestHandler implements Runnable {
 
@@ -50,18 +52,27 @@ public class RequestHandler implements Runnable {
 
 	private final Consumer<RubusSocket> closeConnection;
 
+	private final MediaPool pool;
+
 	/**
 	 * Creates a new instance of this class.
-	 * @param socket socket the request of which needs to be handled
-	 * @param keepConnection calls if the client kept the connection
-	 * @param closeConnection calls if the client closed the connection
+	 * @param mediaPool the media pool containing the available media
+	 * @param socket the socket requests of which need to be handled
+	 * @param keepConnection gets invoked after a successful request handling, or if no request was received
+	 * @param closeConnection gets invoked if the client closed the connection, or if an IOException occurred
 	 */
-	public RequestHandler(RubusSocket socket, Consumer<RubusSocket> keepConnection, Consumer<RubusSocket> closeConnection) {
+	public RequestHandler(
+		MediaPool mediaPool,
+		RubusSocket socket,
+		Consumer<RubusSocket> keepConnection,
+		Consumer<RubusSocket> closeConnection
+	) {
 		assert socket != null;
 
 		this.keepConnection = keepConnection;
 		this.closeConnection = closeConnection;
 		this.socket = socket;
+		this.pool = mediaPool;
 	}
 
 	@Override
@@ -95,7 +106,7 @@ public class RequestHandler implements Runnable {
 					);
 					ArrayList<String> ids = new ArrayList<>();
 					ArrayList<String> titles = new ArrayList<>();
-					for (Media m: MediaPool.availableMediaFast()) {
+					for (Media m: pool.availableMediaFast()) {
 						if (m.getTitle().matches(titlePattern)) {
 							ids.add(m.getID());
 							titles.add(m.getTitle());
@@ -112,7 +123,7 @@ public class RequestHandler implements Runnable {
 						requestMes.indexOf("media-id ") + "media-id ".length(),
 						requestMes.indexOf('\n', requestMes.indexOf("media-id "))
 					);
-					Media media = MediaPool.getMedia(mediaID);
+					Media media = pool.getMedia(mediaID);
 					MediaInfo mediaInfo = media.toMediaInfo();
 					responseMes.append("serialized-object ").append(MediaInfo.class.getName()).append('\n');
 					ObjectOutputStream oos = new ObjectOutputStream(body);
@@ -136,7 +147,7 @@ public class RequestHandler implements Runnable {
 							requestMes.indexOf('\n', requestMes.indexOf("total-playback-pieces "))
 						)
 					);
-					Media media = MediaPool.getMedia(mediaID);
+					Media media = pool.getMedia(mediaID);
 					FetchedPieces fetchedPieces =
 						new FetchedPieces(
 							mediaID,
@@ -173,9 +184,4 @@ public class RequestHandler implements Runnable {
 
 		keepConnection.accept(socket);
 	}
-
-	public RubusSocket getSocket() {
-		return socket;
-	}
-
 }
