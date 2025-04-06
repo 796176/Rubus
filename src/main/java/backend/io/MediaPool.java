@@ -28,15 +28,25 @@ import java.nio.file.Path;
  */
 public class MediaPool {
 
-	private static String dbLocation = "db";
+	private Path dbPath;
+
+	/**
+	 * Creates an instance of this class using the specified database location as the main resource of information.
+	 * @param mainDBPath the location to the database
+	 */
+	public MediaPool(Path mainDBPath) {
+		assert mainDBPath != null;
+
+		setMainDBPath(mainDBPath);
+	}
 
 	/**
 	 * Returns an array containing all available media and their meta-information.
 	 * @return an array containing all available media and their meta-information
 	 * @throws IOException if some I/O error occurs
 	 */
-	public static Media[] availableMedia() throws IOException {
-		return Files.readAllLines(Path.of(getDBLocation())).stream().map(line -> {
+	public Media[] availableMedia() throws IOException {
+		return Files.readAllLines(getMainDBPath()).stream().map(line -> {
 			String[] parameters = line.split("\u001e");
 			return new RubusMedia(
 				parameters[0],
@@ -59,7 +69,7 @@ public class MediaPool {
 	 * @return an array containing all available media
 	 * @throws IOException if some I/O error occurs
 	 */
-	public static Media[] availableMediaFast() throws IOException {
+	public Media[] availableMediaFast() throws IOException {
 		return availableMedia();
 	}
 
@@ -69,7 +79,7 @@ public class MediaPool {
 	 * @return the meta-information
 	 * @throws IOException if some I/O occurs
 	 */
-	public static Media getMedia(String mediaId) throws IOException {
+	public Media getMedia(String mediaId) throws IOException {
 		for (Media media: availableMedia()) {
 			if (media.getID().equals(mediaId)) {
 				return media;
@@ -82,17 +92,17 @@ public class MediaPool {
 	 * Returns the location to the file that stores the information about media.
 	 * @return the location to the file that stores the information about media
 	 */
-	public static String getDBLocation() {
-		return dbLocation;
+	public Path getMainDBPath() {
+		return dbPath;
 	}
 
 	/**
 	 * Sets a new location to the file containing the information about media.
 	 * @param newDBLocation a new location to the file containing the information about media
 	 */
-	public static void setDBLocation(String newDBLocation) {
-		assert newDBLocation != null;
+	public void setMainDBPath(Path newMainDBPath) {
+		assert newMainDBPath != null;
 
-		dbLocation = newDBLocation;
+		dbPath = newMainDBPath;
 	}
 }

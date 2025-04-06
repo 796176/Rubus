@@ -19,6 +19,7 @@
 
 package backend;
 
+import backend.io.MediaPool;
 import common.RubusSocket;
 
 import java.io.IOException;
@@ -38,9 +39,12 @@ public class SocketManager extends Thread {
 
 	private int activeConnections = 0;
 
-	private SocketManager(ExecutorService requestExecutorService) {
-		assert requestExecutorService != null;
+	private final MediaPool mediaPool;
 
+	private SocketManager(MediaPool mediaPool, ExecutorService requestExecutorService) {
+		assert mediaPool != null && requestExecutorService != null;
+
+		this.mediaPool = mediaPool;
 		executorService = requestExecutorService;
 	}
 
@@ -55,7 +59,9 @@ public class SocketManager extends Thread {
 						sockets.wait();
 					}
 				}
-				executorService.submit(new RequestHandler(socket, this::keepConnection, this::closeConnection));
+				executorService.submit(
+					new RequestHandler(mediaPool, socket, this::keepConnection, this::closeConnection)
+				);
 			} catch (InterruptedException ignored) {}
 		}
 	}
@@ -66,8 +72,8 @@ public class SocketManager extends Thread {
 	 * @param poolSize the number of how many connections can be treated simultaneously
 	 * @return an constructed instance
 	 */
-	public static SocketManager newSocketManager(ExecutorService requestExecutorService) {
-		SocketManager socketManager = new SocketManager(requestExecutorService);
+	public static SocketManager newSocketManager(MediaPool mediaPool, ExecutorService requestExecutorService) {
+		SocketManager socketManager = new SocketManager(mediaPool, requestExecutorService);
 		socketManager.start();
 		return socketManager;
 	}

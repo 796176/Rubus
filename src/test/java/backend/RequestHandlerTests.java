@@ -40,9 +40,11 @@ public class RequestHandlerTests {
 
 	RubusSocket dummy;
 
+	static MediaPool mediaPool;
+
 	@BeforeAll
 	static void beforeAll() {
-		MediaPool.setDBLocation(Path.of(System.getProperty("user.dir"), "src", "test", "resources", "testDB").toString());
+		mediaPool = new MediaPool(Path.of(System.getProperty("user.dir"), "src", "test", "resources", "testDB"));
 	}
 
 	@BeforeEach
@@ -52,7 +54,7 @@ public class RequestHandlerTests {
 	@Test
 	void handleNoRequest() {
 		ArrayList<RubusSocket> sockets = new ArrayList<>();
-		RequestHandler handler = new RequestHandler(dummy, sockets::add, s->{});
+		RequestHandler handler = new RequestHandler(mediaPool, dummy, sockets::add, s->{});
 		handler.run();
 		if (sockets.isEmpty()) fail();
 	}
@@ -61,7 +63,7 @@ public class RequestHandlerTests {
 	void handleClosing() throws IOException {
 		dummy.close();
 		ArrayList<RubusSocket> sockets = new ArrayList<>();
-		RequestHandler handler = new RequestHandler(dummy, s->{}, sockets::add);
+		RequestHandler handler = new RequestHandler(mediaPool, dummy, s->{}, sockets::add);
 		handler.run();
 		if (sockets.isEmpty()) fail();
 	}
@@ -74,7 +76,7 @@ public class RequestHandlerTests {
 			
 			""".getBytes();
 		dummy.write(request);
-		new RequestHandler(dummy, s->{}, s->{}).run();
+		new RequestHandler(mediaPool, dummy, s->{}, s->{}).run();
 
 		byte[] response = new byte[10000];
 		int responseLen = dummy.read(response);
@@ -92,7 +94,7 @@ public class RequestHandlerTests {
 			
 			""".getBytes();
 		dummy.write(request);
-		new RequestHandler(dummy, s->{}, s->{}).run();
+		new RequestHandler(mediaPool, dummy, s->{}, s->{}).run();
 
 		byte[] response = new byte[10000];
 		int responseLen = dummy.read(response);
@@ -111,7 +113,7 @@ public class RequestHandlerTests {
 				
 				""".getBytes();
 			dummy.write(request);
-			new RequestHandler(dummy, s->{}, s->{}).run();
+			new RequestHandler(mediaPool, dummy, s->{}, s->{}).run();
 
 			byte[] response = new byte[10000];
 			int responseLen = dummy.read(response);
@@ -140,7 +142,7 @@ public class RequestHandlerTests {
 				
 				""".getBytes();
 			dummy.write(request);
-			new RequestHandler(dummy, s->{}, s->{}).run();
+			new RequestHandler(mediaPool, dummy, s->{}, s->{}).run();
 
 			byte[] response = new byte[10000];
 			int responseLen = dummy.read(response);
@@ -180,7 +182,7 @@ public class RequestHandlerTests {
 				
 				""".getBytes();
 			dummy.write(request);
-			new RequestHandler(dummy, s->{}, s->{}).run();
+			new RequestHandler(mediaPool, dummy, s->{}, s->{}).run();
 
 			byte[] response = new byte[10000];
 			int responseLen = dummy.read(response);
@@ -207,7 +209,7 @@ public class RequestHandlerTests {
 				
 				""".getBytes();
 			dummy.write(request);
-			new RequestHandler(dummy, s->{}, s->{}).run();
+			new RequestHandler(mediaPool, dummy, s->{}, s->{}).run();
 
 			byte[] response = new byte[10000];
 			int responseLen = dummy.read(response);
@@ -237,7 +239,7 @@ public class RequestHandlerTests {
 				
 				""".getBytes();
 			dummy.write(request);
-			new RequestHandler(dummy, s->{}, s->{}).run();
+			new RequestHandler(mediaPool, dummy, s->{}, s->{}).run();
 
 			byte[] response = new byte[10000];
 			int responseLen = dummy.read(response);
@@ -269,7 +271,7 @@ public class RequestHandlerTests {
 				
 				""".getBytes();
 			dummy.write(request);
-			new RequestHandler(dummy, s->{}, s->{}).run();
+			new RequestHandler(mediaPool, dummy, s->{}, s->{}).run();
 
 			byte[] response = new byte[10000];
 			int responseLen = dummy.read(response);
