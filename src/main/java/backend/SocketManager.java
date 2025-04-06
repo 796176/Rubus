@@ -111,7 +111,7 @@ public class SocketManager extends Thread {
 	 * Returns the number of the currently open connections.
 	 * @return the number of the currently open connections
 	 */
-	public int getActiveConnections() {
+	public int getOpenConnections() {
 		return activeConnections;
 	}
 

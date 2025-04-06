@@ -55,7 +55,7 @@ public class RubusServer extends Thread {
 	public void run() {
 		while (isRunning) {
 			try {
-				if (manager.getActiveConnections() < connectionLimit) {
+				if (manager.getOpenConnections() < connectionLimit) {
 					RubusSocket socket = serverSocket.accept(50);
 					manager.add(socket);
 				}
