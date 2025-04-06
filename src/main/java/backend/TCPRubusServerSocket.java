@@ -23,6 +23,8 @@ import common.RubusSocket;
 import common.TCPRubusSocket;
 
 import java.io.IOException;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 
 /**
@@ -37,11 +39,13 @@ public class TCPRubusServerSocket implements RubusServerSocket {
 
 	/**
 	 * Constructs an instance of this class.
+	 * @param serverAddress the server address this TCPRubusServerSocket is bound to
 	 * @param port the listening port
 	 * @throws IOException if some I/O error occurs
 	 */
-	public TCPRubusServerSocket(int port) throws IOException {
-		serverSocket = new ServerSocket(port);
+	public TCPRubusServerSocket(InetAddress serverAddress, int port) throws IOException {
+		serverSocket = new ServerSocket();
+		serverSocket.bind(new InetSocketAddress(serverAddress, port));
 		defaultTimeout = serverSocket.getSoTimeout();
 	}
 
