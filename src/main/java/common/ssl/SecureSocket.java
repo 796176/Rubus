@@ -375,12 +375,12 @@ public class SecureSocket implements RubusSocket {
 		try {
 			String helloMes = """
 					hello
-					encryption-support:%b
+					secure-connection-support:%b
 					""".formatted(scSupported);
 			sendMessage(socket, helloMes.getBytes());
 
 			byte[] helloResponse = readMessage(socket, 0);
-			if (new String(helloResponse).toLowerCase().contains("encryption-support:false") || !scSupported) {
+			if (new String(helloResponse).toLowerCase().contains("secure-connection-support:false") || !scSupported) {
 				throw new HandshakeFailedException("This or the peer socket don't support a secure connection");
 			}
 			ByteArrayInputStream cert =
@@ -412,10 +412,10 @@ public class SecureSocket implements RubusSocket {
 		try {
 			byte[] helloMes = readMessage(socket, 0);
 
-			if (new String(helloMes).toLowerCase().contains("encryption-support:false") || !scSupported) {
+			if (new String(helloMes).toLowerCase().contains("secure-connection-support:false") || !scSupported) {
 				String helloResponse = """
 						hello
-						encryption-support:%b
+						secure-connection-support:%b
 						""".formatted(scSupported);
 				sendMessage(socket, helloResponse.getBytes());
 				throw new HandshakeFailedException("This or the peer socket doesn't support secure connection");
