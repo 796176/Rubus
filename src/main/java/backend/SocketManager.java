@@ -38,10 +38,10 @@ public class SocketManager extends Thread {
 
 	private int activeConnections = 0;
 
-	private SocketManager(int poolSize) {
-		assert poolSize > 0;
+	private SocketManager(ExecutorService requestExecutorService) {
+		assert requestExecutorService != null;
 
-		executorService = Executors.newFixedThreadPool(poolSize);
+		executorService = requestExecutorService;
 	}
 
 	@Override
@@ -66,8 +66,8 @@ public class SocketManager extends Thread {
 	 * @param poolSize the number of how many connections can be treated simultaneously
 	 * @return an constructed instance
 	 */
-	public static SocketManager newSocketManager(int poolSize) {
-		SocketManager socketManager = new SocketManager(poolSize);
+	public static SocketManager newSocketManager(ExecutorService requestExecutorService) {
+		SocketManager socketManager = new SocketManager(requestExecutorService);
 		socketManager.start();
 		return socketManager;
 	}
