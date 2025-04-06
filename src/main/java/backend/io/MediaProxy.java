@@ -48,6 +48,10 @@ public abstract class MediaProxy implements Media {
 		this.mediaPool = mediaPool;
 		id = mediaID;
 	}
+	
+	public MediaPool getMediaPool() {
+		return mediaPool;
+	}
 
 	@Override
 	public String getID() {
@@ -127,15 +131,15 @@ public abstract class MediaProxy implements Media {
 	}
 
 	/**
-	 * Compares this MediaProxy with another object. Returns true only the other object is an instance of MediaProxy and
-	 * its media id is equal to this media id.
+	 * Compares this MediaProxy with another object. Returns true only if the other object is an instance of MediaProxy
+	 * and its media pool and media id are equal to this media pool and media id respectively.
 	 * @param obj an object
-	 * @return true if the object is a MediaProxy and has the same id, false otherwise
+	 * @return true if the object is a MediaProxy and has the same media pool and media id, false otherwise
 	 */
 	@Override
 	public boolean equals(Object obj) {
 		if (obj instanceof MediaProxy mediaProxy) {
-			return getID().equals(mediaProxy.getID());
+			return getMediaPool().equals(mediaProxy.getMediaPool()) && getID().equals(mediaProxy.getID());
 		}
 		return false;
 	}

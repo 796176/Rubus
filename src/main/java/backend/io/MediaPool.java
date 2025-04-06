@@ -109,4 +109,12 @@ public class MediaPool {
 
 		dbPath = newMainDBPath;
 	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (o instanceof MediaPool mediaPool) {
+			return getMainDBPath().equals(mediaPool.getMainDBPath());
+		}
+		return false;
+	}
 }
