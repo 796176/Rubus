@@ -381,7 +381,7 @@ public class SecureSocket implements RubusSocket {
 
 			byte[] helloResponse = readMessage(socket, 0);
 			if (new String(helloResponse).toLowerCase().contains("secure-connection-support:false") || !scSupported) {
-				throw new HandshakeFailedException("This or the peer socket don't support a secure connection");
+				throw new HandshakeFailedException("This socket or the peer socket don't support a secure connection");
 			}
 			ByteArrayInputStream cert =
 				new ByteArrayInputStream(
@@ -418,7 +418,7 @@ public class SecureSocket implements RubusSocket {
 						secure-connection-support:%b
 						""".formatted(scSupported);
 				sendMessage(socket, helloResponse.getBytes());
-				throw new HandshakeFailedException("This or the peer socket doesn't support secure connection");
+				throw new HandshakeFailedException("This socket or the peer socket doesn't support secure connection");
 			}
 
 			Path certificatePath = Path.of(config.get("certificate-location"));
