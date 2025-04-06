@@ -184,9 +184,4 @@ public class RequestHandler implements Runnable {
 
 		keepConnection.accept(socket);
 	}
-
-	public RubusSocket getSocket() {
-		return socket;
-	}
-
 }
