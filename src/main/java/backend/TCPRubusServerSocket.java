@@ -28,8 +28,8 @@ import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 
 /**
- * TCPRubusServerSocket is an implementation of {@link RubusServerSocket} that establishes TCP connections between
- * a server and a client and returns instances of {@link TCPRubusSocket} after the connection is established.
+ * TCPRubusServerSocket is a concrete implementation of {@link RubusServerSocket} that establishes TCP connections
+ * between a server and a client and returns instances of {@link TCPRubusSocket} after the connection is established.
  */
 public class TCPRubusServerSocket implements RubusServerSocket {
 

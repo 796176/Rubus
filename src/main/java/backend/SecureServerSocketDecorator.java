@@ -31,15 +31,15 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * SecureServerSocketDecorator is designed to augment an instance of {@link RubusServerSocket} by establishing secure
- * connections on sockets returned by the accept methods. The reasoning behind creating this class was (1) to isolate
- * {@link RubusServerSocket} and the client that the sockets use a secure connection and (2) to allow establishing many
- * ssl handshakes at a time. The implementation of the latter is achieved by continuous establishing regular
- * connections and performing handshakes in separate threads.<br<br>
+ * connections on sockets returned by the accept methods. The reasoning behind creating this class was (1) to delegate
+ * secure connection establishing to this class and not to the underlying {@link RubusServerSocket} or the client
+ * and (2) to allow establishing multiple ssl handshakes at a time. The implementation of the latter is achieved by
+ * continuous establishing regular connections and performing handshakes in separate threads.<br<br>
  *
  * The client may have a limit on the amount of established connections, and this class won't go over this limit if
  * their limits are the same. It's achieved by SecureServerSocketDecorator storing references to every socket even ones
  * it already passed to the client. So if the client closes one of its sockets, SecureServerSocketDecorator sees it and
- * allowing itself to establish a new connection if before that the limit had been reached.
+ * allows itself to establish a new connection if before that the limit had been reached.
  */
 public class SecureServerSocketDecorator implements RubusServerSocket {
 

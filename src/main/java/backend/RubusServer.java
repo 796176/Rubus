@@ -25,7 +25,7 @@ import java.io.IOException;
 import java.net.SocketTimeoutException;
 
 /**
- * RubusServer is responsible for accepting or rejecting clients' requests to establish a connection.
+ * RubusServer is responsible for accepting or rejecting incoming connections.
  */
 public class RubusServer extends Thread {
 
@@ -67,7 +67,7 @@ public class RubusServer extends Thread {
 	}
 
 	/**
-	 * Terminates the server.
+	 * Terminates the server and the underlying socket manager.
 	 */
 	public void terminate() throws IOException {
 		isRunning = false;
@@ -76,16 +76,16 @@ public class RubusServer extends Thread {
 	}
 
 	/**
-	 * Returns true if the server is running, false otherwise.
-	 * @return true if the server is running, false otherwise
+	 * Returns true if this RubusServer is running, false otherwise.
+	 * @return true if this RubusServer is running, false otherwise
 	 */
 	public boolean isRunning() {
 		return isRunning;
 	}
 
 	/**
-	 * Returns the limit of how many connection can be opened at any given moment.
-	 * @return the limit of how many connection can be opened at any given moment
+	 * Returns the limit of how many connections this RubusServer can keep open at a time.
+	 * @return the limit of how many connections this RubusServer can keep open at a time
 	 */
 	public int getOpenConnectionsLimit() {
 		return connectionLimit;

@@ -38,9 +38,11 @@ import java.util.Arrays;
 import java.util.function.Consumer;
 
 /**
- * RequestHandler is responsible for handling clients' requests and sending appropriate responses. It also detects
- * if the client closed its session, but it doesn't close the socket on its on and instead allows the caller to handle
- * it. If RequestHandler didn't receive a client's request it assumes that the client decided to keep the connection.
+ * RequestHandler is responsible for receiving clients' requests and sending the appropriate responses. It also detects
+ * if the client terminated the connection, but it doesn't close the socket on its on and invokes the closeConnection
+ * consumer and passes the socket as its parameter. If the request was handled successfully or no request has been
+ * received with the specified time, RequestHandler invokes the keepConnection consumer and passes the socket as its
+ * parameter.
  */
 public class RequestHandler implements Runnable {
 
