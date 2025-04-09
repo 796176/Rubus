@@ -83,10 +83,15 @@ public class RubusConfiguration {
 		return new MediaPool(mainDBPath);
 	}
 
+	@Bean
+	RequestParserStrategy preProcessRequestParser() {
+		return new PreProcessRequestParser();
+	}
+
 	@Primary
 	@Bean
 	RequestParserStrategy standardRequestParser() {
-		return null;
+		return new StandardRequestParser();
 	}
 
 	@Bean
