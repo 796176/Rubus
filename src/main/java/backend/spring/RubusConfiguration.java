@@ -27,6 +27,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 
 import java.io.IOException;
 import java.net.InetAddress;
@@ -83,9 +84,23 @@ public class RubusConfiguration {
 	}
 
 	@Bean
-	SocketManager socketManager(MediaPool mediaPool, ExecutorService requestExecutorService) {
+	RequestParserStrategy preProcessRequestParser() {
+		return new PreProcessRequestParser();
+	}
 
-		return SocketManager.newSocketManager(mediaPool, requestExecutorService);
+	@Primary
+	@Bean
+	RequestParserStrategy standardRequestParser() {
+		return new StandardRequestParser();
+	}
+
+	@Bean
+	SocketManager socketManager(
+		MediaPool mediaPool,
+		ExecutorService requestExecutorService,
+		RequestParserStrategy requestParserStrategy
+	) {
+		return SocketManager.newSocketManager(mediaPool, requestExecutorService, requestParserStrategy);
 	}
 
 	@Bean

@@ -41,11 +41,14 @@ public class SocketManager extends Thread {
 
 	private final MediaPool mediaPool;
 
-	private SocketManager(MediaPool mediaPool, ExecutorService requestExecutorService) {
-		assert mediaPool != null && requestExecutorService != null;
+	private final RequestParserStrategy requestParserStrategy;
+
+	private SocketManager(MediaPool mediaPool, ExecutorService requestExecutorService, RequestParserStrategy requestParserStrategy) {
+		assert mediaPool != null && requestExecutorService != null && requestParserStrategy != null;
 
 		this.mediaPool = mediaPool;
 		executorService = requestExecutorService;
+		this.requestParserStrategy = requestParserStrategy;
 	}
 
 	@Override
@@ -60,7 +63,9 @@ public class SocketManager extends Thread {
 					}
 				}
 				executorService.submit(
-					new RequestHandler(mediaPool, socket, this::keepConnection, this::closeConnection)
+					new RequestHandler(
+						mediaPool, socket, requestParserStrategy.clone(), this::keepConnection, this::closeConnection
+					)
 				);
 			} catch (InterruptedException ignored) {}
 		}
@@ -70,10 +75,15 @@ public class SocketManager extends Thread {
 	 * Constructs a new SocketManager and immediately starts handling the incoming requests.
 	 * @param mediaPool the media pool containing the available media
 	 * @param requestExecutorService the executor service that performs request handling
+	 * @param requestParserStrategy the parser strategy to use
 	 * @return a new instance of SocketManager
 	 */
-	public static SocketManager newSocketManager(MediaPool mediaPool, ExecutorService requestExecutorService) {
-		SocketManager socketManager = new SocketManager(mediaPool, requestExecutorService);
+	public static SocketManager newSocketManager(
+		MediaPool mediaPool,
+		ExecutorService requestExecutorService,
+		RequestParserStrategy requestParserStrategy
+	) {
+		SocketManager socketManager = new SocketManager(mediaPool, requestExecutorService, requestParserStrategy);
 		socketManager.start();
 		return socketManager;
 	}
