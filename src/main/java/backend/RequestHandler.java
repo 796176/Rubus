@@ -23,7 +23,6 @@ import backend.io.Media;
 import backend.io.MediaPool;
 import common.RubusSocket;
 import common.RubusSockets;
-import common.net.request.RubusRequestType;
 import common.net.response.RubusResponseType;
 import common.net.response.body.FetchedPieces;
 import common.net.response.body.MediaInfo;
@@ -54,16 +53,20 @@ public class RequestHandler implements Runnable {
 
 	private final MediaPool pool;
 
+	private final RequestParserStrategy parser;
+
 	/**
 	 * Creates a new instance of this class.
 	 * @param mediaPool the media pool containing the available media
 	 * @param socket the socket requests of which need to be handled
+	 * @param requestParserStrategy the parser strategy to use
 	 * @param keepConnection gets invoked after a successful request handling, or if no request was received
 	 * @param closeConnection gets invoked if the client closed the connection, or if an IOException occurred
 	 */
 	public RequestHandler(
 		MediaPool mediaPool,
 		RubusSocket socket,
+		RequestParserStrategy requestParserStrategy,
 		Consumer<RubusSocket> keepConnection,
 		Consumer<RubusSocket> closeConnection
 	) {
@@ -73,6 +76,7 @@ public class RequestHandler implements Runnable {
 		this.closeConnection = closeConnection;
 		this.socket = socket;
 		this.pool = mediaPool;
+		parser = requestParserStrategy;
 	}
 
 	@Override
@@ -94,16 +98,12 @@ public class RequestHandler implements Runnable {
 			}
 
 			String requestMes = new String(request);
+			parser.feed(requestMes);
 			StringBuilder responseMes = new StringBuilder("response-type ").append(RubusResponseType.OK).append('\n');
 			ByteArrayOutputStream body = new ByteArrayOutputStream();
-			RubusRequestType requestType =
-				RubusRequestType.valueOf(requestMes.substring(requestMes.indexOf(' ') + 1, requestMes.indexOf('\n')));
-			switch (requestType) {
+			switch (parser.type()) {
 				case LIST -> {
-					String titlePattern = requestMes.substring(
-						requestMes.indexOf("title-contains ") + "title-contains ".length(),
-						requestMes.indexOf('\n', requestMes.indexOf("title-contains "))
-					);
+					String titlePattern = parser.value("title-contains");
 					ArrayList<String> ids = new ArrayList<>();
 					ArrayList<String> titles = new ArrayList<>();
 					for (Media m: pool.availableMediaFast()) {
@@ -119,10 +119,7 @@ public class RequestHandler implements Runnable {
 				}
 
 				case INFO -> {
-					String mediaID = requestMes.substring(
-						requestMes.indexOf("media-id ") + "media-id ".length(),
-						requestMes.indexOf('\n', requestMes.indexOf("media-id "))
-					);
+					String mediaID = parser.value("media-id");
 					Media media = pool.getMedia(mediaID);
 					MediaInfo mediaInfo = media.toMediaInfo();
 					responseMes.append("serialized-object ").append(MediaInfo.class.getName()).append('\n');
@@ -131,22 +128,9 @@ public class RequestHandler implements Runnable {
 				}
 
 				case FETCH -> {
-					String mediaID = requestMes.substring(
-						requestMes.indexOf("media-id ") + "media-id ".length(),
-						requestMes.indexOf('\n', requestMes.indexOf("media-id "))
-					);
-					int beginningPieceIndex = Integer.parseInt(
-						requestMes.substring(
-							requestMes.indexOf("starting-playback-piece ") + "starting-playback-piece ".length(),
-							requestMes.indexOf('\n', requestMes.indexOf("starting-playback-piece "))
-						)
-					);
-					int piecesToFetch = Integer.parseInt(
-						requestMes.substring(
-							requestMes.indexOf("total-playback-pieces ") + "total-playback-pieces ".length(),
-							requestMes.indexOf('\n', requestMes.indexOf("total-playback-pieces "))
-						)
-					);
+					String mediaID = parser.value("media-id");
+					int beginningPieceIndex = Integer.parseInt(parser.value("starting-playback-piece"));
+					int piecesToFetch = Integer.parseInt(parser.value("total-playback-pieces"));
 					Media media = pool.getMedia(mediaID);
 					FetchedPieces fetchedPieces =
 						new FetchedPieces(
