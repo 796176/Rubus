@@ -25,6 +25,7 @@ import common.RubusSocket;
 import java.io.IOException;
 import java.net.SocketTimeoutException;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * SocketManager keeps track of open connections. It's responsible for handing the incoming requests, closing
@@ -36,7 +37,7 @@ public class SocketManager {
 
 	private boolean isTerminated = false;
 
-	private int activeConnections = 0;
+	private final AtomicInteger activeConnections = new AtomicInteger(0);
 
 	private final MediaPool mediaPool;
 
@@ -75,7 +76,7 @@ public class SocketManager {
 	public void add(RubusSocket socket) {
 		assert socket != null;
 
-		activeConnections++;
+		activeConnections.getAndIncrement();
 		RequestHandler requestHandler;
 		if (!availableHandlers.isEmpty()) {
 			requestHandler = availableHandlers.poll();
@@ -107,7 +108,7 @@ public class SocketManager {
 	 * @return the number of the currently open connections
 	 */
 	public int getOpenConnections() {
-		return activeConnections;
+		return activeConnections.get();
 	}
 
 	private void requestHandlerCallback(RequestHandler requestHandler) {
@@ -126,7 +127,7 @@ public class SocketManager {
 			try {
 				requestHandler.getRubusSocket().close();
 			} catch (IOException ignored) { }
-			activeConnections--;
+			activeConnections.getAndDecrement();
 			availableHandlers.add(requestHandler);
 		}
 	}
