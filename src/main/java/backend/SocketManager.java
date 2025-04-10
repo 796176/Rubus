@@ -30,9 +30,7 @@ import java.util.concurrent.*;
  * SocketManager keeps track of open connections. It's responsible for handing the incoming requests, closing
  * the connections or keeping them open.
  */
-public class SocketManager extends Thread {
-
-	private final ConcurrentLinkedQueue<RubusSocket> sockets = new ConcurrentLinkedQueue<>();
+public class SocketManager {
 
 	private final ExecutorService executorService;
 
@@ -44,6 +42,8 @@ public class SocketManager extends Thread {
 
 	private final RequestParserStrategy requestParserStrategy;
 
+	private final ConcurrentLinkedQueue<RequestHandler> availableHandlers = new ConcurrentLinkedQueue<>();
+
 	private SocketManager(MediaPool mediaPool, ExecutorService requestExecutorService, RequestParserStrategy requestParserStrategy) {
 		assert mediaPool != null && requestExecutorService != null && requestParserStrategy != null;
 
@@ -52,28 +52,8 @@ public class SocketManager extends Thread {
 		this.requestParserStrategy = requestParserStrategy;
 	}
 
-	@Override
-	public void run() {
-		while (!isTerminated) {
-			try {
-				RubusSocket socket;
-				while ((socket = sockets.poll()) == null) {
-					synchronized (sockets) {
-						if (isTerminated) return;
-						sockets.wait();
-					}
-				}
-				executorService.submit(
-					new RequestHandler(
-						mediaPool, socket, requestParserStrategy.clone(), this::requestHandlerCallback
-					)
-				);
-			} catch (InterruptedException ignored) {}
-		}
-	}
-
 	/**
-	 * Constructs a new SocketManager and immediately starts handling the incoming requests.
+	 * Constructs a new instance of SocketManager.
 	 * @param mediaPool the media pool containing the available media
 	 * @param requestExecutorService the executor service that performs request handling
 	 * @param requestParserStrategy the parser strategy to use
@@ -85,7 +65,6 @@ public class SocketManager extends Thread {
 		RequestParserStrategy requestParserStrategy
 	) {
 		SocketManager socketManager = new SocketManager(mediaPool, requestExecutorService, requestParserStrategy);
-		socketManager.start();
 		return socketManager;
 	}
 
@@ -97,10 +76,15 @@ public class SocketManager extends Thread {
 		assert socket != null;
 
 		activeConnections++;
-		sockets.add(socket);
-		if (SocketManager.this.getState() == State.WAITING) {
-			synchronized (sockets) { sockets.notify(); }
+		RequestHandler requestHandler;
+		if (!availableHandlers.isEmpty()) {
+			requestHandler = availableHandlers.poll();
+			requestHandler.setRubusSocket(socket);
+		} else {
+			requestHandler =
+				new RequestHandler(mediaPool, socket, requestParserStrategy.clone(), this::requestHandlerCallback);
 		}
+		executorService.submit(requestHandler);
 	}
 
 	/**
@@ -108,14 +92,14 @@ public class SocketManager extends Thread {
 	 */
 	public void terminate() {
 		isTerminated = true;
-		if (sockets.isEmpty()) synchronized (sockets) { sockets.notify(); }
-		executorService.shutdown();
+		for (Runnable runnable: executorService.shutdownNow()) {
+			try {
+				((RequestHandler) runnable).getRubusSocket().close();
+			} catch (IOException ignored) { }
+		}
 		try {
 			executorService.awaitTermination(Long.MAX_VALUE, TimeUnit.MILLISECONDS);
-			for (RubusSocket socket: sockets) {
-				socket.close(1000);
-			}
-		} catch (InterruptedException | IOException ignored) {}
+		} catch (InterruptedException ignored) { }
 	}
 
 	/**
