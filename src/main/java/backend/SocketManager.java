@@ -23,6 +23,7 @@ import backend.io.MediaPool;
 import common.RubusSocket;
 
 import java.io.IOException;
+import java.net.SocketTimeoutException;
 import java.util.concurrent.*;
 
 /**
@@ -64,7 +65,7 @@ public class SocketManager extends Thread {
 				}
 				executorService.submit(
 					new RequestHandler(
-						mediaPool, socket, requestParserStrategy.clone(), this::keepConnection, this::closeConnection
+						mediaPool, socket, requestParserStrategy.clone(), this::requestHandlerCallback
 					)
 				);
 			} catch (InterruptedException ignored) {}
@@ -125,17 +126,24 @@ public class SocketManager extends Thread {
 		return activeConnections;
 	}
 
-	private void keepConnection(RubusSocket socket) {
-		sockets.add(socket);
-		if (SocketManager.this.getState() == State.WAITING) {
-			synchronized (sockets) { sockets.notify(); }
-		}
-	}
+	private void requestHandlerCallback(RequestHandler requestHandler) {
+		assert requestHandler != null;
 
-	private void closeConnection(RubusSocket socket) {
-		try {
-			socket.close();
-		} catch (IOException ignored) {}
-		activeConnections--;
+		RequestHandler.Status status = requestHandler.getRequestHandlerStatus();
+		boolean isTimeoutException =
+			status.getExecutionStatus() == RequestHandler.ExecutionStatus.EXCEPTION &&
+			status.getException() instanceof SocketTimeoutException;
+		if (
+			!isTerminated &&
+			(status.getExecutionStatus() == RequestHandler.ExecutionStatus.SUCCESS || isTimeoutException)
+		) {
+			executorService.submit(requestHandler);
+		} else {
+			try {
+				requestHandler.getRubusSocket().close();
+			} catch (IOException ignored) { }
+			activeConnections--;
+			availableHandlers.add(requestHandler);
+		}
 	}
 }

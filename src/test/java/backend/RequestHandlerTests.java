@@ -29,10 +29,11 @@ import common.net.response.body.MediaList;
 import org.junit.jupiter.api.*;
 
 import java.io.ByteArrayInputStream;
+import java.io.EOFException;
 import java.io.IOException;
 import java.io.ObjectInputStream;
+import java.net.SocketTimeoutException;
 import java.nio.file.Path;
-import java.util.ArrayList;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -51,19 +52,46 @@ public class RequestHandlerTests {
 	void beforeEach() {
 		dummy = new DummySocket(100_000);
 	}
+
 	@Test
-	void handleNoRequest() {
-		ArrayList<RubusSocket> sockets = new ArrayList<>();
-		new RequestHandler(mediaPool, dummy, new StandardRequestParser(), sockets::add, s->{}).run();
-		if (sockets.isEmpty()) fail();
+	void executionStatusIsSuccess() throws IOException {
+		byte[] request = """
+			reqest-type LIST
+			title-contains .+
+			body-length 0
+			
+			""".getBytes();
+		dummy.write(request);
+
+		new RequestHandler(mediaPool, dummy, new StandardRequestParser(), requestHandler -> {
+			RequestHandler.Status status = requestHandler.getRequestHandlerStatus();
+			assertEquals(RequestHandler.ExecutionStatus.SUCCESS, status.getExecutionStatus());
+		}).run();
 	}
 
 	@Test
-	void handleClosing() throws IOException {
+	void executionStatusIsException() throws IOException {
+		RequestHandler requestHandler =
+			new RequestHandler(
+				mediaPool, dummy, new StandardRequestParser(), rh -> {
+					RequestHandler.Status status = rh.getRequestHandlerStatus();
+					assertTrue(
+						status.getExecutionStatus() == RequestHandler.ExecutionStatus.EXCEPTION &&
+						status.getException() instanceof SocketTimeoutException
+					);
+				}
+			);
+		requestHandler.run();
+
 		dummy.close();
-		ArrayList<RubusSocket> sockets = new ArrayList<>();
-		new RequestHandler(mediaPool, dummy, new StandardRequestParser(), s->{}, sockets::add).run();
-		if (sockets.isEmpty()) fail();
+		requestHandler.setCallback (rh -> {
+			RequestHandler.Status status = rh.getRequestHandlerStatus();
+			assertTrue(
+				status.getExecutionStatus() == RequestHandler.ExecutionStatus.EXCEPTION &&
+				status.getException() instanceof EOFException
+			);
+		});
+		requestHandler.run();
 	}
 
 	@Test
@@ -74,7 +102,7 @@ public class RequestHandlerTests {
 			
 			""".getBytes();
 		dummy.write(request);
-		new RequestHandler(mediaPool, dummy, new StandardRequestParser(), s->{}, s->{}).run();
+		new RequestHandler(mediaPool, dummy, new StandardRequestParser()).run();
 
 		byte[] response = new byte[10000];
 		int responseLen = dummy.read(response);
@@ -92,7 +120,7 @@ public class RequestHandlerTests {
 			
 			""".getBytes();
 		dummy.write(request);
-		new RequestHandler(mediaPool, dummy, new StandardRequestParser(), s->{}, s->{}).run();
+		new RequestHandler(mediaPool, dummy, new StandardRequestParser()).run();
 
 		byte[] response = new byte[10000];
 		int responseLen = dummy.read(response);
@@ -111,7 +139,7 @@ public class RequestHandlerTests {
 				
 				""".getBytes();
 			dummy.write(request);
-			new RequestHandler(mediaPool, dummy, new StandardRequestParser(),s->{}, s->{}).run();
+			new RequestHandler(mediaPool, dummy, new StandardRequestParser()).run();
 
 			byte[] response = new byte[10000];
 			int responseLen = dummy.read(response);
@@ -140,7 +168,7 @@ public class RequestHandlerTests {
 				
 				""".getBytes();
 			dummy.write(request);
-			new RequestHandler(mediaPool, dummy, new StandardRequestParser(), s->{}, s->{}).run();
+			new RequestHandler(mediaPool, dummy, new StandardRequestParser()).run();
 
 			byte[] response = new byte[10000];
 			int responseLen = dummy.read(response);
@@ -180,7 +208,7 @@ public class RequestHandlerTests {
 				
 				""".getBytes();
 			dummy.write(request);
-			new RequestHandler(mediaPool, dummy, new StandardRequestParser(), s->{}, s->{}).run();
+			new RequestHandler(mediaPool, dummy, new StandardRequestParser()).run();
 
 			byte[] response = new byte[10000];
 			int responseLen = dummy.read(response);
@@ -207,7 +235,7 @@ public class RequestHandlerTests {
 				
 				""".getBytes();
 			dummy.write(request);
-			new RequestHandler(mediaPool, dummy, new StandardRequestParser(), s->{}, s->{}).run();
+			new RequestHandler(mediaPool, dummy, new StandardRequestParser()).run();
 
 			byte[] response = new byte[10000];
 			int responseLen = dummy.read(response);
@@ -237,7 +265,7 @@ public class RequestHandlerTests {
 				
 				""".getBytes();
 			dummy.write(request);
-			new RequestHandler(mediaPool, dummy, new StandardRequestParser(), s->{}, s->{}).run();
+			new RequestHandler(mediaPool, dummy, new StandardRequestParser()).run();
 
 			byte[] response = new byte[10000];
 			int responseLen = dummy.read(response);
@@ -269,7 +297,7 @@ public class RequestHandlerTests {
 				
 				""".getBytes();
 			dummy.write(request);
-			new RequestHandler(mediaPool, dummy, new StandardRequestParser(), s->{}, s->{}).run();
+			new RequestHandler(mediaPool, dummy, new StandardRequestParser()).run();
 
 			byte[] response = new byte[10000];
 			int responseLen = dummy.read(response);
