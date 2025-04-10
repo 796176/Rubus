@@ -100,7 +100,7 @@ public class RubusConfiguration {
 		ExecutorService requestExecutorService,
 		RequestParserStrategy requestParserStrategy
 	) {
-		return SocketManager.newSocketManager(mediaPool, requestExecutorService, requestParserStrategy);
+		return new SocketManager(mediaPool, requestExecutorService, requestParserStrategy);
 	}
 
 	@Bean
