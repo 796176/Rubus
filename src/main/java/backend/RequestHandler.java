@@ -31,69 +31,69 @@ import common.net.response.body.MediaList;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
-import java.net.SocketTimeoutException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.function.Consumer;
 
 /**
- * RequestHandler is responsible for receiving clients' requests and sending the appropriate responses. It also detects
- * if the client terminated the connection, but it doesn't close the socket on its on and invokes the closeConnection
- * consumer and passes the socket as its parameter. If the request was handled successfully or no request has been
- * received with the specified time, RequestHandler invokes the keepConnection consumer and passes the socket as its
- * parameter.
+ * RequestHandler is responsible for receiving clients' requests and sending the appropriate responses. RequestHandler
+ * is designed in the way that the same instance can be used to process different requests, as well as an ability to
+ * set different objects if it's necessary before invoking {@link #run()}. After the {@link #run()} execution
+ * RequestHandler calls the callback function and passes itself as parameter. The client can query the details about
+ * the execution by calling the {@link #getRequestHandlerStatus()} method.
  */
 public class RequestHandler implements Runnable {
 
-	private final RubusSocket socket;
+	private RubusSocket socket;
 
-	private final Consumer<RubusSocket> keepConnection;
+	private MediaPool pool;
 
-	private final Consumer<RubusSocket> closeConnection;
+	private RequestParserStrategy parser;
 
-	private final MediaPool pool;
+	private Consumer<RequestHandler> callback;
 
-	private final RequestParserStrategy parser;
+	private RequestHandler.Status status;
 
 	/**
 	 * Creates a new instance of this class.
 	 * @param mediaPool the media pool containing the available media
 	 * @param socket the socket requests of which need to be handled
 	 * @param requestParserStrategy the parser strategy to use
-	 * @param keepConnection gets invoked after a successful request handling, or if no request was received
-	 * @param closeConnection gets invoked if the client closed the connection, or if an IOException occurred
+	 * @param callback the function this RequestHandler calls after being completed
 	 */
 	public RequestHandler(
 		MediaPool mediaPool,
 		RubusSocket socket,
 		RequestParserStrategy requestParserStrategy,
-		Consumer<RubusSocket> keepConnection,
-		Consumer<RubusSocket> closeConnection
+		Consumer<RequestHandler> callback
 	) {
-		assert socket != null;
+		assert mediaPool != null && socket != null && requestParserStrategy != null && callback != null;
 
-		this.keepConnection = keepConnection;
-		this.closeConnection = closeConnection;
 		this.socket = socket;
 		this.pool = mediaPool;
 		parser = requestParserStrategy;
+		this.callback = callback;
+	}
+
+	/**
+	 * Creates a new instance of this class without the callback function.
+	 * @param mediaPool the media pool containing the available media
+	 * @param socket the socket requests of which need to be handled
+	 * @param requestParserStrategy the parser strategy to use
+	 */
+	public RequestHandler(MediaPool mediaPool, RubusSocket socket, RequestParserStrategy requestParserStrategy) {
+		this(mediaPool, socket, requestParserStrategy, requestHandler -> {});
 	}
 
 	@Override
 	public void run() {
-		if (socket.isClosed()) {
-			closeConnection.accept(socket);
-			return;
-		}
 		try {
 			byte[] request;
 			try {
 				 request = RubusSockets.extractMessage(socket,300);
-			} catch (SocketTimeoutException ignored) {
-				keepConnection.accept(socket);
-				return;
-			} catch (IOException e) {
-				closeConnection.accept(socket);
+			} catch (Exception e) {
+				status = new Status(ExecutionStatus.EXCEPTION, e);
+				callback.accept(this);
 				return;
 			}
 
@@ -166,6 +166,135 @@ public class RequestHandler implements Runnable {
 			} catch (IOException ignored) {}
 		}
 
-		keepConnection.accept(socket);
+		status = new Status(ExecutionStatus.SUCCESS, null);
+		callback.accept(this);
+	}
+
+	/**
+	 * Returns the status of this RequestHandler. The return value is updated every time on completion of {@link #run()}.
+	 * @return the status of this RequestHandler
+	 */
+	public RequestHandler.Status getRequestHandlerStatus() {
+		return status;
+	}
+
+	/**
+	 * Returns the MediaPool reference.
+	 * @return the MediaPool reference
+	 */
+	public MediaPool getMediaPool() {
+		return pool;
+	}
+
+	/**
+	 * Returns the RubusSocket reference.
+	 * @return the RubusSocket reference
+	 */
+	public RubusSocket getRubusSocket() {
+		return socket;
+	}
+
+	/**
+	 * Returns the current callback function.
+	 * @return the current callback function
+	 */
+	public Consumer<RequestHandler> getCallback() {
+		return callback;
+	}
+
+	/**
+	 * Returns the RequestParserStrategy reference.
+	 * @return the RequestParserStrategy reference
+	 */
+	public RequestParserStrategy getRequestParserStrategy() {
+		return parser;
+	}
+
+	/**
+	 * Sets a new MediaPool reference.
+	 * @param newMediaPool a new MediaPool
+	 */
+	public void setMediaPool(MediaPool newMediaPool) {
+		assert newMediaPool != null;
+
+		pool = newMediaPool;
+	}
+
+	/**
+	 * Sets a new RubusSocket reference.
+	 * @param newRubusSocket a new RubusSocket
+	 */
+	public void setRubusSocket(RubusSocket newRubusSocket) {
+		assert newRubusSocket != null;
+
+		socket = newRubusSocket;
+	}
+
+	/**
+	 * Sets a new RequestParserStrategy reference.
+	 * @param newRequestParserStrategy a new RequestParserStrategy
+	 */
+	public void setRequestParserStrategy(RequestParserStrategy newRequestParserStrategy) {
+		assert newRequestParserStrategy != null;
+
+		parser = newRequestParserStrategy;
+	}
+
+	/**
+	 * Sets a new callback function.
+	 * @param newCallback a new callback function
+	 */
+	public void setCallback(Consumer<RequestHandler> newCallback) {
+		assert newCallback != null;
+
+		callback = newCallback;
+	}
+
+	/**
+	 * Defines the set of possible outcomes of {@link #run()} execution.
+	 */
+	public enum ExecutionStatus {
+		/**
+		 * The request was successfully processed.
+		 */
+		SUCCESS,
+
+		/**
+		 * The exception occurred while attempting to handle the request ( e.g. timeout exception, io exception etc. )
+		 */
+		EXCEPTION
+	}
+
+	/**
+	 * RequestHandler.Status allows the client to get the detailed information about execution of this RequestHandler.
+	 */
+	public static class Status {
+
+		private final ExecutionStatus executionStatus;
+
+		private final Exception e;
+
+		private Status(ExecutionStatus executionStatus, Exception exception) {
+			assert executionStatus != null;
+
+			this.executionStatus = executionStatus;
+			e = exception;
+		}
+
+		/**
+		 * Returns the execution status.
+		 * @return the execution status
+		 */
+		public ExecutionStatus getExecutionStatus() {
+			return executionStatus;
+		}
+
+		/**
+		 * If the execution status is EXCEPTION, returns the occurred exception.
+		 * @return the occurred exception
+		 */
+		public Exception getException() {
+			return e;
+		}
 	}
 }
