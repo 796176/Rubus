@@ -37,23 +37,24 @@ import java.util.Arrays;
 import java.util.function.Consumer;
 
 /**
- * RequestHandler is responsible for receiving clients' requests and sending the appropriate responses. It also detects
- * if the client terminated the connection, but it doesn't close the socket on its on and invokes the closeConnection
- * consumer and passes the socket as its parameter. If the request was handled successfully or no request has been
- * received with the specified time, RequestHandler invokes the keepConnection consumer and passes the socket as its
- * parameter.
+ * RequestHandler is responsible for receiving clients' requests and sending the appropriate responses. RequestHandler
+ * is designed in the way that the same instance can be used to process different requests, as well as an ability to
+ * set different objects if it's necessary before invoking {@link #run()}. It also detects if the client terminated
+ * the connection, but it doesn't close the socket on its on and invokes the closeConnection consumer and passes
+ * the socket as its parameter. If the request was handled successfully or no request has been received with
+ * the specified time, RequestHandler invokes the keepConnection consumer and passes the socket as its parameter.
  */
 public class RequestHandler implements Runnable {
 
-	private final RubusSocket socket;
+	private RubusSocket socket;
 
 	private final Consumer<RubusSocket> keepConnection;
 
 	private final Consumer<RubusSocket> closeConnection;
 
-	private final MediaPool pool;
+	private MediaPool pool;
 
-	private final RequestParserStrategy parser;
+	private RequestParserStrategy parser;
 
 	/**
 	 * Creates a new instance of this class.
@@ -167,5 +168,59 @@ public class RequestHandler implements Runnable {
 		}
 
 		keepConnection.accept(socket);
+	}
+
+	/**
+	 * Returns the MediaPool reference.
+	 * @return the MediaPool reference
+	 */
+	public MediaPool getMediaPool() {
+		return pool;
+	}
+
+	/**
+	 * Returns the RubusSocket reference.
+	 * @return the RubusSocket reference
+	 */
+	public RubusSocket getRubusSocket() {
+		return socket;
+	}
+
+	/**
+	 * Returns the RequestParserStrategy reference.
+	 * @return the RequestParserStrategy reference
+	 */
+	public RequestParserStrategy getRequestParserStrategy() {
+		return parser;
+	}
+
+	/**
+	 * Sets a new MediaPool reference.
+	 * @param newMediaPool a new MediaPool
+	 */
+	public void setMediaPool(MediaPool newMediaPool) {
+		assert newMediaPool != null;
+
+		pool = newMediaPool;
+	}
+
+	/**
+	 * Sets a new RubusSocket reference.
+	 * @param newRubusSocket a new RubusSocket
+	 */
+	public void setRubusSocket(RubusSocket newRubusSocket) {
+		assert newRubusSocket != null;
+
+		socket = newRubusSocket;
+	}
+
+	/**
+	 * Sets a new RequestParserStrategy reference.
+	 * @param newRequestParserStrategy a new RequestParserStrategy
+	 */
+	public void setRequestParserStrategy(RequestParserStrategy newRequestParserStrategy) {
+		assert newRequestParserStrategy != null;
+
+		parser = newRequestParserStrategy;
 	}
 }
