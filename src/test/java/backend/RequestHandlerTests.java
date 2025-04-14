@@ -56,7 +56,7 @@ public class RequestHandlerTests {
 	@Test
 	void executionStatusIsSuccess() throws IOException {
 		byte[] request = """
-			reqest-type LIST
+			request-type LIST
 			title-contains .+
 			body-length 0
 			
