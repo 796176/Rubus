@@ -31,12 +31,13 @@ import javax.sql.DataSource;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.sql.SQLException;
+import java.util.Arrays;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class MediaPoolTests {
 	static Media media1 = new RubusMedia(
-		"ab",
+		new byte[] { (byte) 0xab },
 		"Title1",
 		854,
 		480,
@@ -49,7 +50,7 @@ public class MediaPoolTests {
 	);
 
 	static Media media2 = new RubusMedia(
-		"cd",
+		new byte[] { (byte) 0xcd },
 		"Title2",
 		1280,
 		720,
@@ -82,7 +83,7 @@ public class MediaPoolTests {
 		Media[] media = mediaPool.availableMedia();
 		assertEquals(2, media.length);
 
-		if (media[0].getID().equals("ab")) {
+		if (Arrays.equals(media[0].getID(), media1.getID())) {
 			assertEquals(media1, media[0], "The media don't match");
 			assertEquals(media2, media[1], "The media don't match");
 		} else {
@@ -96,7 +97,7 @@ public class MediaPoolTests {
 		Media[] media = mediaPool.availableMediaFast();
 		assertEquals(2, media.length);
 
-		if (media[0].getID().equals("ab")) {
+		if (Arrays.equals(media[0].getID(), media1.getID())) {
 			assertEquals(media1, media[0], "The media don't match");
 			assertEquals(media2, media[1], "The media don't match");
 		} else {
@@ -107,7 +108,7 @@ public class MediaPoolTests {
 
 	@Test
 	void getMediaByID() throws IOException {
-		Media media = mediaPool.getMedia("cd");
+		Media media = mediaPool.getMedia(new byte[] { (byte) 0xcd });
 		assertEquals(media2, media);
 	}
 }

@@ -34,7 +34,7 @@ public interface Media {
 	 * @return the media id
 	 * @throws IOException if some I/O error occurs
 	 */
-	String getID() throws IOException;
+	byte[] getID() throws IOException;
 
 	/**
 	 * Returns the title of the media.

@@ -24,6 +24,7 @@ import common.net.response.body.MediaInfo;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.file.Path;
+import java.util.Arrays;
 
 /**
  * MediaProxy is an abstract class containing only the {@link MediaPool} instance and the media id value. Attempt to
@@ -34,7 +35,7 @@ public abstract class MediaProxy implements Media {
 
 	private final MediaPool mediaPool;
 
-	private final String id;
+	private final byte[] id;
 
 	private Media subject = null;
 
@@ -43,7 +44,7 @@ public abstract class MediaProxy implements Media {
 	 * @param mediaPool the mediaPool
 	 * @param mediaID the media id
 	 */
-	public MediaProxy(MediaPool mediaPool, String mediaID) {
+	public MediaProxy(MediaPool mediaPool, byte[] mediaID) {
 		assert mediaID != null;
 
 		this.mediaPool = mediaPool;
@@ -55,7 +56,7 @@ public abstract class MediaProxy implements Media {
 	}
 
 	@Override
-	public String getID() {
+	public byte[] getID() {
 		return id;
 	}
 
@@ -142,7 +143,7 @@ public abstract class MediaProxy implements Media {
 		if (obj instanceof Media media) {
 			try {
 				return
-					getID().equals(media.getID()) &&
+					Arrays.equals(getID(), media.getID()) &&
 						getTitle().equals(media.getTitle()) &&
 						getDuration() == media.getDuration() &&
 						getVideoWidth() == media.getVideoWidth() &&

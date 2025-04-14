@@ -25,7 +25,7 @@ public class RubusMediaTests extends MediaTests {
 	@Override
 	Media getMedia() {
 		return new RubusMedia(
-			"ab",
+			new byte[] { (byte) 0xab},
 			"Original Title",
 			10,
 			1920,
@@ -41,7 +41,7 @@ public class RubusMediaTests extends MediaTests {
 	@Override
 	Media getDifferentMedia() {
 		return new RubusMedia(
-			"cd",
+			new byte[] { (byte) 0xcd },
 			"Another Original Title",
 			20,
 			1600,

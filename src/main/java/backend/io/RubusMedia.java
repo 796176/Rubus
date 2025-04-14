@@ -25,12 +25,14 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Arrays;
+import java.util.HexFormat;
 
 /**
  * A class-container to store the information about the media.
  */
 public class RubusMedia implements Media {
-	private final String id;
+	private final byte[] id;
 	private final String title;
 	private final int duration;
 	private final int videoWidth;
@@ -55,7 +57,7 @@ public class RubusMedia implements Media {
 	 * @param contentPath the location to a directory where media pieces are stored in
 	 */
 	public RubusMedia(
-		String id,
+		byte[] id,
 		String title,
 		int videoWidth,
 		int videoHeight,
@@ -81,7 +83,7 @@ public class RubusMedia implements Media {
 	}
 
 	@Override
-	public String getID() {
+	public byte[] getID() {
 		return id;
 	}
 
@@ -157,7 +159,7 @@ public class RubusMedia implements Media {
 	@Override
 	public MediaInfo toMediaInfo() {
 		return new MediaInfo(
-			getID(),
+			HexFormat.of().formatHex(getID()),
 			getTitle(),
 			getVideoWidth(),
 			getVideoHeight(),
@@ -180,7 +182,7 @@ public class RubusMedia implements Media {
 		if (obj instanceof Media media) {
 			try {
 				return
-					getID().equals(media.getID()) &&
+					Arrays.equals(getID(), media.getID()) &&
 						getTitle().equals(media.getTitle()) &&
 						getDuration() == media.getDuration() &&
 						getVideoWidth() == media.getVideoWidth() &&

@@ -32,7 +32,7 @@ public class TitledMediaProxy extends MediaProxy {
 	 * @param mediaPool the mediaPool
 	 * @param mediaID the media id
 	 */
-	public TitledMediaProxy(MediaPool mediaPool, String mediaID, String title) {
+	public TitledMediaProxy(MediaPool mediaPool, byte[] mediaID, String title) {
 		super(mediaPool, mediaID);
 		assert title != null;
 
