@@ -22,6 +22,7 @@ package backend.io;
 import common.net.response.body.MediaInfo;
 
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
@@ -169,25 +170,29 @@ public class RubusMedia implements Media {
 	}
 
 	/**
-	 * Compares the RubusMedia with another object. Returns true only if the other object is an instance of RubusMedia
+	 * Compares the RubusMedia with another object. Returns true only if the other object is an instance of {@link Media}
 	 * and all its field are equal to these fields.
 	 * @param obj an object
-	 * @return true if the other object is a RubusMedia and has the fields, false otherwise
+	 * @return true if the other object is a Media and has the fields, false otherwise
 	 */
 	@Override
 	public boolean equals(Object obj) {
-		if (obj instanceof RubusMedia rubusMedia) {
-			return
-				getID().equals(rubusMedia.getID()) &&
-				getTitle().equals(rubusMedia.getTitle()) &&
-				getDuration() == rubusMedia.getDuration() &&
-				getVideoWidth() == rubusMedia.getVideoWidth() &&
-				getVideoHeight() == rubusMedia.getVideoHeight() &&
-				getVideoCodec().equals(rubusMedia.getVideoCodec()) &&
-				getAudioCodec().equals(rubusMedia.getAudioCodec()) &&
-				getVideoContainer().equals(rubusMedia.getVideoContainer()) &&
-				getAudioContainer().equals(rubusMedia.getAudioContainer()) &&
-				getContentPath().equals(rubusMedia.getContentPath());
+		if (obj instanceof Media media) {
+			try {
+				return
+					getID().equals(media.getID()) &&
+						getTitle().equals(media.getTitle()) &&
+						getDuration() == media.getDuration() &&
+						getVideoWidth() == media.getVideoWidth() &&
+						getVideoHeight() == media.getVideoHeight() &&
+						getVideoCodec().equals(media.getVideoCodec()) &&
+						getAudioCodec().equals(media.getAudioCodec()) &&
+						getVideoContainer().equals(media.getVideoContainer()) &&
+						getAudioContainer().equals(media.getAudioContainer()) &&
+						getContentPath().equals(media.getContentPath());
+			} catch (IOException e) {
+				throw new UncheckedIOException(e);
+			}
 		}
 		return false;
 	}
