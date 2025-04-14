@@ -113,7 +113,7 @@ public class RequestHandlerTests {
 	void handleBadParameter() throws IOException {
 		byte[] request = """
 			request-type FETCH
-			media-id id1
+			media-id ab
 			starting-playback-piece a
 			total-playback-pieces b
 			body-length 0
@@ -150,11 +150,11 @@ public class RequestHandlerTests {
 			MediaList ml = (MediaList) new ObjectInputStream(inputStream).readObject();
 			assertEquals(2, ml.ids().length, "The number of ids does not match");
 			assertEquals(2, ml.titles().length, "The number of titles does not match");
-			if (ml.ids()[0].equals("id1")) {
-				assertArrayEquals(new String[]{"id1", "id2"}, ml.ids(), "The ids are not matching");
+			if (ml.ids()[0].equals("ab")) {
+				assertArrayEquals(new String[]{"ab", "cd"}, ml.ids(), "The ids are not matching");
 				assertArrayEquals(new String[]{"Title1", "Title2"}, ml.titles(), "The titles are not matching");
 			} else {
-				assertArrayEquals(new String[]{"id2", "id1"}, ml.ids(), "The ids are not matching");
+				assertArrayEquals(new String[]{"cd", "ab"}, ml.ids(), "The ids are not matching");
 				assertArrayEquals(new String[]{"Title2", "Title1"}, ml.titles(), "The titles are not matching");
 			}
 		}
@@ -179,7 +179,7 @@ public class RequestHandlerTests {
 			MediaList ml = (MediaList) new ObjectInputStream(inputStream).readObject();
 			assertEquals(1, ml.ids().length, "The number of ids does not match");
 			assertEquals(1, ml.titles().length, "The number of titles does not match");
-			assertEquals("id2", ml.ids()[0], "The id is different");
+			assertEquals("cd", ml.ids()[0], "The id is different");
 			assertEquals("Title2", ml.titles()[0], "The title is different");
 		}
 	}
@@ -188,7 +188,7 @@ public class RequestHandlerTests {
 	class INFO {
 
 		MediaInfo mediaInfo = new MediaInfo(
-			"id2",
+			"cd",
 			"Title2",
 			1280,
 			720,
@@ -203,7 +203,7 @@ public class RequestHandlerTests {
 		void getMediaInfo() throws IOException, ClassNotFoundException {
 			byte[] request = """
 				request-type INFO
-				media-id id2
+				media-id cd
 				body-length 0
 				
 				""".getBytes();
@@ -228,7 +228,7 @@ public class RequestHandlerTests {
 		void fetchOnePiece() throws IOException, ClassNotFoundException {
 			byte[] request = """
 				request-type FETCH
-				media-id id1
+				media-id ab
 				starting-playback-piece 0
 				total-playback-pieces 1
 				body-length 0
@@ -245,7 +245,7 @@ public class RequestHandlerTests {
 			ByteArrayInputStream inputStream = new ByteArrayInputStream(response, bodyIndex, responseLen - bodyIndex);
 			FetchedPieces fetchedPieces = (FetchedPieces) new ObjectInputStream(inputStream).readObject();
 
-			assertEquals("id1", fetchedPieces.id(), "The id doesn't match");
+			assertEquals("ab", fetchedPieces.id(), "The id doesn't match");
 			assertEquals(0, fetchedPieces.startingPieceIndex(), "The starting piece doesn't match");
 			assertEquals(1, fetchedPieces.video().length, "The number of video pieces don't match");
 			assertEquals(1, fetchedPieces.audio().length, "The number of audio pieces don't match");
@@ -258,7 +258,7 @@ public class RequestHandlerTests {
 		void fetchSeverPieces() throws IOException, ClassNotFoundException{
 			byte[] request = """
 				request-type FETCH
-				media-id id2
+				media-id cd
 				starting-playback-piece 0
 				total-playback-pieces 2
 				body-length 0
@@ -275,7 +275,7 @@ public class RequestHandlerTests {
 			ByteArrayInputStream inputStream = new ByteArrayInputStream(response, bodyIndex, responseLen - bodyIndex);
 			FetchedPieces fetchedPieces = (FetchedPieces) new ObjectInputStream(inputStream).readObject();
 
-			assertEquals("id2", fetchedPieces.id(), "The id doesn't match");
+			assertEquals("cd", fetchedPieces.id(), "The id doesn't match");
 			assertEquals(0, fetchedPieces.startingPieceIndex(), "The starting piece doesn't match");
 			assertEquals(2, fetchedPieces.video().length, "The number of video pieces doesn't match");
 			assertEquals(2, fetchedPieces.audio().length, "The number of audio pieces doesn't match");
@@ -290,7 +290,7 @@ public class RequestHandlerTests {
 		void fetchRange() throws IOException, ClassNotFoundException {
 			byte[] request = """
 				request-type FETCH
-				media-id id2
+				media-id cd
 				starting-playback-piece 1
 				total-playback-pieces 1
 				body-length 0
@@ -307,7 +307,7 @@ public class RequestHandlerTests {
 			ByteArrayInputStream inputStream = new ByteArrayInputStream(response, bodyIndex, responseLen - bodyIndex);
 			FetchedPieces fetchedPieces = (FetchedPieces) new ObjectInputStream(inputStream).readObject();
 
-			assertEquals("id2", fetchedPieces.id(), "The id doesn't match");
+			assertEquals("cd", fetchedPieces.id(), "The id doesn't match");
 			assertEquals(1, fetchedPieces.startingPieceIndex(), "The starting piece doesn't match");
 			assertEquals(1, fetchedPieces.video().length, "The number of video pieces doesn't match");
 			assertEquals(1, fetchedPieces.audio().length, "The number of auiod pieces doesn't match");

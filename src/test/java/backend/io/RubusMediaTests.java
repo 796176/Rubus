@@ -25,7 +25,7 @@ public class RubusMediaTests extends MediaTests {
 	@Override
 	Media getMedia() {
 		return new RubusMedia(
-			"first_id",
+			"ab",
 			"Original Title",
 			10,
 			1920,
@@ -41,7 +41,7 @@ public class RubusMediaTests extends MediaTests {
 	@Override
 	Media getDifferentMedia() {
 		return new RubusMedia(
-			"second_id",
+			"cd",
 			"Another Original Title",
 			20,
 			1600,

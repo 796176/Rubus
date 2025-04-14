@@ -29,7 +29,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class MediaPoolTests {
 	Media media1 = new RubusMedia(
-		"id1",
+		"ab",
 		"Title1",
 		1,
 		854,
@@ -42,7 +42,7 @@ public class MediaPoolTests {
 	);
 
 	Media media2 = new RubusMedia(
-		"id2",
+		"cd",
 		"Title2",
 		2,
 		1280,
@@ -66,7 +66,7 @@ public class MediaPoolTests {
 		Media[] media = mediaPool.availableMedia();
 		assertEquals(2, media.length);
 
-		if (media[0].getID().equals("id1")) {
+		if (media[0].getID().equals("ab")) {
 			assertEquals(media1, media[0], "The media don't match");
 			assertEquals(media2, media[1], "The media don't match");
 		} else {
@@ -80,7 +80,7 @@ public class MediaPoolTests {
 		Media[] media = mediaPool.availableMediaFast();
 		assertEquals(2, media.length);
 
-		if (media[0].getID().equals("id1")) {
+		if (media[0].getID().equals("ab")) {
 			assertEquals(media1, media[0], "The media don't match");
 			assertEquals(media2, media[1], "The media don't match");
 		} else {
@@ -91,7 +91,7 @@ public class MediaPoolTests {
 
 	@Test
 	void getMediaByID() throws IOException {
-		Media media = mediaPool.getMedia("id2");
+		Media media = mediaPool.getMedia("cd");
 		assertEquals(media2, media);
 	}
 }
