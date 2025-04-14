@@ -44,25 +44,25 @@ public class RubusMedia implements Media {
 	 * Constructs an instance of this class.
 	 * @param id the media id
 	 * @param title the title
-	 * @param duration the duration
 	 * @param videoWidth the video width in pixels
 	 * @param videoHeight the video height in pixels
+	 * @param duration the duration
 	 * @param videoContainer the video container
 	 * @param audioContainer the audio container
-	 * @param videoCodec the video codec
-	 * @param audioCodec the audio codec
+	 * @param videoEncoding the video codec
+	 * @param audioEncoding the audio codec
 	 * @param contentPath the location to a directory where media pieces are stored in
 	 */
 	public RubusMedia(
 		String id,
 		String title,
-		int duration,
 		int videoWidth,
 		int videoHeight,
+		int duration,
+		String videoEncoding,
+		String audioEncoding,
 		String videoContainer,
 		String audioContainer,
-		String videoCodec,
-		String audioCodec,
 		Path contentPath
 	) {
 		assert id != null && title != null && contentPath != null && duration > 0 && videoWidth >= 0 && videoHeight >= 0;
@@ -74,8 +74,8 @@ public class RubusMedia implements Media {
 		this.videoHeight = videoHeight;
 		this.videoContainer = videoContainer;
 		this.audioContainer = audioContainer;
-		this.videoCodec = videoCodec;
-		this.audioCodec = audioCodec;
+		this.videoCodec = videoEncoding;
+		this.audioCodec = audioEncoding;
 		this.contentPath = contentPath;
 	}
 

@@ -193,10 +193,10 @@ public class RequestHandlerTests {
 			1280,
 			720,
 			2,
-			"null3",
-			"null4",
 			"null1",
-			"null2"
+			"null2",
+			"null3",
+			"null4"
 		);
 
 		@Test

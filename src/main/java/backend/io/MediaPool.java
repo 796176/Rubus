@@ -55,13 +55,13 @@ public class MediaPool {
 			return new RubusMedia(
 				parameters[0],
 				parameters[1],
-				Integer.parseInt(parameters[2]),
 				Integer.parseInt(parameters[3]),
 				Integer.parseInt(parameters[4]),
-				parameters[5],
-				parameters[6],
+				Integer.parseInt(parameters[2]),
 				parameters[7],
 				parameters[8],
+				parameters[5],
+				parameters[6],
 				Path.of(parameters[9])
 			);
 		}).toArray(Media[]::new);

@@ -31,9 +31,9 @@ public class MediaPoolTests {
 	Media media1 = new RubusMedia(
 		"ab",
 		"Title1",
-		1,
 		854,
 		480,
+		1,
 		"null1",
 		"null2",
 		"null3",
@@ -44,9 +44,9 @@ public class MediaPoolTests {
 	Media media2 = new RubusMedia(
 		"cd",
 		"Title2",
-		2,
 		1280,
 		720,
+		2,
 		"null1",
 		"null2",
 		"null3",
