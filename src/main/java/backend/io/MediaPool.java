@@ -36,6 +36,10 @@ public class MediaPool {
 
 	private JdbcTemplate jdbcTemplate;
 
+	private AtomicBoolean cacheUpdateNeeded = new AtomicBoolean(true);
+
+	private Media[] cachedMedia = new Media[0];
+
 	/**
 	 * Constructs an instance of this class with the database storing the essential information. The database must
 	 * have the media table containing specific column names and their types.<br>
@@ -85,7 +89,28 @@ public class MediaPool {
 	 * @throws IOException if some I/O error occurs
 	 */
 	public Media[] availableMediaFast() throws IOException {
-		return availableMedia();
+		if (!cacheUpdateNeeded.get()) return cachedMedia;
+		synchronized (this) {
+			// a condition statement for threads that had been locked meaning cacheUpdateNeeded could've been flipped by
+			// a preceding thread
+			if (!cacheUpdateNeeded.get()) return cachedMedia;
+			String sqlQuery = "select id, title from media;";
+			cachedMedia = jdbcTemplate.query(sqlQuery, rs -> {
+				ArrayList<Media> media = new ArrayList<>();
+				while (rs.next()) {
+					media.add(
+						new TitledMediaProxy(
+							this,
+							HexFormat.of().formatHex(rs.getBytes("id")),
+							new String(rs.getBytes("title"))
+						)
+					);
+				}
+				return media.toArray(new Media[0]);
+			});
+			cacheUpdateNeeded.set(false);
+			return cachedMedia;
+		}
 	}
 
 	/**
