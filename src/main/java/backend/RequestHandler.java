@@ -154,7 +154,7 @@ public class RequestHandler implements Runnable {
 			try {
 				socket.write(response);
 			} catch (IOException ignored) { }
-		} catch (IndexOutOfBoundsException | IllegalArgumentException e) {
+		} catch (IndexOutOfBoundsException | IllegalArgumentException | NullPointerException e) {
 			try {
 				String errorMsg =
 					"response-type " + RubusResponseType.BAD_REQUEST + "\n" +
