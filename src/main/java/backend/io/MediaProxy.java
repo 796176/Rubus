@@ -22,7 +22,9 @@ package backend.io;
 import common.net.response.body.MediaInfo;
 
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.nio.file.Path;
+import java.util.Arrays;
 
 /**
  * MediaProxy is an abstract class containing only the {@link MediaPool} instance and the media id value. Attempt to
@@ -33,7 +35,7 @@ public abstract class MediaProxy implements Media {
 
 	private final MediaPool mediaPool;
 
-	private final String id;
+	private final byte[] id;
 
 	private Media subject = null;
 
@@ -42,7 +44,7 @@ public abstract class MediaProxy implements Media {
 	 * @param mediaPool the mediaPool
 	 * @param mediaID the media id
 	 */
-	public MediaProxy(MediaPool mediaPool, String mediaID) {
+	public MediaProxy(MediaPool mediaPool, byte[] mediaID) {
 		assert mediaID != null;
 
 		this.mediaPool = mediaPool;
@@ -54,7 +56,7 @@ public abstract class MediaProxy implements Media {
 	}
 
 	@Override
-	public String getID() {
+	public byte[] getID() {
 		return id;
 	}
 
@@ -131,15 +133,29 @@ public abstract class MediaProxy implements Media {
 	}
 
 	/**
-	 * Compares this MediaProxy with another object. Returns true only if the other object is an instance of MediaProxy
-	 * and its media pool and media id are equal to this media pool and media id respectively.
+	 * Compares this MediaProxy with another object. Returns true only if the other object is an instance of {@link Media}
+	 * and all its field are equal to these fields.
 	 * @param obj an object
 	 * @return true if the object is a MediaProxy and has the same media pool and media id, false otherwise
 	 */
 	@Override
 	public boolean equals(Object obj) {
-		if (obj instanceof MediaProxy mediaProxy) {
-			return getMediaPool().equals(mediaProxy.getMediaPool()) && getID().equals(mediaProxy.getID());
+		if (obj instanceof Media media) {
+			try {
+				return
+					Arrays.equals(getID(), media.getID()) &&
+						getTitle().equals(media.getTitle()) &&
+						getDuration() == media.getDuration() &&
+						getVideoWidth() == media.getVideoWidth() &&
+						getVideoHeight() == media.getVideoHeight() &&
+						getVideoCodec().equals(media.getVideoCodec()) &&
+						getAudioCodec().equals(media.getAudioCodec()) &&
+						getVideoContainer().equals(media.getVideoContainer()) &&
+						getAudioContainer().equals(media.getAudioContainer()) &&
+						getContentPath().equals(media.getContentPath());
+			} catch (IOException e) {
+				throw new UncheckedIOException(e);
+			}
 		}
 		return false;
 	}

@@ -19,29 +19,37 @@
 
 package backend.io;
 
+import org.springframework.jdbc.core.JdbcTemplate;
+
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
- * MediaPool class allows the client to query information about the available media. It stores a reference to
- * the database containing the meta-information about the available media, and when the client makes a query MediaPool
- * parses the database and returns objects where each object represent a single media. Those objects allow the client
- * to get the meta-information. The client can also invoke the appropriate methods to get the data associated with
- * the media.
+ * MediaPool class allows the client to query information about the available media. It encapsulates the internal logic
+ * of how MediaPool communicates with the underlying source of information ( e.g. a database ), which allows the client
+ * to just use it without knowing how it works under the hood.
  */
 public class MediaPool {
 
-	private Path dbPath;
+	private JdbcTemplate jdbcTemplate;
+
+	private AtomicBoolean cacheUpdateNeeded = new AtomicBoolean(true);
+
+	private Media[] cachedMedia = new Media[0];
 
 	/**
-	 * Creates an instance of this class using the specified database location as the main resource of information.
-	 * @param mainDBPath the location to the database
+	 * Constructs an instance of this class with the database storing the essential information. The database must
+	 * have the media table containing specific column names and their types.<br>
+	 * {@link JdbcTemplate} is a class provided by the Spring Framework, and it's used here to streamline the database
+	 * access as it provides {@link java.sql.SQLException} wrapping, thread safety, and automatic connection closing.
+	 * @param jdbcTemplate a JdbcTemplate instance
 	 */
-	public MediaPool(Path mainDBPath) {
-		assert mainDBPath != null;
+	public MediaPool(JdbcTemplate jdbcTemplate) {
+		assert jdbcTemplate != null;
 
-		setMainDBPath(mainDBPath);
+		this.jdbcTemplate = jdbcTemplate;
 	}
 
 	/**
@@ -50,21 +58,27 @@ public class MediaPool {
 	 * @throws IOException if some I/O error occurs
 	 */
 	public Media[] availableMedia() throws IOException {
-		return Files.readAllLines(getMainDBPath()).stream().map(line -> {
-			String[] parameters = line.split("\u001e");
-			return new RubusMedia(
-				parameters[0],
-				parameters[1],
-				Integer.parseInt(parameters[2]),
-				Integer.parseInt(parameters[3]),
-				Integer.parseInt(parameters[4]),
-				parameters[5],
-				parameters[6],
-				parameters[7],
-				parameters[8],
-				Path.of(parameters[9])
-			);
-		}).toArray(Media[]::new);
+		String sqlQuery = "select * from media;";
+		return jdbcTemplate.query(sqlQuery, rs -> {
+			ArrayList<Media> media = new ArrayList<>();
+			while (rs.next()) {
+				media.add(
+					new RubusMedia(
+						rs.getBytes("id"),
+						new String(rs.getBytes("title")),
+						rs.getInt("videoWidth"),
+						rs.getInt("videoHeight"),
+						rs.getInt("duration"),
+						new String(rs.getBytes("videoEncoding")),
+						new String(rs.getBytes("audioEncoding")),
+						new String(rs.getBytes("videoContainer")),
+						new String(rs.getBytes("audioContainer")),
+						Path.of(new String(rs.getBytes("contentPath")))
+					)
+				);
+			}
+			return media.toArray(new Media[0]);
+		});
 	}
 
 	/**
@@ -74,7 +88,28 @@ public class MediaPool {
 	 * @throws IOException if some I/O error occurs
 	 */
 	public Media[] availableMediaFast() throws IOException {
-		return availableMedia();
+		if (!cacheUpdateNeeded.get()) return cachedMedia;
+		synchronized (this) {
+			// a condition statement for threads that had been locked meaning cacheUpdateNeeded could've been flipped by
+			// a preceding thread
+			if (!cacheUpdateNeeded.get()) return cachedMedia;
+			String sqlQuery = "select id, title from media;";
+			cachedMedia = jdbcTemplate.query(sqlQuery, rs -> {
+				ArrayList<Media> media = new ArrayList<>();
+				while (rs.next()) {
+					media.add(
+						new TitledMediaProxy(
+							this,
+							rs.getBytes("id"),
+							new String(rs.getBytes("title"))
+						)
+					);
+				}
+				return media.toArray(new Media[0]);
+			});
+			cacheUpdateNeeded.set(false);
+			return cachedMedia;
+		}
 	}
 
 	/**
@@ -83,37 +118,53 @@ public class MediaPool {
 	 * @return the {@link Media} object
 	 * @throws IOException if some I/O occurs
 	 */
-	public Media getMedia(String mediaId) throws IOException {
-		for (Media media: availableMedia()) {
-			if (media.getID().equals(mediaId)) {
-				return media;
+	public Media getMedia(byte[] mediaId) throws IOException {
+		String sql = "select * from media where id=?;";
+		return jdbcTemplate.query(
+			sql,
+			preparedStatement -> {
+				preparedStatement.setBytes(1, mediaId);
+			},
+			rs -> {
+				if (!rs.next()) return null;
+				return new RubusMedia(
+					mediaId,
+					new String(rs.getBytes("title")),
+					rs.getInt("videoWidth"),
+					rs.getInt("videoHeight"),
+					rs.getInt("duration"),
+					new String(rs.getBytes("videoEncoding")),
+					new String(rs.getBytes("audioEncoding")),
+					new String(rs.getBytes("videoContainer")),
+					new String(rs.getBytes("audioContainer")),
+					Path.of(new String(rs.getBytes("contentPath")))
+				);
 			}
-		}
-		return null;
+		);
 	}
 
 	/**
-	 * Returns the location to the database.
-	 * @return the location to the database
+	 * Returns the current JdbcTemplate instance.
+	 * @return the current JdbcTemplate instance
 	 */
-	public Path getMainDBPath() {
-		return dbPath;
+	public JdbcTemplate getJdbcTemplate() {
+		return jdbcTemplate;
 	}
 
 	/**
-	 * Sets a new location to the database.
-	 * @param newMainDBPath a new location to the database
+	 * Sets a new JdbcTemplate instance.
+	 * @param newJdbcTemplate a new JdbcTemplate instance
 	 */
-	public void setMainDBPath(Path newMainDBPath) {
-		assert newMainDBPath != null;
+	public void setJdbcTemplate(JdbcTemplate newJdbcTemplate) {
+		assert newJdbcTemplate != null;
 
-		dbPath = newMainDBPath;
+		jdbcTemplate = newJdbcTemplate;
 	}
 
 	@Override
 	public boolean equals(Object o) {
 		if (o instanceof MediaPool mediaPool) {
-			return getMainDBPath().equals(mediaPool.getMainDBPath());
+			return getJdbcTemplate().equals(mediaPool.getJdbcTemplate());
 		}
 		return false;
 	}

@@ -19,38 +19,28 @@
 
 package backend.io;
 
-import java.nio.file.Path;
+/**
+ * TitledMediaProxy stores only the media pool, the id, and the title. Attempts to access other fields or the media
+ * content will be delegated to the subject retrieved using the media pool.
+ */
+public class TitledMediaProxy extends MediaProxy {
 
-public class RubusMediaTests extends MediaTests {
-	@Override
-	Media getMedia() {
-		return new RubusMedia(
-			new byte[] { (byte) 0xab},
-			"Original Title",
-			10,
-			1920,
-			1080,
-			"mp4",
-			"mp3",
-			"H.264",
-			"mp3",
-			Path.of("/tmp/path")
-		);
+	private final String title;
+
+	/**
+	 * Constructs an instance of this class
+	 * @param mediaPool the mediaPool
+	 * @param mediaID the media id
+	 */
+	public TitledMediaProxy(MediaPool mediaPool, byte[] mediaID, String title) {
+		super(mediaPool, mediaID);
+		assert title != null;
+
+		this.title = title;
 	}
 
 	@Override
-	Media getDifferentMedia() {
-		return new RubusMedia(
-			new byte[] { (byte) 0xcd },
-			"Another Original Title",
-			20,
-			1600,
-			900,
-			"mkv",
-			"flac",
-			"AV1",
-			"flac",
-			Path.of("/media/vids")
-		);
+	public String getTitle() {
+		return title;
 	}
 }

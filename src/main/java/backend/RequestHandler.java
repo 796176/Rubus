@@ -33,6 +33,7 @@ import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HexFormat;
 import java.util.function.Consumer;
 
 /**
@@ -101,6 +102,7 @@ public class RequestHandler implements Runnable {
 			parser.feed(requestMes);
 			StringBuilder responseMes = new StringBuilder("response-type ").append(RubusResponseType.OK).append('\n');
 			ByteArrayOutputStream body = new ByteArrayOutputStream();
+			RequestValueChecker rvc = new RequestValueChecker();
 			switch (parser.type()) {
 				case LIST -> {
 					String titlePattern = parser.value("title-contains");
@@ -108,7 +110,7 @@ public class RequestHandler implements Runnable {
 					ArrayList<String> titles = new ArrayList<>();
 					for (Media m: pool.availableMediaFast()) {
 						if (m.getTitle().matches(titlePattern)) {
-							ids.add(m.getID());
+							ids.add(HexFormat.of().formatHex(m.getID()));
 							titles.add(m.getTitle());
 						}
 					}
@@ -119,8 +121,8 @@ public class RequestHandler implements Runnable {
 				}
 
 				case INFO -> {
-					String mediaID = parser.value("media-id");
-					Media media = pool.getMedia(mediaID);
+					String mediaID = rvc.checkId(parser.value("media-id"));
+					Media media = pool.getMedia(HexFormat.of().parseHex(mediaID));
 					MediaInfo mediaInfo = media.toMediaInfo();
 					responseMes.append("serialized-object ").append(MediaInfo.class.getName()).append('\n');
 					ObjectOutputStream oos = new ObjectOutputStream(body);
@@ -128,10 +130,12 @@ public class RequestHandler implements Runnable {
 				}
 
 				case FETCH -> {
-					String mediaID = parser.value("media-id");
-					int beginningPieceIndex = Integer.parseInt(parser.value("starting-playback-piece"));
-					int piecesToFetch = Integer.parseInt(parser.value("total-playback-pieces"));
-					Media media = pool.getMedia(mediaID);
+					String mediaID = rvc.checkId(parser.value("media-id"));
+					int beginningPieceIndex =
+						rvc.checkForNegative(Integer.parseInt(parser.value("starting-playback-piece")));
+					int piecesToFetch =
+						rvc.checkForNonPositive(Integer.parseInt(parser.value("total-playback-pieces")));
+					Media media = pool.getMedia(HexFormat.of().parseHex(mediaID));
 					FetchedPieces fetchedPieces =
 						new FetchedPieces(
 							mediaID,
@@ -150,7 +154,7 @@ public class RequestHandler implements Runnable {
 			try {
 				socket.write(response);
 			} catch (IOException ignored) { }
-		} catch (IndexOutOfBoundsException | IllegalArgumentException e) {
+		} catch (IndexOutOfBoundsException | IllegalArgumentException | NullPointerException e) {
 			try {
 				String errorMsg =
 					"response-type " + RubusResponseType.BAD_REQUEST + "\n" +

@@ -22,14 +22,17 @@ package backend.io;
 import common.net.response.body.MediaInfo;
 
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Arrays;
+import java.util.HexFormat;
 
 /**
  * A class-container to store the information about the media.
  */
 public class RubusMedia implements Media {
-	private final String id;
+	private final byte[] id;
 	private final String title;
 	private final int duration;
 	private final int videoWidth;
@@ -44,25 +47,25 @@ public class RubusMedia implements Media {
 	 * Constructs an instance of this class.
 	 * @param id the media id
 	 * @param title the title
-	 * @param duration the duration
 	 * @param videoWidth the video width in pixels
 	 * @param videoHeight the video height in pixels
+	 * @param duration the duration
 	 * @param videoContainer the video container
 	 * @param audioContainer the audio container
-	 * @param videoCodec the video codec
-	 * @param audioCodec the audio codec
+	 * @param videoEncoding the video codec
+	 * @param audioEncoding the audio codec
 	 * @param contentPath the location to a directory where media pieces are stored in
 	 */
 	public RubusMedia(
-		String id,
+		byte[] id,
 		String title,
-		int duration,
 		int videoWidth,
 		int videoHeight,
+		int duration,
+		String videoEncoding,
+		String audioEncoding,
 		String videoContainer,
 		String audioContainer,
-		String videoCodec,
-		String audioCodec,
 		Path contentPath
 	) {
 		assert id != null && title != null && contentPath != null && duration > 0 && videoWidth >= 0 && videoHeight >= 0;
@@ -74,13 +77,13 @@ public class RubusMedia implements Media {
 		this.videoHeight = videoHeight;
 		this.videoContainer = videoContainer;
 		this.audioContainer = audioContainer;
-		this.videoCodec = videoCodec;
-		this.audioCodec = audioCodec;
+		this.videoCodec = videoEncoding;
+		this.audioCodec = audioEncoding;
 		this.contentPath = contentPath;
 	}
 
 	@Override
-	public String getID() {
+	public byte[] getID() {
 		return id;
 	}
 
@@ -156,7 +159,7 @@ public class RubusMedia implements Media {
 	@Override
 	public MediaInfo toMediaInfo() {
 		return new MediaInfo(
-			getID(),
+			HexFormat.of().formatHex(getID()),
 			getTitle(),
 			getVideoWidth(),
 			getVideoHeight(),
@@ -169,25 +172,29 @@ public class RubusMedia implements Media {
 	}
 
 	/**
-	 * Compares the RubusMedia with another object. Returns true only if the other object is an instance of RubusMedia
+	 * Compares the RubusMedia with another object. Returns true only if the other object is an instance of {@link Media}
 	 * and all its field are equal to these fields.
 	 * @param obj an object
-	 * @return true if the other object is a RubusMedia and has the fields, false otherwise
+	 * @return true if the other object is a Media and has the fields, false otherwise
 	 */
 	@Override
 	public boolean equals(Object obj) {
-		if (obj instanceof RubusMedia rubusMedia) {
-			return
-				getID().equals(rubusMedia.getID()) &&
-				getTitle().equals(rubusMedia.getTitle()) &&
-				getDuration() == rubusMedia.getDuration() &&
-				getVideoWidth() == rubusMedia.getVideoWidth() &&
-				getVideoHeight() == rubusMedia.getVideoHeight() &&
-				getVideoCodec().equals(rubusMedia.getVideoCodec()) &&
-				getAudioCodec().equals(rubusMedia.getAudioCodec()) &&
-				getVideoContainer().equals(rubusMedia.getVideoContainer()) &&
-				getAudioContainer().equals(rubusMedia.getAudioContainer()) &&
-				getContentPath().equals(rubusMedia.getContentPath());
+		if (obj instanceof Media media) {
+			try {
+				return
+					Arrays.equals(getID(), media.getID()) &&
+						getTitle().equals(media.getTitle()) &&
+						getDuration() == media.getDuration() &&
+						getVideoWidth() == media.getVideoWidth() &&
+						getVideoHeight() == media.getVideoHeight() &&
+						getVideoCodec().equals(media.getVideoCodec()) &&
+						getAudioCodec().equals(media.getAudioCodec()) &&
+						getVideoContainer().equals(media.getVideoContainer()) &&
+						getAudioContainer().equals(media.getAudioContainer()) &&
+						getContentPath().equals(media.getContentPath());
+			} catch (IOException e) {
+				throw new UncheckedIOException(e);
+			}
 		}
 		return false;
 	}
