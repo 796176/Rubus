@@ -22,13 +22,16 @@ package backend.spring;
 import backend.*;
 import backend.io.MediaPool;
 import common.Config;
+import org.postgresql.ds.PGSimpleDataSource;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
+import org.springframework.jdbc.core.JdbcTemplate;
 
+import javax.sql.DataSource;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.nio.file.Path;
@@ -78,9 +81,31 @@ public class RubusConfiguration {
 	}
 
 	@Bean
-	MediaPool mediaPool(Config config) {
-		Path mainDBPath = Path.of(config.get("main-database-location"));
-		return new MediaPool(mainDBPath);
+	DataSource dataSource(
+		Config config,
+		@Value("${rubus.db.user}") String user,
+		@Value("${rubus.db.password}") String password
+	) {
+		PGSimpleDataSource dataSource = new PGSimpleDataSource();
+		dataSource.setUser(user);
+		dataSource.setPassword(password);
+		String databaseAddress = config.get("database-address");
+		dataSource.setServerNames(new String[]{ databaseAddress });
+		int databasePort = Integer.parseInt(config.get("database-port"));
+		dataSource.setPortNumbers(new int[] { databasePort });
+		String databaseName = config.get("database-name");
+		dataSource.setDatabaseName(databaseName);
+		return dataSource;
+	}
+
+	@Bean
+	JdbcTemplate jdbcTemplate(DataSource dataSource) {
+		return new JdbcTemplate(dataSource);
+	}
+
+	@Bean
+	MediaPool mediaPool(JdbcTemplate jdbcTemplate) {
+		return new MediaPool(jdbcTemplate);
 	}
 
 	@Bean

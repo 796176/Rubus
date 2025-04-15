@@ -19,6 +19,7 @@
 
 package backend;
 
+import auxiliary.DatabaseCreator;
 import auxiliary.DummySocket;
 import backend.io.MediaPool;
 import common.RubusSocket;
@@ -27,13 +28,17 @@ import common.net.response.body.FetchedPieces;
 import common.net.response.body.MediaInfo;
 import common.net.response.body.MediaList;
 import org.junit.jupiter.api.*;
+import org.springframework.context.ApplicationContext;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.datasource.embedded.EmbeddedDatabase;
 
+import javax.sql.DataSource;
 import java.io.ByteArrayInputStream;
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.net.SocketTimeoutException;
-import java.nio.file.Path;
+import java.sql.SQLException;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -43,9 +48,18 @@ public class RequestHandlerTests {
 
 	static MediaPool mediaPool;
 
+	static EmbeddedDatabase dataSource;
+
 	@BeforeAll
-	static void beforeAll() {
-		mediaPool = new MediaPool(Path.of(System.getProperty("user.dir"), "src", "test", "resources", "testDB"));
+	static void beforeAll() throws SQLException {
+		dataSource = DatabaseCreator.createdMediaFilledDB();
+		ApplicationContext applicationContext = DatabaseCreator.wrapDS(dataSource);
+		mediaPool = new MediaPool(new JdbcTemplate(applicationContext.getBean(DataSource.class)));
+	}
+
+	@AfterAll
+	static void afterAll() {
+		dataSource.shutdown();
 	}
 
 	@BeforeEach
