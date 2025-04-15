@@ -102,6 +102,7 @@ public class RequestHandler implements Runnable {
 			parser.feed(requestMes);
 			StringBuilder responseMes = new StringBuilder("response-type ").append(RubusResponseType.OK).append('\n');
 			ByteArrayOutputStream body = new ByteArrayOutputStream();
+			RequestValueChecker rvc = new RequestValueChecker();
 			switch (parser.type()) {
 				case LIST -> {
 					String titlePattern = parser.value("title-contains");
@@ -120,7 +121,7 @@ public class RequestHandler implements Runnable {
 				}
 
 				case INFO -> {
-					String mediaID = parser.value("media-id");
+					String mediaID = rvc.checkId(parser.value("media-id"));
 					Media media = pool.getMedia(HexFormat.of().parseHex(mediaID));
 					MediaInfo mediaInfo = media.toMediaInfo();
 					responseMes.append("serialized-object ").append(MediaInfo.class.getName()).append('\n');
@@ -129,9 +130,11 @@ public class RequestHandler implements Runnable {
 				}
 
 				case FETCH -> {
-					String mediaID = parser.value("media-id");
-					int beginningPieceIndex = Integer.parseInt(parser.value("starting-playback-piece"));
-					int piecesToFetch = Integer.parseInt(parser.value("total-playback-pieces"));
+					String mediaID = rvc.checkId(parser.value("media-id"));
+					int beginningPieceIndex =
+						rvc.checkForNegative(Integer.parseInt(parser.value("starting-playback-piece")));
+					int piecesToFetch =
+						rvc.checkForNonPositive(Integer.parseInt(parser.value("total-playback-pieces")));
 					Media media = pool.getMedia(HexFormat.of().parseHex(mediaID));
 					FetchedPieces fetchedPieces =
 						new FetchedPieces(
