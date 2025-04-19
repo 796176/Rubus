@@ -27,6 +27,7 @@ import common.net.response.RubusResponseType;
 import common.net.response.body.FetchedPieces;
 import common.net.response.body.MediaInfo;
 import common.net.response.body.MediaList;
+import org.springframework.dao.DataAccessException;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -161,7 +162,7 @@ public class RequestHandler implements Runnable {
 					"body-length 0\n\n";
 				socket.write(errorMsg.getBytes());
 			} catch (IOException ignored) {}
-		} catch (IOException e) {
+		} catch (IOException | DataAccessException e) {
 			try {
 				String errorMsg =
 					"response-type " + RubusResponseType.SERVER_ERROR + "\n" +
