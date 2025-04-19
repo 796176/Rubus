@@ -20,14 +20,17 @@
 package backend;
 
 import common.RubusSocket;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.net.SocketTimeoutException;
 
 /**
  * RubusServer is responsible for accepting or rejecting incoming connections.
  */
 public class RubusServer extends Thread {
+
+	private final static Logger logger = LoggerFactory.getLogger(RubusServer.class);
 
 	private boolean isRunning = true;
 
@@ -49,6 +52,13 @@ public class RubusServer extends Thread {
 		serverSocket = rubusServerSocket;
 		manager = socketManager;
 		this.connectionLimit = openConnectionLimit;
+		logger.debug(
+			"{} initialized, SocketManager: {}, RubusServerSocket: {}, open connections limit {}",
+			this,
+			socketManager,
+			rubusServerSocket,
+			openConnectionLimit
+		);
 	}
 
 	@Override
@@ -58,9 +68,15 @@ public class RubusServer extends Thread {
 				if (manager.getOpenConnections() < connectionLimit) {
 					RubusSocket socket = serverSocket.accept();
 					manager.add(socket);
+					logger.info(
+						"{} established new connection: {}, total open connections: {}",
+						this,
+						socket,
+						manager.getOpenConnections()
+					);
 				}
 			} catch (IOException ioException) {
-
+				if (!serverSocket.isClosed()) logger.warn("{} could not establish connection", this, ioException);
 			}
 		}
 	}
@@ -72,6 +88,7 @@ public class RubusServer extends Thread {
 		isRunning = false;
 		manager.terminate();
 		serverSocket.close();
+		logger.debug("{} terminated", this);
 	}
 
 	/**

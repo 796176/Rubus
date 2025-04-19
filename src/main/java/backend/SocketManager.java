@@ -21,6 +21,8 @@ package backend;
 
 import backend.io.MediaPool;
 import common.RubusSocket;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.SocketTimeoutException;
@@ -32,6 +34,8 @@ import java.util.concurrent.atomic.AtomicInteger;
  * the connections or keeping them open.
  */
 public class SocketManager {
+
+	private final static Logger logger = LoggerFactory.getLogger(SocketManager.class);
 
 	private final ExecutorService executorService;
 
@@ -61,6 +65,13 @@ public class SocketManager {
 		this.mediaPool = mediaPool;
 		executorService = requestExecutorService;
 		this.requestParserStrategy = requestParserStrategy;
+		logger.debug(
+			"{} initialized, MediaPool: {}, ExecutorService: {}, RequestParserStrategy: {}",
+			this,
+			mediaPool,
+			executorService,
+			requestParserStrategy
+		);
 	}
 
 	/**
@@ -90,11 +101,16 @@ public class SocketManager {
 		for (Runnable runnable: executorService.shutdownNow()) {
 			try {
 				((RequestHandler) runnable).getRubusSocket().close();
-			} catch (IOException ignored) { }
+			} catch (IOException e) {
+				logger.warn("{} could not close connection", this, e);
+			}
 		}
 		try {
 			executorService.awaitTermination(Long.MAX_VALUE, TimeUnit.MILLISECONDS);
-		} catch (InterruptedException ignored) { }
+		} catch (InterruptedException e) {
+			logger.info("ExecutorService {} shutdown interrupted in {}", executorService, this, e);
+		}
+		logger.debug("{} terminated", this);
 	}
 
 	/**
@@ -120,7 +136,15 @@ public class SocketManager {
 		} else {
 			try {
 				requestHandler.getRubusSocket().close();
-			} catch (IOException ignored) { }
+				logger.info(
+					"{} closed connection {}, total open connections: {}",
+					this,
+					requestHandler.getRubusSocket(),
+					getOpenConnections() - 1
+				);
+			} catch (IOException e) {
+				logger.warn("{} could not close connection", this, e);
+			}
 			activeConnections.getAndDecrement();
 			availableHandlers.add(requestHandler);
 		}

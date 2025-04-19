@@ -19,6 +19,8 @@
 
 package backend.io;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 import java.io.IOException;
@@ -32,6 +34,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * to just use it without knowing how it works under the hood.
  */
 public class MediaPool {
+
+	private final static Logger logger = LoggerFactory.getLogger(MediaPool.class);
 
 	private JdbcTemplate jdbcTemplate;
 
@@ -50,6 +54,7 @@ public class MediaPool {
 		assert jdbcTemplate != null;
 
 		this.jdbcTemplate = jdbcTemplate;
+		logger.debug("{} initialized, JdbcTemplate: {}", this, jdbcTemplate);
 	}
 
 	/**
@@ -59,6 +64,7 @@ public class MediaPool {
 	 */
 	public Media[] availableMedia() throws IOException {
 		String sqlQuery = "select * from media;";
+		logger.debug("{} querying {}", this, sqlQuery);
 		return jdbcTemplate.query(sqlQuery, rs -> {
 			ArrayList<Media> media = new ArrayList<>();
 			while (rs.next()) {
@@ -94,6 +100,7 @@ public class MediaPool {
 			// a preceding thread
 			if (!cacheUpdateNeeded.get()) return cachedMedia;
 			String sqlQuery = "select id, title from media;";
+			logger.debug("{} querying {}", this, sqlQuery);
 			cachedMedia = jdbcTemplate.query(sqlQuery, rs -> {
 				ArrayList<Media> media = new ArrayList<>();
 				while (rs.next()) {
@@ -120,6 +127,7 @@ public class MediaPool {
 	 */
 	public Media getMedia(byte[] mediaId) throws IOException {
 		String sql = "select * from media where id=?;";
+		logger.debug("{} querying {}", this, sql);
 		return jdbcTemplate.query(
 			sql,
 			preparedStatement -> {

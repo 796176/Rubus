@@ -27,6 +27,8 @@ import common.net.response.RubusResponseType;
 import common.net.response.body.FetchedPieces;
 import common.net.response.body.MediaInfo;
 import common.net.response.body.MediaList;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataAccessException;
 
 import java.io.ByteArrayOutputStream;
@@ -45,6 +47,8 @@ import java.util.function.Consumer;
  * the execution by calling the {@link #getRequestHandlerStatus()} method.
  */
 public class RequestHandler implements Runnable {
+
+	private final static Logger logger = LoggerFactory.getLogger(RequestHandler.class);
 
 	private RubusSocket socket;
 
@@ -75,6 +79,14 @@ public class RequestHandler implements Runnable {
 		this.pool = mediaPool;
 		parser = requestParserStrategy;
 		this.callback = callback;
+		logger.debug(
+			"{} initialized, MediaPool: {} RubusSocket: {}, RequestParserStrategy: {}, callback: {}",
+			this,
+			mediaPool,
+			socket,
+			parser,
+			callback
+		);
 	}
 
 	/**
@@ -93,7 +105,9 @@ public class RequestHandler implements Runnable {
 			byte[] request;
 			try {
 				 request = RubusSockets.extractMessage(socket,300);
+				 logger.info("{} retrieved request from {}", this, socket);
 			} catch (Exception e) {
+				logger.debug("{} could not retrieve request from {}", this, socket, e);
 				status = new Status(ExecutionStatus.EXCEPTION, e);
 				callback.accept(this);
 				return;
@@ -154,21 +168,35 @@ public class RequestHandler implements Runnable {
 			System.arraycopy(body.toByteArray(), 0, response, responseMes.length(), body.size());
 			try {
 				socket.write(response);
-			} catch (IOException ignored) { }
+				logger.info("{} sent response to {} with {} response type", this, socket, RubusResponseType.OK);
+			} catch (IOException e) {
+				logger.warn("{} could not send response to {}", this, socket, e);
+			}
 		} catch (IndexOutOfBoundsException | IllegalArgumentException | NullPointerException e) {
 			try {
 				String errorMsg =
 					"response-type " + RubusResponseType.BAD_REQUEST + "\n" +
 					"body-length 0\n\n";
 				socket.write(errorMsg.getBytes());
-			} catch (IOException ignored) {}
+				logger.info(
+					"{} sent response to {} with {} response type", this, socket, RubusResponseType.BAD_REQUEST
+				);
+			} catch (IOException ioException) {
+				logger.warn("{} could not send response to {}", this, socket, e);
+			}
 		} catch (IOException | DataAccessException e) {
+			logger.error("{} encountered internal error", this, e);
 			try {
 				String errorMsg =
 					"response-type " + RubusResponseType.SERVER_ERROR + "\n" +
 					"body-length 0\n\n";
 				socket.write(errorMsg.getBytes());
-			} catch (IOException ignored) {}
+				logger.info(
+					"{} sent response to {} with {} response type", this, socket, RubusResponseType.SERVER_ERROR
+				);
+			} catch (IOException ioException) {
+				logger.warn("{} could not send response to {}", this, socket, e);
+			}
 		}
 
 		status = new Status(ExecutionStatus.SUCCESS, null);
@@ -275,6 +303,8 @@ public class RequestHandler implements Runnable {
 	 */
 	public static class Status {
 
+		private final static Logger logger = LoggerFactory.getLogger(Status.class);
+
 		private final ExecutionStatus executionStatus;
 
 		private final Exception e;
@@ -284,6 +314,7 @@ public class RequestHandler implements Runnable {
 
 			this.executionStatus = executionStatus;
 			e = exception;
+			logger.debug("{} initialized, ExecutionStatus: {}, Exception: ", this, executionStatus, exception);
 		}
 
 		/**

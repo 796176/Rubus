@@ -19,11 +19,19 @@
 
 package backend.io;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.event.Level;
+
+import java.util.Arrays;
+
 /**
  * TitledMediaProxy stores only the media pool, the id, and the title. Attempts to access other fields or the media
  * content will be delegated to the subject retrieved using the media pool.
  */
 public class TitledMediaProxy extends MediaProxy {
+
+	private final static Logger logger = LoggerFactory.getLogger(TitledMediaProxy.class);
 
 	private final String title;
 
@@ -37,6 +45,11 @@ public class TitledMediaProxy extends MediaProxy {
 		assert title != null;
 
 		this.title = title;
+		if (logger.isEnabledForLevel(Level.DEBUG)) {
+			logger.debug(
+				"{} initialized, MediaPool: {}, id: {}, title: {}", this, mediaPool, Arrays.toString(mediaID), title
+			);
+		}
 	}
 
 	@Override
