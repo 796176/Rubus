@@ -134,19 +134,16 @@ public class RubusConfiguration {
 		return new SocketManager(mediaPool, requestExecutorService, requestParserStrategy);
 	}
 
-	@Bean(destroyMethod = "close")
+	@Bean(initMethod = "start", destroyMethod = "close")
 	RubusServer rubusServer(Config config, SocketManager socketManager, RubusServerSocket serverSocket) {
 		int maxOpenConnections = Integer.parseInt(config.get("open-connections-limit"));
 		return new RubusServer(socketManager, serverSocket, maxOpenConnections);
 	}
 
 	public static void main(String[] args) {
+		logger.info("Initializing Application context");
 		var applicationContext = new AnnotationConfigApplicationContext(RubusConfiguration.class);
 		logger.info("ApplicationContext {} initialized, Class: {}", applicationContext, RubusConfiguration.class);
-		RubusServer rubusServer = applicationContext.getBean(RubusServer.class);
-		logger.info("Starting RubusServer {}", rubusServer);
-		rubusServer.start();
-		logger.info("RubusServer {} running", rubusServer);
 		Runtime.getRuntime().addShutdownHook(new Thread(() -> {
 			logger.info("Shutting down ApplicationContext {}", applicationContext);
 			applicationContext.close();
