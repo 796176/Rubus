@@ -51,4 +51,10 @@ public interface RubusServerSocket {
 	 * @throws IOException if some I/O error occurs
 	 */
 	void close() throws IOException;
+
+	/**
+	 * Returns true if this RubusServerSocket has been closed, false otherwise.
+	 * @return true if this RubusServerSocket has been closed, false otherwise
+	 */
+	boolean isClosed();
 }

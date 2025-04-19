@@ -121,8 +121,8 @@ public class SecureServerSocketDecorator implements RubusServerSocket {
 		RubusSocket socket;
 		do {
 			socket = get();
-		} while (!isTerminated && socket == null);
-		if (isTerminated) throw new SocketTimeoutException();
+		} while (!isClosed() && socket == null);
+		if (isClosed()) throw new SocketTimeoutException();
 		else return socket;
 	}
 
@@ -142,8 +142,8 @@ public class SecureServerSocketDecorator implements RubusServerSocket {
 		do {
 			socket = get();
 			timePassed = System.currentTimeMillis() - acceptStartsTime;
-		} while (!isTerminated && timePassed < timeout && socket == null);
-		if (isTerminated || timePassed >= timeout) throw new SocketTimeoutException();
+		} while (!isClosed() && timePassed < timeout && socket == null);
+		if (isClosed() || timePassed >= timeout) throw new SocketTimeoutException();
 		else return socket;
 	}
 
@@ -170,8 +170,13 @@ public class SecureServerSocketDecorator implements RubusServerSocket {
 		}
 	}
 
+	@Override
+	public boolean isClosed() {
+		return isTerminated;
+	}
+
 	private synchronized boolean put(RubusSocket socket) {
-		if (isTerminated) return false;
+		if (isClosed()) return false;
 		for (int i = 0; i < sharedSockets.length; i++) {
 			SharedSocket ss = sharedSockets[i];
 			if (ss == null || ss.shared() && ss.socket().isClosed()) {
@@ -183,7 +188,7 @@ public class SecureServerSocketDecorator implements RubusServerSocket {
 	}
 
 	private synchronized RubusSocket get() {
-		if (isTerminated) return null;
+		if (isClosed()) return null;
 		RubusSocket retVal = null;
 		for (int i = 0; i < sharedSockets.length; i++) {
 			SharedSocket ss = sharedSockets[i];
@@ -203,7 +208,7 @@ public class SecureServerSocketDecorator implements RubusServerSocket {
 
 		@Override
 		public void run() {
-			while (!isTerminated) {
+			while (!isClosed()) {
 				try {
 					if (openConnections < connectionLimit) {
 						RubusSocket socket = serverSocket.accept();
