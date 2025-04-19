@@ -92,6 +92,10 @@ public class SecureServerSocketDecorator implements RubusServerSocket {
 			   handshakeExecutorService != null &&
 			   handshakeTimeout >= 0;
 
+		if (config.get("secure-connection-required") == null) {
+			throw new RuntimeException("The secure-connection-required parameter is absent");
+		}
+
 		this.serverSocket = serverSocket;
 		this.config = config;
 		connectionLimit = openConnectionsLimit;
