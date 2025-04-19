@@ -20,6 +20,8 @@
 package backend;
 
 import common.net.request.RubusRequestType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -44,9 +46,15 @@ import java.util.Map;
  */
 public class PreProcessRequestParser implements RequestParserStrategy {
 
+	private final static Logger logger = LoggerFactory.getLogger(PreProcessRequestParser.class);
+
 	private final Map<String, String> parameters = new HashMap<>(50);
 
 	private RubusRequestType type;
+
+	public PreProcessRequestParser() {
+		logger.debug("{} initialized", this);
+	}
 
 	@Override
 	public void feed(String request) {

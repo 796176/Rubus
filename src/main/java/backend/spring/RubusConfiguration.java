@@ -23,6 +23,8 @@ import backend.*;
 import backend.io.MediaPool;
 import common.Config;
 import org.postgresql.ds.PGSimpleDataSource;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
@@ -41,8 +43,10 @@ import java.util.concurrent.Executors;
 @Configuration
 public class RubusConfiguration {
 
+	private final static Logger logger = LoggerFactory.getLogger(RubusConfiguration.class);
+
 	@Bean
-	@Value("${rubus.configLocation}")
+	@Value("${rubus.workingDir}/rubus.conf")
 	Config config(Path configPath) throws IOException {
 		return new Config(configPath);
 	}
@@ -63,7 +67,10 @@ public class RubusConfiguration {
 				int port = Integer.parseInt(config.get("listening-port"));
 				rubusServerSocketImpl = new TCPRubusServerSocket(InetAddress.getByName(address), port);
 			}
-			default -> throw new RuntimeException("The protocol " + protocol + " is not available");
+			default -> {
+				logger.error("Protocol {} not available", protocol);
+				throw new RuntimeException("The " + protocol + " protocol is not available");
+			}
 		}
 		boolean secureConnectionHandshakeDisabled =
 			config.get("secure-connection-handshake-disabled") != null &&
@@ -136,8 +143,11 @@ public class RubusConfiguration {
 
 	public static void main(String[] args) throws Exception {
 		ApplicationContext applicationContext = new AnnotationConfigApplicationContext(RubusConfiguration.class);
+		logger.info("ApplicationContext {} initialized, Class: {}", applicationContext, RubusConfiguration.class);
 		RubusServer rubusServer = applicationContext.getBean(RubusServer.class);
+		logger.info("Starting RubusServer {}", rubusServer);
 		rubusServer.start();
+		logger.info("RubusServer {} running", rubusServer);
 		rubusServer.join();
 	}
 }

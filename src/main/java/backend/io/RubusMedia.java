@@ -20,6 +20,9 @@
 package backend.io;
 
 import common.net.response.body.MediaInfo;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.event.Level;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -32,6 +35,9 @@ import java.util.HexFormat;
  * A class-container to store the information about the media.
  */
 public class RubusMedia implements Media {
+
+	private final static Logger logger = LoggerFactory.getLogger(RubusMedia.class);
+
 	private final byte[] id;
 	private final String title;
 	private final int duration;
@@ -80,6 +86,24 @@ public class RubusMedia implements Media {
 		this.videoCodec = videoEncoding;
 		this.audioCodec = audioEncoding;
 		this.contentPath = contentPath;
+
+		if (logger.isEnabledForLevel(Level.DEBUG)) {
+			logger.debug(
+				"{} was initialized, id: {}, title: {}, video width: {}, video height: {}, duration: {}" +
+				"video encoding: {}, audio encoding: {}, video container: {}, audio container: {}, content path: {}",
+				this,
+				Arrays.toString(id),
+				title,
+				videoWidth,
+				videoHeight,
+				duration,
+				videoEncoding,
+				audioEncoding,
+				videoContainer,
+				audioContainer,
+				contentPath
+			);
+		}
 	}
 
 	@Override

@@ -20,6 +20,9 @@
 package backend.io;
 
 import common.net.response.body.MediaInfo;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.event.Level;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -32,6 +35,8 @@ import java.util.Arrays;
  * It's a proxy participant of the proxy pattern.
  */
 public abstract class MediaProxy implements Media {
+
+	private final static Logger logger = LoggerFactory.getLogger(MediaProxy.class);
 
 	private final MediaPool mediaPool;
 
@@ -49,6 +54,9 @@ public abstract class MediaProxy implements Media {
 
 		this.mediaPool = mediaPool;
 		id = mediaID;
+		if (logger.isEnabledForLevel(Level.DEBUG)) {
+			logger.debug("{} initialized, MediaPool: {}, id: {}", this, mediaPool, Arrays.toString(mediaID));
+		}
 	}
 	
 	public MediaPool getMediaPool() {

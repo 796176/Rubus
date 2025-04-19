@@ -19,6 +19,9 @@
 
 package backend;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -28,6 +31,12 @@ import java.util.regex.Pattern;
  * intents etc. RequestValueChecker is created to address this issue.
  */
 public class RequestValueChecker {
+
+	private final static Logger logger = LoggerFactory.getLogger(RequestValueChecker.class);
+
+	public RequestValueChecker() {
+		logger.debug("{} initialized", this);
+	}
 
 	/**
 	 * Checks if the id length is even and every character is hexadecimal.

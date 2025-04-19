@@ -20,6 +20,8 @@
 package backend;
 
 import common.net.request.RubusRequestType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * StandardRequestParser is a concrete implementation of {@link RequestParserStrategy}, where parsing doesn't happen
@@ -27,7 +29,13 @@ import common.net.request.RubusRequestType;
  */
 public class StandardRequestParser implements RequestParserStrategy {
 
+	private final static Logger logger = LoggerFactory.getLogger(StandardRequestParser.class);
+
 	private String request;
+
+	public StandardRequestParser() {
+		logger.debug("{} initialized", this);
+	}
 
 	@Override
 	public void feed(String request) {

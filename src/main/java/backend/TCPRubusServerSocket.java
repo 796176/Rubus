@@ -21,6 +21,8 @@ package backend;
 
 import common.RubusSocket;
 import common.TCPRubusSocket;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.InetAddress;
@@ -32,6 +34,8 @@ import java.net.ServerSocket;
  * between a server and a client and returns instances of {@link TCPRubusSocket} after the connection is established.
  */
 public class TCPRubusServerSocket implements RubusServerSocket {
+
+	private final static Logger logger = LoggerFactory.getLogger(TCPRubusServerSocket.class);
 
 	private final ServerSocket serverSocket;
 
@@ -47,6 +51,7 @@ public class TCPRubusServerSocket implements RubusServerSocket {
 		serverSocket = new ServerSocket();
 		serverSocket.bind(new InetSocketAddress(serverAddress, port));
 		defaultTimeout = serverSocket.getSoTimeout();
+		logger.debug("{} initialized, InetAddress: {}, listening port: {}", this, serverAddress, port);
 	}
 
 	@Override
@@ -64,5 +69,11 @@ public class TCPRubusServerSocket implements RubusServerSocket {
 	@Override
 	public void close() throws IOException {
 		serverSocket.close();
+		logger.debug("{} closed", this);
+	}
+
+	@Override
+	public boolean isClosed() {
+		return serverSocket.isClosed();
 	}
 }

@@ -23,8 +23,11 @@ import common.Config;
 import common.RubusSocket;
 import common.ssl.HandshakeFailedException;
 import common.ssl.SecureSocket;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -44,6 +47,8 @@ import java.util.concurrent.TimeUnit;
 public class SecureServerSocketDecorator implements RubusServerSocket {
 
 	private record SharedSocket(boolean shared, RubusSocket socket) {}
+
+	private final static Logger logger = LoggerFactory.getLogger(SecureServerSocketDecorator.class);
 
 	private final RubusServerSocket serverSocket;
 
@@ -92,6 +97,11 @@ public class SecureServerSocketDecorator implements RubusServerSocket {
 			   handshakeExecutorService != null &&
 			   handshakeTimeout >= 0;
 
+		if (config.get("secure-connection-required") == null) {
+			logger.error("{} not contain secure-connection-required key", config);
+			throw new RuntimeException("The secure-connection-required parameter is absent");
+		}
+
 		this.serverSocket = serverSocket;
 		this.config = config;
 		connectionLimit = openConnectionsLimit;
@@ -102,6 +112,16 @@ public class SecureServerSocketDecorator implements RubusServerSocket {
 			executorService = handshakeExecutorService;
 			backgroundThread.start();
 		}
+		logger.debug(
+			"{} initialized, RubusServerSocket: {}, Config: {}, " +
+				"open connections limit: {}, ExecutorService: {}, handshake timeout: {}",
+			this,
+			serverSocket,
+			config,
+			openConnectionsLimit,
+			handshakeExecutorService,
+			handshakeTimeout
+		);
 	}
 
 	@Override
@@ -117,8 +137,8 @@ public class SecureServerSocketDecorator implements RubusServerSocket {
 		RubusSocket socket;
 		do {
 			socket = get();
-		} while (!isTerminated && socket == null);
-		if (isTerminated) throw new SocketTimeoutException();
+		} while (!isClosed() && socket == null);
+		if (isClosed()) throw new SocketException();
 		else return socket;
 	}
 
@@ -138,9 +158,10 @@ public class SecureServerSocketDecorator implements RubusServerSocket {
 		do {
 			socket = get();
 			timePassed = System.currentTimeMillis() - acceptStartsTime;
-		} while (!isTerminated && timePassed < timeout && socket == null);
-		if (isTerminated || timePassed >= timeout) throw new SocketTimeoutException();
-		else return socket;
+		} while (!isClosed() && timePassed < timeout && socket == null);
+		if (timePassed >= timeout) throw new SocketTimeoutException();
+		if (isClosed()) throw new SocketException();
+		return socket;
 	}
 
 	@Override
@@ -152,22 +173,28 @@ public class SecureServerSocketDecorator implements RubusServerSocket {
 			executorService.shutdown();
 			executorService.awaitTermination(Long.MAX_VALUE, TimeUnit.MILLISECONDS);
 		} catch (InterruptedException e) {
-			throw new IOException();
+			logger.info("ExecutionService {} shutdown interrupted in {}", executorService, this, e);
 		} finally {
 			for (SharedSocket ss: sharedSockets) {
 				if (ss != null && !ss.shared()) {
 					try {
 						ss.socket().close();
 					} catch (IOException e) {
-
+						logger.warn("{} could not close {}", this, ss.socket(), e);
 					}
 				}
 			}
 		}
+		logger.debug("{} closed", this);
+	}
+
+	@Override
+	public boolean isClosed() {
+		return isTerminated;
 	}
 
 	private synchronized boolean put(RubusSocket socket) {
-		if (isTerminated) return false;
+		if (isClosed()) return false;
 		for (int i = 0; i < sharedSockets.length; i++) {
 			SharedSocket ss = sharedSockets[i];
 			if (ss == null || ss.shared() && ss.socket().isClosed()) {
@@ -179,7 +206,7 @@ public class SecureServerSocketDecorator implements RubusServerSocket {
 	}
 
 	private synchronized RubusSocket get() {
-		if (isTerminated) return null;
+		if (isClosed()) return null;
 		RubusSocket retVal = null;
 		for (int i = 0; i < sharedSockets.length; i++) {
 			SharedSocket ss = sharedSockets[i];
@@ -197,9 +224,13 @@ public class SecureServerSocketDecorator implements RubusServerSocket {
 
 	private class BackgroundThread extends Thread {
 
+		private BackgroundThread() {
+			logger.debug("{} initialized", this);
+		}
+
 		@Override
 		public void run() {
-			while (!isTerminated) {
+			while (!isClosed()) {
 				try {
 					if (openConnections < connectionLimit) {
 						RubusSocket socket = serverSocket.accept();
@@ -207,7 +238,7 @@ public class SecureServerSocketDecorator implements RubusServerSocket {
 						executorService.submit(new HandshakePerformer(socket));
 					}
 				} catch (IOException e) {
-
+					logger.warn("{} could not establish connection", this, e);
 				}
 			}
 		}
@@ -221,6 +252,7 @@ public class SecureServerSocketDecorator implements RubusServerSocket {
 			assert socket != null;
 
 			localSocket = socket;
+			logger.debug("{} initialized, RubusSocket: {}", this, socket);
 		}
 
 		@Override
@@ -228,11 +260,17 @@ public class SecureServerSocketDecorator implements RubusServerSocket {
 			try {
 				RubusSocket secureSocket =
 					new SecureSocket(localSocket, config, handshakeTimeout, false);
+				logger.debug("{} established secure connection on {}", this, localSocket);
 				if (!put(secureSocket)) {
-					secureSocket.close();
+					try {
+						secureSocket.close();
+					} catch (IOException e) {
+						logger.warn("{} failed to close connection on {}", this, secureSocket);
+					}
 					openConnections--;
 				}
 			} catch (HandshakeFailedException e) {
+				logger.debug("{} failed handshake on {}", this, localSocket, e);
 				try {
 					if (!scRequired) {
 						if(!put(localSocket)) {
@@ -243,12 +281,17 @@ public class SecureServerSocketDecorator implements RubusServerSocket {
 						openConnections--;
 						localSocket.close();
 					}
-				} catch (IOException ignored) { }
+				} catch (IOException ioException) {
+					logger.warn("{} failed to close connection on {}", this, localSocket, ioException);
+				}
 			} catch (IOException | InterruptedException e) {
+				logger.debug("{} failed handshake on {}", this, localSocket, e);
 				try {
 					openConnections--;
 					this.localSocket.close();
-				} catch (IOException ignored) { }
+				} catch (IOException ioException) {
+					logger.warn("{} failed to close connection on {}", this, localSocket, ioException);
+				}
 			}
 		}
 	}
