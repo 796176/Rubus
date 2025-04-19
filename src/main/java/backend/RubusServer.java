@@ -56,11 +56,10 @@ public class RubusServer extends Thread {
 		while (isRunning) {
 			try {
 				if (manager.getOpenConnections() < connectionLimit) {
-					RubusSocket socket = serverSocket.accept(50);
+					RubusSocket socket = serverSocket.accept();
 					manager.add(socket);
 				}
-			} catch (SocketTimeoutException ignored) {}
-			catch (IOException ioException) {
+			} catch (IOException ioException) {
 
 			}
 		}
