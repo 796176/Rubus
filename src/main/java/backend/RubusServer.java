@@ -28,7 +28,7 @@ import java.io.IOException;
 /**
  * RubusServer is responsible for accepting or rejecting incoming connections.
  */
-public class RubusServer extends Thread {
+public class RubusServer extends Thread implements AutoCloseable {
 
 	private final static Logger logger = LoggerFactory.getLogger(RubusServer.class);
 
@@ -82,13 +82,18 @@ public class RubusServer extends Thread {
 	}
 
 	/**
-	 * Terminates the server and the underlying socket manager.
+	 * Closes this RubusServer, the underlying socket manager, and the rubus server socket.
 	 */
-	public void terminate() throws IOException {
+	@Override
+	public void close() {
 		isRunning = false;
-		manager.terminate();
-		serverSocket.close();
-		logger.debug("{} terminated", this);
+		manager.close();
+		try {
+			serverSocket.close();
+		} catch (IOException e) {
+			logger.info("RubusServerSocket {} could not close gracefully in {}", serverSocket, this);
+		}
+		logger.debug("{} closed", this);
 	}
 
 	/**

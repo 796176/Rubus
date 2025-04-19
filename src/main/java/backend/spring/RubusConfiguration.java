@@ -26,7 +26,6 @@ import org.postgresql.ds.PGSimpleDataSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -135,19 +134,20 @@ public class RubusConfiguration {
 		return new SocketManager(mediaPool, requestExecutorService, requestParserStrategy);
 	}
 
-	@Bean
+	@Bean(initMethod = "start", destroyMethod = "close")
 	RubusServer rubusServer(Config config, SocketManager socketManager, RubusServerSocket serverSocket) {
 		int maxOpenConnections = Integer.parseInt(config.get("open-connections-limit"));
 		return new RubusServer(socketManager, serverSocket, maxOpenConnections);
 	}
 
-	public static void main(String[] args) throws Exception {
-		ApplicationContext applicationContext = new AnnotationConfigApplicationContext(RubusConfiguration.class);
+	public static void main(String[] args) {
+		logger.info("Initializing Application context");
+		var applicationContext = new AnnotationConfigApplicationContext(RubusConfiguration.class);
 		logger.info("ApplicationContext {} initialized, Class: {}", applicationContext, RubusConfiguration.class);
-		RubusServer rubusServer = applicationContext.getBean(RubusServer.class);
-		logger.info("Starting RubusServer {}", rubusServer);
-		rubusServer.start();
-		logger.info("RubusServer {} running", rubusServer);
-		rubusServer.join();
+		Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+			logger.info("Shutting down ApplicationContext {}", applicationContext);
+			applicationContext.close();
+			logger.info("Done");
+		}));
 	}
 }
