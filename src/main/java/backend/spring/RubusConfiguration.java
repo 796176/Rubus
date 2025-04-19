@@ -42,7 +42,7 @@ import java.util.concurrent.Executors;
 public class RubusConfiguration {
 
 	@Bean
-	@Value("${rubus.configLocation}")
+	@Value("${rubus.workingDir}/rubus.conf")
 	Config config(Path configPath) throws IOException {
 		return new Config(configPath);
 	}
