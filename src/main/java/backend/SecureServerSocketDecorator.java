@@ -122,7 +122,7 @@ public class SecureServerSocketDecorator implements RubusServerSocket {
 		do {
 			socket = get();
 		} while (!isClosed() && socket == null);
-		if (isClosed()) throw new SocketTimeoutException();
+		if (isClosed()) throw new SocketException();
 		else return socket;
 	}
 
@@ -143,8 +143,9 @@ public class SecureServerSocketDecorator implements RubusServerSocket {
 			socket = get();
 			timePassed = System.currentTimeMillis() - acceptStartsTime;
 		} while (!isClosed() && timePassed < timeout && socket == null);
-		if (isClosed() || timePassed >= timeout) throw new SocketTimeoutException();
-		else return socket;
+		if (timePassed >= timeout) throw new SocketTimeoutException();
+		if (isClosed()) throw new SocketException();
+		return socket;
 	}
 
 	@Override
