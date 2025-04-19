@@ -86,7 +86,7 @@ public class RubusServer extends Thread {
 	 */
 	public void terminate() throws IOException {
 		isRunning = false;
-		manager.terminate();
+		manager.close();
 		serverSocket.close();
 		logger.debug("{} terminated", this);
 	}

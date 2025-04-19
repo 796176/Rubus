@@ -33,7 +33,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * SocketManager keeps track of open connections. It's responsible for handing the incoming requests, closing
  * the connections or keeping them open.
  */
-public class SocketManager {
+public class SocketManager implements AutoCloseable {
 
 	private final static Logger logger = LoggerFactory.getLogger(SocketManager.class);
 
@@ -94,9 +94,10 @@ public class SocketManager {
 	}
 
 	/**
-	 * Terminate this SocketManager and closes all the open connections.
+	 * Closes this SocketManager and all the open connections.
 	 */
-	public void terminate() {
+	@Override
+	public void close() {
 		isTerminated = true;
 		for (Runnable runnable: executorService.shutdownNow()) {
 			try {
@@ -110,7 +111,7 @@ public class SocketManager {
 		} catch (InterruptedException e) {
 			logger.info("ExecutorService {} shutdown interrupted in {}", executorService, this, e);
 		}
-		logger.debug("{} terminated", this);
+		logger.debug("{} closed", this);
 	}
 
 	/**
