@@ -233,7 +233,10 @@ public class SecureServerSocketDecorator implements RubusServerSocket {
 				RubusSocket secureSocket =
 					new SecureSocket(localSocket, config, handshakeTimeout, false);
 				if (!put(secureSocket)) {
-					secureSocket.close();
+					try {
+						secureSocket.close();
+					} catch (IOException e) {
+					}
 					openConnections--;
 				}
 			} catch (HandshakeFailedException e) {
