@@ -156,7 +156,11 @@ public class MainFrame extends JFrame {
 			byte[] audio = response.FETCH().audio()[0];
 			AudioFormat audioFormat = AudioSystem.getAudioFileFormat(new ByteArrayInputStream(audio)).getFormat();
 
-			fetchController = new FetchController(rubusSocketSupplier, id);
+			synchronized (config) {
+				int bufferSize = Integer.parseInt(config.get("buffer-size"));
+				int minimumBatchSize = Integer.parseInt(config.get("minimum-batch-size"));
+				fetchController = new FetchController(rubusSocketSupplier, id, bufferSize, minimumBatchSize);
+			}
 			audioPlayer = new AudioPlayer(audioFormat);
 			audioController = new AudioPlayerController(audioPlayer);
 			player = new Player(0, mediaInfo);
