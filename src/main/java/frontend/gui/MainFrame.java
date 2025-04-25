@@ -23,6 +23,7 @@ import common.Config;
 import common.RubusSocket;
 import common.net.response.body.MediaInfo;
 import frontend.*;
+import frontend.gui.mediasearch.MediaSearchDialog;
 
 import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.AudioSystem;
@@ -79,31 +80,11 @@ public class MainFrame extends JFrame {
 			}
 		});
 		menuBar.openVideoItem().addActionListener(actionEvent -> {
-			try {
-				OpenVideoDialog openVideoDialog = new OpenVideoDialog(this, rubusSocketSupplier);
-				openVideoDialog.setVisible(true);
-			} catch (Exception e) {
-				JOptionPane.showMessageDialog(
-					this,
-					e.getMessage(),
-					"Connection Error",
-					JOptionPane.ERROR_MESSAGE
-				);
-			}
+			new MediaSearchDialog(this, rubusSocketSupplier);
 		});
 
 		menuBar.settingsItem().addActionListener(actionEvent -> {
-			try {
-				SettingsDialog settingsDialog = new SettingsDialog(this);
-				settingsDialog.setVisible(true);
-			} catch (Exception e) {
-				JOptionPane.showMessageDialog(
-					this,
-					e.getMessage(),
-					"IOException",
-					JOptionPane.ERROR_MESSAGE
-				);
-			}
+			new frontend.gui.settings.SettingsDialog(this, config);
 		});
 
 		menuBar.aboutItem().addActionListener(actionEvent -> {

@@ -1,7 +1,7 @@
 /*
  * Rubus is an application level protocol for video and audio streaming and
  * the client and server reference implementations.
- * Copyright (C) 2024-2025 Yegore Vlussove
+ * Copyright (C) 2024 Yegore Vlussove
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,24 +21,21 @@ package frontend.gui;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ComponentAdapter;
-import java.awt.event.ComponentEvent;
 
-public class AboutDialog extends CenteredDialog {
-	public AboutDialog(JFrame parent) {
-		super(parent, "About", true, parent.getWidth() / 3, parent.getHeight());
+/**
+ * CenteredDialog is meant to be subclassed by other gui dialogs if they need to be centered relative to their parent.
+ */
+public abstract class CenteredDialog extends JDialog {
+	public CenteredDialog(Frame parent, String title, boolean modal, int width, int height) {
+		super(parent, title, modal);
+		assert parent != null && width > 0 && height > 0;
 
-		AboutPanel aboutPanel = new AboutPanel();
-		JScrollPane scrollPane = new JScrollPane(aboutPanel);
-		scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
-		scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
-		add(scrollPane);
-
-		scrollPane.addComponentListener(new ComponentAdapter() {
-			@Override
-			public void componentResized(ComponentEvent componentEvent) {
-				aboutPanel.setPreferredSize(new Dimension(getWidth(), aboutPanel.getMinimumSize().height));
-			}
-		});
+		Rectangle parentBounds = parent.getBounds();
+		setBounds(
+			parentBounds.x + (parentBounds.width - width) / 2,
+			parentBounds.y + (parentBounds.height - height) / 2,
+			width,
+			height
+		);
 	}
 }
