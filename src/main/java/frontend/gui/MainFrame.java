@@ -188,39 +188,6 @@ public class MainFrame extends JFrame {
 		}
 	}
 
-	public static void main(String[] args) throws InvocationTargetException, InterruptedException, IOException {
-		Path configPath = Path.of(System.getProperty("user.home"), ".rubus", "client_config");
-		Config config;
-		if (Files.notExists(configPath)) {
-			config = Config.create(configPath,
-				"server-uri", "tcp://localhost:54300",
-				"server-uri", "tcp://localhost:54300",
-				"main-frame-x", "0",
-				"main-frame-y", "0",
-				"main-frame-width", "1920",
-				"main-frame-height", "1080"
-			);
-		} else {
-			config = new Config(configPath);
-		}
-
-		String x = config.get("main-frame-x");
-		String y = config.get("main-frame-y");
-		String width = config.get("main-frame-width");
-		String height = config.get("main-frame-height");
-
-		SwingUtilities.invokeAndWait(() -> {
-			MainFrame mw = new MainFrame();
-			mw.setVisible(true);
-			mw.setBounds(
-				Integer.parseInt(x),
-				Integer.parseInt(y),
-				Integer.parseInt(width),
-				Integer.parseInt(height)
-			);
-		});
-	}
-
 	private class InnerThread extends Thread {
 		private boolean isTerminated = false;
 
