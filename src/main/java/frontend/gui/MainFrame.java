@@ -176,6 +176,10 @@ public class MainFrame extends JFrame {
 		}
 	}
 
+	public void display() {
+		setVisible(true);
+	}
+
 	private class InnerThread extends Thread {
 		private boolean isTerminated = false;
 
