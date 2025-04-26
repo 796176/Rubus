@@ -81,10 +81,11 @@ public class PlayerTabPanel extends TabPanel {
 
 	@Override
 	public void save() throws IOException {
-		synchronized (config) {
-			config.set("buffer-size", sanitizeValue(bufferSizeTF.getText()));
-			config.set("minimum-batch-size", sanitizeValue(batchSizeTF.getText()));
-			config.save();
-		}
+		config.action((c) -> {
+			c.set("buffer-size", sanitizeValue(bufferSizeTF.getText()));
+			c.set("minimum-batch-size", sanitizeValue(batchSizeTF.getText()));
+			c.save();
+			return null;
+		});
 	}
 }

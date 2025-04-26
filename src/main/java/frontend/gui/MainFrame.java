@@ -99,13 +99,11 @@ public class MainFrame extends JFrame {
 				if (fetchController != null) fetchController.close();
 				if (audioPlayer != null) audioPlayer.terminate();
 
-				synchronized (config) {
-					config.set("main-frame-x", getX() + "");
-					config.set("main-frame-y", getY() + "");
-					config.set("main-frame-width", getWidth() + "");
-					config.set("main-frame-height", getHeight() + "");
-					config.save();
-				}
+				config.set("main-frame-x", getX() + "");
+				config.set("main-frame-y", getY() + "");
+				config.set("main-frame-width", getWidth() + "");
+				config.set("main-frame-height", getHeight() + "");
+				config.save();
 			} catch (IOException ignored) {}
 			finally {
 				dispose();
@@ -137,11 +135,12 @@ public class MainFrame extends JFrame {
 			byte[] audio = response.FETCH().audio()[0];
 			AudioFormat audioFormat = AudioSystem.getAudioFileFormat(new ByteArrayInputStream(audio)).getFormat();
 
-			synchronized (config) {
-				int bufferSize = Integer.parseInt(config.get("buffer-size"));
-				int minimumBatchSize = Integer.parseInt(config.get("minimum-batch-size"));
+			config.action(c -> {
+				int bufferSize = Integer.parseInt(c.get("buffer-size"));
+				int minimumBatchSize = Integer.parseInt(c.get("minimum-batch-size"));
 				fetchController = new FetchController(rubusSocketSupplier, id, bufferSize, minimumBatchSize);
-			}
+				return null;
+			});
 			audioPlayer = new AudioPlayer(audioFormat);
 			audioController = new AudioPlayerController(audioPlayer);
 			player = new Player(0, mediaInfo);

@@ -78,10 +78,8 @@ public class GeneralTabPanel extends TabPanel {
 
 	@Override
 	public void save() throws IOException {
-		synchronized (config) {
-			config.set("interface-language", (String) languageCB.getSelectedItem());
-			config.set("look-and-feel", "com.formdev.flatlaf." + lookAndFeelCB.getSelectedItem());
-			config.save();
-		}
+		config.set("interface-language", (String) languageCB.getSelectedItem());
+		config.set("look-and-feel", "com.formdev.flatlaf." + lookAndFeelCB.getSelectedItem());
+		config.save();
 	}
 }

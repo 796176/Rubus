@@ -47,7 +47,7 @@ public class RubusConfiguration {
 	@Bean
 	@Value("${rubus.workingDir}/rubus.conf")
 	Config config(Path configPath) throws IOException {
-		return new Config(configPath);
+		return new Config(configPath).immutableConfig();
 	}
 
 	@Bean

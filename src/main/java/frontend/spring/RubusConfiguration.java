@@ -46,14 +46,14 @@ public class RubusConfiguration {
 
 	@Bean
 	@Scope("prototype")
-	RubusSocket socket(Config config) throws IOException, InterruptedException {
-		synchronized (config) {
-			String protocol = config.get("connection-protocol");
+	RubusSocket socket(Config config) throws Exception {
+		return config.action(c -> {
+			String protocol = c.get("connection-protocol");
 			RubusSocket socket;
 			switch (protocol) {
 				case "tcp" -> {
-					InetAddress address = InetAddress.getByName(config.get("bind-address"));
-					int port = Integer.parseInt(config.get("listening-port"));
+					InetAddress address = InetAddress.getByName(c.get("bind-address"));
+					int port = Integer.parseInt(c.get("listening-port"));
 					socket = new TCPRubusSocket(address, port);
 				}
 				default -> {
@@ -61,45 +61,40 @@ public class RubusConfiguration {
 				}
 			}
 			boolean secureConnectionHandshakeDisabled =
-				config.get("secure-connection-handshake-disabled") != null &&
-				Boolean.parseBoolean(config.get("secure-connection-handshake-disabled"));
+				c.get("secure-connection-handshake-disabled") != null &&
+				Boolean.parseBoolean(c.get("secure-connection-handshake-disabled"));
 			if (secureConnectionHandshakeDisabled) {
 				return socket;
 			} else {
-				boolean secureConnectionRequired = Boolean.parseBoolean(config.get("secure-connection-required"));
-				long handshakeTimeout = Long.parseLong(config.get("secure-connection-handshake-timeout"));
+				boolean secureConnectionRequired = Boolean.parseBoolean(c.get("secure-connection-required"));
+				long handshakeTimeout = Long.parseLong(c.get("secure-connection-handshake-timeout"));
 				try {
-					return new SecureSocket(socket, config, handshakeTimeout, true);
+					return new SecureSocket(socket, c, handshakeTimeout, true);
 				} catch (HandshakeFailedException e) {
 					if (!secureConnectionRequired) return socket;
 					else throw e;
 				}
 			}
-		}
+		});
 	}
 
 	@Bean
 	Object lookAndFeel(Config config) throws UnsupportedLookAndFeelException, ReflectiveOperationException {
-		synchronized (config) {
-			UIManager.setLookAndFeel(config.get("look-and-feel"));
-			return null;
-		}
+		UIManager.setLookAndFeel(config.get("look-and-feel"));
+		return null;
 	}
 
 	@Bean(initMethod = "display")
 	@DependsOn("lookAndFeel")
 	MainFrame mainFrame(Config config, BeanFactory beanFactory) {
-		synchronized (config) {
-			int x = Integer.parseInt(config.get("main-frame-x"));
-			int y = Integer.parseInt(config.get("main-frame-y"));
-			int width = Integer.parseInt(config.get("main-frame-width"));
-			int height = Integer.parseInt(config.get("main-frame-height"));
-			Supplier<RubusSocket> rubusSocketSupplier =
-				() -> beanFactory.getBeanProvider(RubusSocket.class).getObject();
-			MainFrame mainFrame = new MainFrame(config, rubusSocketSupplier);
-			mainFrame.setBounds(x, y, width, height);
-			return mainFrame;
-		}
+		int x = Integer.parseInt(config.get("main-frame-x"));
+		int y = Integer.parseInt(config.get("main-frame-y"));
+		int width = Integer.parseInt(config.get("main-frame-width"));
+		int height = Integer.parseInt(config.get("main-frame-height"));
+		Supplier<RubusSocket> rubusSocketSupplier = () -> beanFactory.getBeanProvider(RubusSocket.class).getObject();
+		MainFrame mainFrame = new MainFrame(config, rubusSocketSupplier);
+		mainFrame.setBounds(x, y, width, height);
+		return mainFrame;
 	}
 
 	public static void main(String[] args) {

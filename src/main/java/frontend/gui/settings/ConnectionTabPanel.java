@@ -129,19 +129,20 @@ public class ConnectionTabPanel extends TabPanel {
 
 	@Override
 	public void save() throws IOException {
-		synchronized (config) {
-			config.set("bind-address", sanitizeValue(hostNameTF.getText()));
-			config.set("listening-port", sanitizeValue(hostPortTF.getText()));
-			config.set("connection-protocol", (String) transportLayerCB.getSelectedItem());
+		config.action((c) -> {
+			c.set("bind-address", sanitizeValue(hostNameTF.getText()));
+			c.set("listening-port", sanitizeValue(hostPortTF.getText()));
+			c.set("connection-protocol", (String) transportLayerCB.getSelectedItem());
 			String secureConnectionCBValue = (String) secureConnectionCB.getSelectedItem();
 			if (secureConnectionCBValue.equals("Disabled")) {
-				config.set("secure-connection-enabled", "false");
+				c.set("secure-connection-enabled", "false");
 			} else {
-				config.set("secure-connection-enabled", "true");
-				if (secureConnectionCBValue.equals("Required")) config.set("secure-connection-required", "true");
-				else config.set("secure-connection-required", "false");
+				c.set("secure-connection-enabled", "true");
+				if (secureConnectionCBValue.equals("Required")) c.set("secure-connection-required", "true");
+				else c.set("secure-connection-required", "false");
 			}
-			config.save();
-		}
+			c.save();
+			return null;
+		});
 	}
 }
