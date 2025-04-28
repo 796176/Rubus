@@ -45,7 +45,7 @@ public class FetchControllerTests {
 		videoPlayer = new DummyPlayer();
 		dummySocket = new DummySocket(100_000);
 		dummySocket.blockReading = true;
-		controller = new FetchController(() -> dummySocket, "dummy_id");
+		controller = new FetchController(() -> dummySocket, "dummy_id", 15, 3);
 	}
 
 	@AfterEach

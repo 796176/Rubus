@@ -41,9 +41,9 @@ public class FetchController implements Observer, AutoCloseable {
 
 	private String id;
 
-	private int bufferSize = 15;
+	private int bufferSize;
 
-	private int minPiecesToFetch = 3;
+	private int minimumBatchSize;
 
 	private BackgroundFetch backgroundFetch = null;
 
@@ -56,9 +56,11 @@ public class FetchController implements Observer, AutoCloseable {
 	 * @param socketSupplier a socket supplier
 	 * @param mediaId a media id
 	 */
-	public FetchController(Supplier<RubusSocket> socketSupplier, String mediaId) {
+	public FetchController(Supplier<RubusSocket> socketSupplier, String mediaId, int bufferSize, int minimumBatchSize) {
 		assert socketSupplier != null && mediaId != null;
 
+		setBufferSize(bufferSize);
+		setMinimumBatchSize(minimumBatchSize);
 		setSocketSupplier(socketSupplier);
 		setMediaId(mediaId);
 		rubusClient = new RubusClient(socketSupplier);
@@ -83,7 +85,7 @@ public class FetchController implements Observer, AutoCloseable {
 				// or when the video is close to the end and it's missing less than minPiecesToFetch pieces.
 				boolean fetchingNeeded =
 					totalPlaybackPieces > 0 &&
-					(totalPlaybackPieces >= minPiecesToFetch || totalPlaybackPieces == missingToCompletePlayback);
+					(totalPlaybackPieces >= minimumBatchSize || totalPlaybackPieces == missingToCompletePlayback);
 
 				if (fetchingNeeded) {
 					boolean backgroundFetchRunning = backgroundFetch != null && backgroundFetch.isAlive();
@@ -157,6 +159,14 @@ public class FetchController implements Observer, AutoCloseable {
 		return bufferSize;
 	}
 
+	public void setMinimumBatchSize(int newMinimumBatchSize) {
+		minimumBatchSize = newMinimumBatchSize;
+	}
+
+	public int getMinimumBatchSize() {
+		return minimumBatchSize;
+	}
+
 	/**
 	 * Returns the current exception handler.<br<br>
 	 *
@@ -221,7 +231,7 @@ public class FetchController implements Observer, AutoCloseable {
 					.newBuilder()
 					.FETCH(id, getStartingPlaybackPiece(), getTotalPlaybackPieces())
 					.build();
-				RubusResponse response = rubusClient.send(request, Math.max(player.getBuffer().length, minPiecesToFetch) * 1000L);
+				RubusResponse response = rubusClient.send(request, Math.max(player.getBuffer().length, minimumBatchSize) * 1000L);
 				if (response.getResponseType() != RubusResponseType.OK) {
 					throw new RubusException("Response type: " + response.getResponseType());
 				}

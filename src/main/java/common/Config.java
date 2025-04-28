@@ -34,9 +34,27 @@ import java.util.TreeMap;
  * a line feeder. A field itself is a key and a value both of which are represented as strings and separated with
  * a space character. If a space character is the only and last character of the field it makes a value
  * an empty string "". If a space character is the first character of the field it makes a key an empty string "".<br>
- * No key must have any space characters; because the first space character is the key-value separator.
+ * No key must have any space characters; because the first space character is the key-value separator.<br>
+ * Thread safety is achieved by acquiring a lock on this object before calling any method.
  */
 public class Config {
+
+	/**
+	 * ConfigFunction is similar to Java's {@link java.util.function.Function}, but the argument type is bound to Config
+	 * and a checked exception can be thrown inside the body.
+	 * @param <T> the type of the result of the function
+	 * @param <E> the type of the exception the function may throw
+	 */
+	@FunctionalInterface
+	public interface ConfigFunction<T, E extends Exception> {
+		/**
+		 * Applies this function to the given Config.
+		 * @param c a Config instance
+		 * @return the lambda function result
+		 * @throws E if an exception is thrown inside the lambda function body
+		 */
+		T apply(Config c) throws E;
+	}
 
 	private final Path configPath;
 
@@ -70,6 +88,10 @@ public class Config {
 		}
 	}
 
+	private Config() {
+		configPath = null;
+	}
+
 	/**
 	 * Creates a new instance of this class, populates it with the kay-value pairs,
 	 * and saves it to the specified location. If the specified files or the parent directory don't exist, the method
@@ -100,7 +122,7 @@ public class Config {
 	 * @param key the key
 	 * @param value the value
 	 */
-	public void set(String key, String value) {
+	public synchronized void set(String key, String value) {
 		assert key != null && value != null;
 
 		params.put(key, value);
@@ -111,7 +133,7 @@ public class Config {
 	 * @param key the key
 	 * @return the value
 	 */
-	public String get(String key) {
+	public synchronized String get(String key) {
 		return params.get(key);
 	}
 
@@ -119,8 +141,31 @@ public class Config {
 	 * Removes the field.
 	 * @param key the key
 	 */
-	public void remove(String key) {
+	public synchronized void remove(String key) {
 		params.remove(key);
+	}
+
+	/**
+	 * Allows the caller to perform as many calls on this Config as necessary, blocking other threads from accessing or
+	 * modifying this Config. The method is designed to be flexible so a checked exception can be thrown inside
+	 * the lambda function body, which will be propagated to the caller; the lambda function can return any object,
+	 * which will be returned by this method.<br>
+	 * The main purpose of this method as opposed to simply calling Config methods directly is an intermediate state this
+	 * Config object may have while performing modifications and other threads shouldn't be able to access this state.
+	 * Let's assume, for example, that a Config consists of two fields: an ip address and a port; and the values are
+	 * already set and can be accessed by some thread to create sockets. Then, if a different thread wants to change
+	 * both ip address and the port, it doesn't want another thread to access a new ip address value but access the old
+	 * port value. And this can happen if the thread calls {@link #set(String, String)} two times even if these calls
+	 * are consecutive. And in order to avoid this the thread must modify both the ip address and port values inside
+	 * the lambda function body.
+	 * @param a an action this method performs supplying it with this Config
+	 * @return the object the lambda function returns
+	 * @param <T> the object type the lambda function returns
+	 * @param <E> the exception type that can be thrown inside the lambda body function
+	 * @throws E if the lambda function throws an exception
+	 */
+	public synchronized <T, E extends Exception> T action(ConfigFunction<T, E> a) throws E {
+		return a.apply(this);
 	}
 
 	/**
@@ -128,7 +173,7 @@ public class Config {
 	 * duplicate(configPath).
 	 * @throws IOException if some I/O error occurs
 	 */
-	public void save() throws IOException {
+	public synchronized void save() throws IOException {
 		duplicate(configPath);
 	}
 
@@ -137,13 +182,76 @@ public class Config {
 	 * @param dest the location of the file
 	 * @throws IOException if some I/O error occurs
 	 */
-	public void duplicate(Path dest) throws IOException {
+	public synchronized void duplicate(Path dest) throws IOException {
 		try (ByteChannel wbc = Files.newByteChannel(dest, StandardOpenOption.CREATE, StandardOpenOption.WRITE)) {
 			Map.Entry<String, String> entry = params.firstEntry();
 			while (entry != null) {
 				wbc.write(ByteBuffer.wrap((entry.getKey() + " " + entry.getValue() + "\n").getBytes()));
 				entry = params.higherEntry(entry.getKey());
 			}
+		}
+	}
+
+	/**
+	 * Returns an immutable instance of this Config. Because thread safety of Config is achieved through locking,
+	 * it results in performance loss even if the operations themselves are thread safe ( e.g. only {@link #get(String)}
+	 * invocations ). The Config instance returned by this method doesn't use locking on any of its methods, but it has
+	 * the following limitations: <br>
+	 * 1. Attempts to call any modification method like {@link #set(String, String)}, {@link #remove(String)}, etc. will
+	 * throw {@link UnsupportedOperationException}<br>
+	 * 2. Attempts to call {@link #save()} will be ignored<br>
+	 * 3. Attempts to call {@link #duplicate(Path)} will be ignored if and only if the passed parameter is equal to
+	 * configPath, otherwise it will throw {@link UnsupportedOperationException}<br>
+	 * @return an immutable Config
+	 */
+	public synchronized Config immutableConfig() {
+		return new ImmutableConfig(configPath, params);
+	}
+
+	private static class ImmutableConfig extends Config {
+
+		private final NavigableMap<String, String> params;
+
+		private final Path configPath;
+
+		private ImmutableConfig(Path configPath, NavigableMap<String, String> navigableMap) {
+			assert configPath != null && navigableMap != null;
+
+			this.configPath = configPath;
+			params = navigableMap;
+		}
+
+		@Override
+		public void set(String key, String value) {
+			throw new UnsupportedOperationException();
+		}
+
+		@Override
+		public String get(String key) {
+			return params.get(key);
+		}
+
+		@Override
+		public synchronized void remove(String key) {
+			throw new UnsupportedOperationException();
+		}
+
+		@Override
+		public <T, E extends Exception> T action(ConfigFunction<T, E> a) throws E {
+			return a.apply(this);
+		}
+
+		@Override
+		public void save() { }
+
+		@Override
+		public void duplicate(Path dest) {
+			if (!dest.equals(configPath)) throw new UnsupportedOperationException();
+		}
+
+		@Override
+		public Config immutableConfig() {
+			return this;
 		}
 	}
 }
