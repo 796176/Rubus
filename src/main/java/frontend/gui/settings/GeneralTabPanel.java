@@ -33,7 +33,7 @@ public class GeneralTabPanel extends TabPanel {
 
 	private final Config config;
 
-	public GeneralTabPanel(Config config) throws IOException {
+	public GeneralTabPanel(Config config) {
 		assert config != null;
 
 		this.config = config;
@@ -60,11 +60,10 @@ public class GeneralTabPanel extends TabPanel {
 		bagLayout.setConstraints(lookAndFeelLabel, constraints);
 		add(lookAndFeelLabel);
 		lookAndFeelCB = new JComboBox<>(new String[]{ "FlatDarkLaf", "FlatLightLaf" });
-		try {
-			lookAndFeelCB.setSelectedItem(Class.forName(config.get("look-and-feel")).getSimpleName());
-		} catch (ClassNotFoundException e) {
-			throw new IOException("The " + config.get("look-and-feel") + " class was not found");
-		}
+		String lookAndFeelClassName = config.get("look-and-feel");
+		lookAndFeelCB.setSelectedItem(
+			lookAndFeelClassName.substring(lookAndFeelClassName.lastIndexOf('.') + 1)
+		);
 		constraints.gridwidth = GridBagConstraints.REMAINDER;
 		bagLayout.setConstraints(lookAndFeelCB, constraints);
 		add(lookAndFeelCB);

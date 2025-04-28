@@ -48,66 +48,60 @@ public class SettingsDialog extends CenteredDialog {
 		super(parent, "Settings", true, (int) (parent.getWidth() / 1.2), (int) (parent.getHeight() / 1.2));
 		assert config != null && watchHistory != null;
 
-		try {
-			bagLayout = new GridBagLayout();
-			setLayout(bagLayout);
-			constraints = new GridBagConstraints();
-			constraints.weighty = 1;
-			constraints.gridheight = GridBagConstraints.REMAINDER;
-			constraints.fill = GridBagConstraints.BOTH;
+		bagLayout = new GridBagLayout();
+		setLayout(bagLayout);
+		constraints = new GridBagConstraints();
+		constraints.weighty = 1;
+		constraints.gridheight = GridBagConstraints.REMAINDER;
+		constraints.fill = GridBagConstraints.BOTH;
 
-			SettingsTabs settingsTabs = new SettingsTabs(config, watchHistory);
-			currentTab = settingsTabs.getAllTabs()[0];
-			currentTab.setBackground(Colors.getInstance().settingTabSelected());
+		SettingsTabs settingsTabs = new SettingsTabs(config, watchHistory);
+		currentTab = settingsTabs.getAllTabs()[0];
+		currentTab.setBackground(Colors.getInstance().settingTabSelected());
 
-			JScrollPane lScrollPane = new JScrollPane(settingsTabs);
-			constraints.weightx = 1;
-			bagLayout.setConstraints(lScrollPane, constraints);
-			add(lScrollPane);
+		JScrollPane lScrollPane = new JScrollPane(settingsTabs);
+		constraints.weightx = 1;
+		bagLayout.setConstraints(lScrollPane, constraints);
+		add(lScrollPane);
 
-			currentTabPanel = settingsTabs.getAssociatedTabPanel(currentTab);
-			rScrollPane = new JScrollPane(currentTabPanel);
-			constraints.weightx = 3;
-			bagLayout.setConstraints(rScrollPane, constraints);
-			add(rScrollPane);
+		currentTabPanel = settingsTabs.getAssociatedTabPanel(currentTab);
+		rScrollPane = new JScrollPane(currentTabPanel);
+		constraints.weightx = 3;
+		bagLayout.setConstraints(rScrollPane, constraints);
+		add(rScrollPane);
 
-			for (JPanel tab : settingsTabs.getAllTabs()) {
-				tab.addMouseListener(new MouseAdapter() {
-					@Override
-					public void mouseClicked(MouseEvent mouseEvent) {
-						JPanel tab = (JPanel) mouseEvent.getComponent();
-						if (tab != currentTab) {
-							currentTab.setBackground(Colors.getInstance().settingsTab());
-							currentTab = tab;
-							currentTab.setBackground(Colors.getInstance().settingTabSelected());
-							try {
-								currentTabPanel.save();
-							} catch (IOException e) {
-								showIOExceptionDialog(e);
-							}
-							currentTabPanel = settingsTabs.getAssociatedTabPanel(currentTab);
-							rScrollPane.setViewportView(currentTabPanel);
-						}
-					}
-				});
-			}
-
-			addWindowListener(new WindowAdapter() {
+		for (JPanel tab : settingsTabs.getAllTabs()) {
+			tab.addMouseListener(new MouseAdapter() {
 				@Override
-				public void windowClosing(WindowEvent windowEvent) {
-					try {
-						currentTabPanel.save();
-					} catch (IOException e) {
-						showIOExceptionDialog(e);
-						setVisible(false);
+				public void mouseClicked(MouseEvent mouseEvent) {
+					JPanel tab = (JPanel) mouseEvent.getComponent();
+					if (tab != currentTab) {
+						currentTab.setBackground(Colors.getInstance().settingsTab());
+						currentTab = tab;
+						currentTab.setBackground(Colors.getInstance().settingTabSelected());
+						try {
+							currentTabPanel.save();
+						} catch (IOException e) {
+							showIOExceptionDialog(e);
+						}
+						currentTabPanel = settingsTabs.getAssociatedTabPanel(currentTab);
+						rScrollPane.setViewportView(currentTabPanel);
 					}
 				}
 			});
-			setVisible(true);
-		} catch (IOException e) {
-			showIOExceptionDialog(e);
-			setVisible(false);
 		}
+
+		addWindowListener(new WindowAdapter() {
+			@Override
+			public void windowClosing(WindowEvent windowEvent) {
+				try {
+					currentTabPanel.save();
+				} catch (IOException e) {
+					showIOExceptionDialog(e);
+					setVisible(false);
+				}
+			}
+		});
 	}
 
 	private void showIOExceptionDialog(IOException e) {

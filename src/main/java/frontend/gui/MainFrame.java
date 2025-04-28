@@ -24,6 +24,7 @@ import common.RubusSocket;
 import common.net.response.body.MediaInfo;
 import frontend.*;
 import frontend.gui.mediasearch.MediaSearchDialog;
+import frontend.gui.settings.SettingsDialog;
 
 import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.AudioSystem;
@@ -87,7 +88,8 @@ public class MainFrame extends JFrame {
 		});
 
 		menuBar.settingsItem().addActionListener(actionEvent -> {
-			new frontend.gui.settings.SettingsDialog(this, config, watchHistory);
+			SettingsDialog settingsDialog = new SettingsDialog(this, config, watchHistory);
+			settingsDialog.setVisible(true);
 		});
 
 		menuBar.aboutItem().addActionListener(actionEvent -> {
