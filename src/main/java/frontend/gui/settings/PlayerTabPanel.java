@@ -88,4 +88,9 @@ public class PlayerTabPanel extends TabPanel {
 			return null;
 		});
 	}
+
+	@Override
+	public String getName() {
+		return "Player";
+	}
 }

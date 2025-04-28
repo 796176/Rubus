@@ -67,4 +67,9 @@ public class LocalTabPanel extends TabPanel {
 		bagLayout.setConstraints(rigidArea, constraints);
 		add(rigidArea);
 	}
+
+	@Override
+	public String getName() {
+		return "Local";
+	}
 }

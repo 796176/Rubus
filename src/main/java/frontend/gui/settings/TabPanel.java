@@ -43,4 +43,10 @@ public abstract class TabPanel extends JPanel {
 	protected String sanitizeValue(String value) {
 		return value.replace(" ", "").replace("\n", "");
 	}
+
+	/**
+	 * Returns the name of the settings tab panel
+	 * @return the name of the settings tab panel
+	 */
+	public abstract String getName();
 }

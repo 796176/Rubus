@@ -82,4 +82,9 @@ public class GeneralTabPanel extends TabPanel {
 		config.set("look-and-feel", "com.formdev.flatlaf." + lookAndFeelCB.getSelectedItem());
 		config.save();
 	}
+
+	@Override
+	public String getName() {
+		return "General";
+	}
 }

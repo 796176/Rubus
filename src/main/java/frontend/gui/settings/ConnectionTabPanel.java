@@ -155,4 +155,9 @@ public class ConnectionTabPanel extends TabPanel {
 			return null;
 		});
 	}
+
+	@Override
+	public String getName() {
+		return "Connection";
+	}
 }
