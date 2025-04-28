@@ -24,6 +24,7 @@ import common.RubusSocket;
 import common.TCPRubusSocket;
 import common.ssl.HandshakeFailedException;
 import common.ssl.SecureSocket;
+import frontend.WatchHistory;
 import frontend.gui.MainFrame;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -84,15 +85,21 @@ public class RubusConfiguration {
 		return null;
 	}
 
+	@Bean(destroyMethod = "close")
+	@Value("${rubus.workingDir}/watch_history")
+	WatchHistory watchHistory(Path watchHistoryPath) throws IOException {
+		return new WatchHistory(watchHistoryPath);
+	}
+
 	@Bean(initMethod = "display")
 	@DependsOn("lookAndFeel")
-	MainFrame mainFrame(Config config, BeanFactory beanFactory) {
+	MainFrame mainFrame(Config config, WatchHistory watchHistory, BeanFactory beanFactory) {
 		int x = Integer.parseInt(config.get("main-frame-x"));
 		int y = Integer.parseInt(config.get("main-frame-y"));
 		int width = Integer.parseInt(config.get("main-frame-width"));
 		int height = Integer.parseInt(config.get("main-frame-height"));
 		Supplier<RubusSocket> rubusSocketSupplier = () -> beanFactory.getBeanProvider(RubusSocket.class).getObject();
-		MainFrame mainFrame = new MainFrame(config, rubusSocketSupplier);
+		MainFrame mainFrame = new MainFrame(config, rubusSocketSupplier, watchHistory);
 		mainFrame.setBounds(x, y, width, height);
 		return mainFrame;
 	}

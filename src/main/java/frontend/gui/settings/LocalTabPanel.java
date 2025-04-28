@@ -19,11 +19,21 @@
 
 package frontend.gui.settings;
 
+import frontend.WatchHistory;
+
 import javax.swing.*;
 import java.awt.*;
+import java.io.IOException;
 
 public class LocalTabPanel extends TabPanel {
-	public LocalTabPanel() {
+
+	private final WatchHistory wh;
+
+	public LocalTabPanel(WatchHistory watchHistory) {
+		assert watchHistory != null;
+
+		wh = watchHistory;
+
 		GridBagLayout bagLayout = new GridBagLayout();
 		setLayout(bagLayout);
 		GridBagConstraints constraints = new GridBagConstraints();
@@ -35,6 +45,18 @@ public class LocalTabPanel extends TabPanel {
 		bagLayout.setConstraints(clearWHLabel, constraints);
 		add(clearWHLabel);
 		JButton clearWHButton = new JButton("Clear");
+		clearWHButton.addActionListener(actionEvent -> {
+			try {
+				wh.purge();
+			} catch (IOException e) {
+				JOptionPane.showMessageDialog(
+					this,
+					e.getMessage(),
+					"IOException",
+					JOptionPane.ERROR_MESSAGE
+				);
+			}
+		});
 		constraints.gridwidth = GridBagConstraints.REMAINDER;
 		bagLayout.setConstraints(clearWHButton, constraints);
 		add(clearWHButton);

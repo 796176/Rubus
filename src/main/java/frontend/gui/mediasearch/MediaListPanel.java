@@ -20,6 +20,7 @@
 package frontend.gui.mediasearch;
 
 import common.net.response.body.MediaList;
+import frontend.WatchHistory;
 import frontend.gui.MainFrame;
 import frontend.gui.colors.Colors;
 
@@ -29,8 +30,21 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
 public class MediaListPanel extends JPanel {
-	public MediaListPanel(MediaSearchDialog mediaSearchDialog, MainFrame mainFrame, MediaList list) {
-		assert mediaSearchDialog != null && mainFrame != null && list != null;
+
+	private final WatchHistory wh;
+
+	private final Font finePrint;
+
+	public MediaListPanel(
+		MediaSearchDialog mediaSearchDialog,
+		MainFrame mainFrame,
+		MediaList list,
+		WatchHistory watchHistory
+	) {
+		assert mediaSearchDialog != null && mainFrame != null && list != null && watchHistory != null;
+
+		wh = watchHistory;
+		finePrint = new Font(getFont().getName(), Font.ITALIC, (int) (getFont().getSize() / 1.3));
 
 		setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 
@@ -77,9 +91,29 @@ public class MediaListPanel extends JPanel {
 		constraints.weightx = 1;
 		constraints.weighty = 1;
 		constraints.insets = new Insets(10, 10, 10, 10);
+		constraints.gridwidth = GridBagConstraints.REMAINDER;
 		bagLayout.setConstraints(titleLabel, constraints);
 		mediaPanel.add(titleLabel);
 
+		int progress = wh.getProgress(id);
+		JLabel progressLabel = progress != -1 ?
+			new JLabel("Starts from " + watchProgressFormat(progress)) :
+			new JLabel("Not watched yet");
+		progressLabel.setFont(finePrint);
+		constraints.anchor = GridBagConstraints.SOUTHEAST;
+		bagLayout.setConstraints(progressLabel, constraints);
+		mediaPanel.add(progressLabel);
+
 		return mediaPanel;
+	}
+
+
+	private String watchProgressFormat(int progress) {
+		int hours = progress / 3600;
+		progress = progress % 3600;
+		int minutes = progress / 60;
+		int seconds = progress % 60;
+		if (hours == 0) return "%02d:%02d".formatted(minutes, seconds);
+		else return "%d:%02d:%02d".formatted(hours, minutes, seconds);
 	}
 }

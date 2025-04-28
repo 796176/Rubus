@@ -24,6 +24,7 @@ import common.net.response.body.MediaList;
 import frontend.RubusClient;
 import frontend.RubusRequest;
 import frontend.RubusResponse;
+import frontend.WatchHistory;
 import frontend.gui.CenteredDialog;
 import frontend.gui.MainFrame;
 
@@ -40,16 +41,19 @@ public class MediaSearchDialog extends CenteredDialog implements Runnable {
 
 	private final Supplier<RubusSocket> rubusSocketSupplier;
 
+	private final WatchHistory watchHistory;
+
 	private final JTextField searchTF;
 
 	private final JScrollPane scrollPane;
 
-	public MediaSearchDialog(MainFrame parent, Supplier<RubusSocket> rubusSocketSupplier) {
+	public MediaSearchDialog(MainFrame parent, Supplier<RubusSocket> rubusSocketSupplier, WatchHistory watchHistory) {
 		super(parent, "New video", true, parent.getWidth() / 2, parent.getHeight());
-		assert rubusSocketSupplier != null;
+		assert rubusSocketSupplier != null && watchHistory != null;
 
 		this.mainFrame = parent;
 		this.rubusSocketSupplier = rubusSocketSupplier;
+		this.watchHistory = watchHistory;
 
 		GridBagLayout bagLayout = new GridBagLayout();
 		setLayout(bagLayout);
@@ -100,7 +104,7 @@ public class MediaSearchDialog extends CenteredDialog implements Runnable {
 			MediaList mediaList = response.LIST();
 
 			SwingUtilities.invokeLater(() -> {
-				scrollPane.setViewportView(new MediaListPanel(this, mainFrame, mediaList));
+				scrollPane.setViewportView(new MediaListPanel(this, mainFrame, mediaList, watchHistory));
 			});
 		} catch (IOException | InterruptedException e) {
 			SwingUtilities.invokeLater(() -> {

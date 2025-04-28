@@ -20,6 +20,7 @@
 package frontend.gui.settings;
 
 import common.Config;
+import frontend.WatchHistory;
 import frontend.gui.colors.Colors;
 
 import javax.swing.*;
@@ -41,8 +42,8 @@ public class SettingsTabs extends JPanel {
 
 	private final HashMap<JPanel, TabPanel> associatedTabPanels = new HashMap<>();
 
-	public SettingsTabs(Config config) throws IOException {
-		assert config != null;
+	public SettingsTabs(Config config, WatchHistory watchHistory) throws IOException {
+		assert config != null && watchHistory != null;
 
 		setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 
@@ -52,7 +53,7 @@ public class SettingsTabs extends JPanel {
 		add(Box.createRigidArea(new Dimension(0, 10)));
 
 		connectionTab = createTab("Connection");
-		associatedTabPanels.put(connectionTab, new ConnectionTabPanel(config));
+		associatedTabPanels.put(connectionTab, new ConnectionTabPanel(config, watchHistory));
 		add(connectionTab);
 		add(Box.createRigidArea(new Dimension(0, 10)));
 
@@ -62,7 +63,7 @@ public class SettingsTabs extends JPanel {
 		add(Box.createRigidArea(new Dimension(0, 10)));
 
 		localTab = createTab("Local");
-		associatedTabPanels.put(localTab, new LocalTabPanel());
+		associatedTabPanels.put(localTab, new LocalTabPanel(watchHistory));
 		add(localTab);
 
 		addComponentListener(new ComponentAdapter() {

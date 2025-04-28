@@ -20,6 +20,7 @@
 package frontend.gui.settings;
 
 import common.Config;
+import frontend.WatchHistory;
 
 import javax.swing.*;
 import java.awt.*;
@@ -28,6 +29,8 @@ import java.io.IOException;
 public class ConnectionTabPanel extends TabPanel {
 
 	private final Config config;
+
+	private final WatchHistory wh;
 
 	private final Font categoryFont;
 
@@ -41,10 +44,11 @@ public class ConnectionTabPanel extends TabPanel {
 
 	private final JComboBox<String> secureConnectionCB;
 
-	public ConnectionTabPanel(Config config) {
-		assert config != null;
+	public ConnectionTabPanel(Config config, WatchHistory watchHistory) {
+		assert config != null && watchHistory != null;
 
 		this.config = config;
+		wh = watchHistory;
 		categoryFont = new Font(getFont().getName(), Font.BOLD, (int) Math.ceil((double) getFont().getSize() * 1.3));
 		finePrint = new Font(getFont().getName(), Font.ITALIC, (int) Math.floor((double) getFont().getSize() / 1.3));
 
@@ -129,9 +133,15 @@ public class ConnectionTabPanel extends TabPanel {
 
 	@Override
 	public void save() throws IOException {
+		String hostName = sanitizeValue(hostNameTF.getText());
+		String hostPort = sanitizeValue(hostPortTF.getText());
 		config.action((c) -> {
-			c.set("bind-address", sanitizeValue(hostNameTF.getText()));
-			c.set("listening-port", sanitizeValue(hostPortTF.getText()));
+			String oldBindAddress = c.get("bind-address");
+			String oldListeningPort = c.get("listening-port");
+			if (!(oldBindAddress.equals(hostName) && oldListeningPort.equals(hostPort))) wh.purge();
+			c.set("bind-address", hostName);
+			c.set("listening-port", hostPort);
+
 			c.set("connection-protocol", (String) transportLayerCB.getSelectedItem());
 			String secureConnectionCBValue = (String) secureConnectionCB.getSelectedItem();
 			if (secureConnectionCBValue.equals("Disabled")) {

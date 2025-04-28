@@ -20,6 +20,7 @@
 package frontend.gui.settings;
 
 import common.Config;
+import frontend.WatchHistory;
 import frontend.gui.CenteredDialog;
 import frontend.gui.colors.Colors;
 
@@ -43,9 +44,9 @@ public class SettingsDialog extends CenteredDialog {
 
 	private JScrollPane rScrollPane;
 
-	public SettingsDialog(Frame parent, Config config) {
+	public SettingsDialog(Frame parent, Config config, WatchHistory watchHistory) {
 		super(parent, "Settings", true, (int) (parent.getWidth() / 1.2), (int) (parent.getHeight() / 1.2));
-		assert config != null;
+		assert config != null && watchHistory != null;
 
 		try {
 			bagLayout = new GridBagLayout();
@@ -55,7 +56,7 @@ public class SettingsDialog extends CenteredDialog {
 			constraints.gridheight = GridBagConstraints.REMAINDER;
 			constraints.fill = GridBagConstraints.BOTH;
 
-			SettingsTabs settingsTabs = new SettingsTabs(config);
+			SettingsTabs settingsTabs = new SettingsTabs(config, watchHistory);
 			currentTab = settingsTabs.getAllTabs()[0];
 			currentTab.setBackground(Colors.getInstance().settingTabSelected());
 

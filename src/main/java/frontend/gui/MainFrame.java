@@ -43,14 +43,17 @@ public class MainFrame extends JFrame {
 	private final GridBagConstraints constraints = new GridBagConstraints();
 	private final Supplier<RubusSocket> rubusSocketSupplier;
 	private final Config config;
+	private final WatchHistory watchHistory;
 
 	private PlayerInterface player = null;
 	private FetchController fetchController = null;
 	private AudioPlayerInterface audioPlayer = null;
 	private AudioPlayerController audioController = null;
-	public MainFrame(Config config, Supplier<RubusSocket> rubusSocketSupplier) {
-		assert config != null && rubusSocketSupplier != null;
+	private WatchHistoryRecorder watchHistoryRecorder = null;
+	public MainFrame(Config config, Supplier<RubusSocket> rubusSocketSupplier, WatchHistory watchHistory) {
+		assert config != null && rubusSocketSupplier != null && watchHistory != null;
 
+		this.watchHistory = watchHistory;
 		this.config = config;
 		this.rubusSocketSupplier = rubusSocketSupplier;
 		setLayout(bagLayout);
@@ -80,11 +83,11 @@ public class MainFrame extends JFrame {
 			}
 		});
 		menuBar.openVideoItem().addActionListener(actionEvent -> {
-			new MediaSearchDialog(this, rubusSocketSupplier);
+			new MediaSearchDialog(this, rubusSocketSupplier, watchHistory);
 		});
 
 		menuBar.settingsItem().addActionListener(actionEvent -> {
-			new frontend.gui.settings.SettingsDialog(this, config);
+			new frontend.gui.settings.SettingsDialog(this, config, watchHistory);
 		});
 
 		menuBar.aboutItem().addActionListener(actionEvent -> {
@@ -143,9 +146,13 @@ public class MainFrame extends JFrame {
 			});
 			audioPlayer = new AudioPlayer(audioFormat);
 			audioController = new AudioPlayerController(audioPlayer);
-			player = new Player(0, mediaInfo);
+			int progress = watchHistory.getProgress(id);
+			if (progress == -1) progress = 0;
+			player = new Player(progress, mediaInfo);
+			watchHistoryRecorder = new WatchHistoryRecorder(watchHistory, id);
 			player.attach(fetchController);
 			player.attach(audioController);
+			player.attach(watchHistoryRecorder);
 			player.sendNotification();
 
 			bagLayout.setConstraints((Player) player, constraints);
