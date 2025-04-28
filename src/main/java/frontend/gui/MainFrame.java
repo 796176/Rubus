@@ -120,7 +120,7 @@ public class MainFrame extends JFrame {
 		thread.start();
 	}
 
-	public void play(String id) {
+	public void play(String id, int progress) {
 		try (RubusClient rubusClient = new RubusClient(rubusSocketSupplier)) {
 			if (player != null) {
 				player.detach(fetchController);
@@ -146,8 +146,6 @@ public class MainFrame extends JFrame {
 			});
 			audioPlayer = new AudioPlayer(audioFormat);
 			audioController = new AudioPlayerController(audioPlayer);
-			int progress = watchHistory.getProgress(id);
-			if (progress == -1) progress = 0;
 			player = new Player(progress, mediaInfo);
 			watchHistoryRecorder = new WatchHistoryRecorder(watchHistory, id);
 			player.attach(fetchController);

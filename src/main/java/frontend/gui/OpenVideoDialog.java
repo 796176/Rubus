@@ -50,7 +50,7 @@ public class OpenVideoDialog extends JDialog {
 
 	public void handleLabelClick(MouseEvent e) {
 		JLabel label = (JLabel) e.getSource();
-		mainFrame.play((String) label.getClientProperty("id"));
+		mainFrame.play((String) label.getClientProperty("id"), 0);
 		setVisible(false);
 	}
 }

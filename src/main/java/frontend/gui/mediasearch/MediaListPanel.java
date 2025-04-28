@@ -65,7 +65,10 @@ public class MediaListPanel extends JPanel {
 				public void mouseClicked(MouseEvent e) {
 					mediaSearchDialog.setVisible(false);
 					JPanel mediaPanel = (JPanel) e.getComponent();
-					mainFrame.play((String) mediaPanel.getClientProperty("id"));
+					mainFrame.play(
+						(String) mediaPanel.getClientProperty("id"),
+						(Integer) mediaPanel.getClientProperty("progress")
+					);
 				}
 			});
 			add(mediaPanel);
@@ -99,6 +102,7 @@ public class MediaListPanel extends JPanel {
 		JLabel progressLabel = progress != -1 ?
 			new JLabel("Starts from " + watchProgressFormat(progress)) :
 			new JLabel("Not watched yet");
+		mediaPanel.putClientProperty("progress", progress != -1 ? progress : 0);
 		progressLabel.setFont(finePrint);
 		constraints.anchor = GridBagConstraints.SOUTHEAST;
 		bagLayout.setConstraints(progressLabel, constraints);
