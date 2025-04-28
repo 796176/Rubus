@@ -32,7 +32,6 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
-import java.io.IOException;
 import java.util.function.Supplier;
 
 public class MediaSearchDialog extends CenteredDialog implements Runnable {
@@ -106,7 +105,7 @@ public class MediaSearchDialog extends CenteredDialog implements Runnable {
 			SwingUtilities.invokeLater(() -> {
 				scrollPane.setViewportView(new MediaListPanel(this, mainFrame, mediaList, watchHistory));
 			});
-		} catch (IOException | InterruptedException e) {
+		} catch (Exception e) {
 			SwingUtilities.invokeLater(() -> {
 				JOptionPane.showMessageDialog(
 					this,
