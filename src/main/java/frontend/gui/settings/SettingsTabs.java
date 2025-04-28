@@ -19,52 +19,35 @@
 
 package frontend.gui.settings;
 
-import common.Config;
-import frontend.WatchHistory;
 import frontend.gui.colors.Colors;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
-import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 
 public class SettingsTabs extends JPanel {
 
-	private final JPanel generalTab;
-
-	private final JPanel connectionTab;
-
-	private final JPanel playerTab;
-
-	private final JPanel localTab;
+	private final JPanel[] tabs;
 
 	private final HashMap<JPanel, TabPanel> associatedTabPanels = new HashMap<>();
 
-	public SettingsTabs(Config config, WatchHistory watchHistory) throws IOException {
-		assert config != null && watchHistory != null;
+	public SettingsTabs(TabPanel[] tabPanels) {
+		assert tabPanels != null;
 
 		setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 
-		generalTab = createTab("General");
-		associatedTabPanels.put(generalTab, new GeneralTabPanel(config));
-		add(generalTab);
-		add(Box.createRigidArea(new Dimension(0, 10)));
-
-		connectionTab = createTab("Connection");
-		associatedTabPanels.put(connectionTab, new ConnectionTabPanel(config, watchHistory));
-		add(connectionTab);
-		add(Box.createRigidArea(new Dimension(0, 10)));
-
-		playerTab = createTab("Player");
-		associatedTabPanels.put(playerTab, new PlayerTabPanel(config));
-		add(playerTab);
-		add(Box.createRigidArea(new Dimension(0, 10)));
-
-		localTab = createTab("Local");
-		associatedTabPanels.put(localTab, new LocalTabPanel(watchHistory));
-		add(localTab);
+		ArrayList<JPanel> settingsTabs = new ArrayList<>();
+		for (TabPanel tabPanel: tabPanels) {
+			JPanel tab = createTab(tabPanel.getName());
+			associatedTabPanels.put(tab, tabPanel);
+			add(tab);
+			add(Box.createRigidArea(new Dimension(0, 10)));
+			settingsTabs.add(tab);
+		}
+		tabs = settingsTabs.toArray(new JPanel[0]);
 
 		addComponentListener(new ComponentAdapter() {
 			@Override
@@ -87,7 +70,7 @@ public class SettingsTabs extends JPanel {
 	}
 
 	public JPanel[] getAllTabs() {
-		return new JPanel[] {generalTab, connectionTab, playerTab, localTab};
+		return tabs;
 	}
 
 	public TabPanel getAssociatedTabPanel(JPanel tab) {

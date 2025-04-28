@@ -26,6 +26,7 @@ import common.ssl.HandshakeFailedException;
 import common.ssl.SecureSocket;
 import frontend.WatchHistory;
 import frontend.gui.MainFrame;
+import frontend.gui.settings.*;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.*;
@@ -37,6 +38,7 @@ import java.nio.file.Path;
 import java.util.function.Supplier;
 
 @Configuration
+@Import(SettingsTabsConfiguration.class)
 public class RubusConfiguration {
 
 	@Bean
@@ -99,7 +101,8 @@ public class RubusConfiguration {
 		int width = Integer.parseInt(config.get("main-frame-width"));
 		int height = Integer.parseInt(config.get("main-frame-height"));
 		Supplier<RubusSocket> rubusSocketSupplier = () -> beanFactory.getBeanProvider(RubusSocket.class).getObject();
-		MainFrame mainFrame = new MainFrame(config, rubusSocketSupplier, watchHistory);
+		Supplier<SettingsTabs> settingsTabsSupplier = () -> beanFactory.getBeanProvider(SettingsTabs.class).getObject();
+		MainFrame mainFrame = new MainFrame(config, rubusSocketSupplier, watchHistory, settingsTabsSupplier);
 		mainFrame.setBounds(x, y, width, height);
 		return mainFrame;
 	}

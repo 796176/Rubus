@@ -25,6 +25,7 @@ import common.net.response.body.MediaInfo;
 import frontend.*;
 import frontend.gui.mediasearch.MediaSearchDialog;
 import frontend.gui.settings.SettingsDialog;
+import frontend.gui.settings.SettingsTabs;
 
 import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.AudioSystem;
@@ -51,7 +52,12 @@ public class MainFrame extends JFrame {
 	private AudioPlayerInterface audioPlayer = null;
 	private AudioPlayerController audioController = null;
 	private WatchHistoryRecorder watchHistoryRecorder = null;
-	public MainFrame(Config config, Supplier<RubusSocket> rubusSocketSupplier, WatchHistory watchHistory) {
+	public MainFrame(
+		Config config,
+		Supplier<RubusSocket> rubusSocketSupplier,
+		WatchHistory watchHistory,
+		Supplier<SettingsTabs> settingsTabsSupplier
+	) {
 		assert config != null && rubusSocketSupplier != null && watchHistory != null;
 
 		this.watchHistory = watchHistory;
@@ -88,7 +94,7 @@ public class MainFrame extends JFrame {
 		});
 
 		menuBar.settingsItem().addActionListener(actionEvent -> {
-			SettingsDialog settingsDialog = new SettingsDialog(this, config, watchHistory);
+			SettingsDialog settingsDialog = new SettingsDialog(this, settingsTabsSupplier.get());
 			settingsDialog.setVisible(true);
 		});
 
