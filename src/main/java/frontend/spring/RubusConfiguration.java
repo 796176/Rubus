@@ -25,6 +25,7 @@ import common.TCPRubusSocket;
 import common.ssl.HandshakeFailedException;
 import common.ssl.SecureSocket;
 import frontend.WatchHistory;
+import frontend.decoders.FfmpegJniVideoDecoder;
 import frontend.decoders.VideoDecoder;
 import frontend.gui.MainFrame;
 import frontend.gui.settings.*;
@@ -96,7 +97,8 @@ public class RubusConfiguration {
 
 	@Bean(destroyMethod = "close")
 	VideoDecoder videoDecoder() {
-		return null;
+		System.loadLibrary("rubus");
+		return new FfmpegJniVideoDecoder();
 	}
 
 	@Bean(initMethod = "display")
