@@ -25,6 +25,7 @@ import common.net.RubusException;
 import common.net.response.body.MediaInfo;
 import frontend.*;
 import frontend.decoders.BMPDecoder;
+import frontend.decoders.VideoDecoder;
 
 import javax.swing.*;
 import java.awt.*;
@@ -160,7 +161,7 @@ public class Player extends JPanel implements PlayerInterface, ExceptionHandler 
 	}
 
 	@Override
-	public Decoder getDecoder() {
+	public VideoDecoder getDecoder() {
 		return null;
 	}
 

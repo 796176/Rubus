@@ -19,6 +19,8 @@
 
 package frontend;
 
+import frontend.decoders.VideoDecoder;
+
 /**
  * PlayerInterface allows the client to control a video player and track its current status. A video player contains
  * a buffer, which is an array of {@link EncodedPlaybackPiece} objects. Each piece must contain one second worth of video.
@@ -32,7 +34,7 @@ package frontend;
  * pre-decoding. So modifying the data of the buffer may cause no effect on the actual playing content. If it's necessary
  * to flush the current buffer and the currently playing video piece setProgress(getProgress()) may be used.
  */
-public interface PlayerInterface extends Subject {
+public interface PlayerInterface extends Subject, AutoCloseable {
 
 	/**
 	 * Pauses the video player.
@@ -102,7 +104,7 @@ public interface PlayerInterface extends Subject {
 	 * Returns the current decoder.
 	 * @return the current decoder
 	 */
-	Decoder getDecoder();
+	VideoDecoder getDecoder();
 
 	/**
 	 * Returns the currently playing {@link EncodedPlaybackPiece}.

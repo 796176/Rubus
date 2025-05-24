@@ -20,6 +20,7 @@
 package auxiliary;
 
 import frontend.*;
+import frontend.decoders.VideoDecoder;
 
 import java.util.ArrayList;
 
@@ -40,7 +41,7 @@ public class DummyPlayer implements PlayerInterface, Subject {
 
 	public int videoHeight = 1600;
 
-	public Decoder decoder = null;
+	public VideoDecoder decoder = null;
 
 	public ArrayList<Observer> observers = new ArrayList<>();
 
@@ -102,7 +103,7 @@ public class DummyPlayer implements PlayerInterface, Subject {
 	}
 
 	@Override
-	public Decoder getDecoder() {
+	public VideoDecoder getDecoder() {
 		return decoder;
 	}
 
@@ -134,4 +135,7 @@ public class DummyPlayer implements PlayerInterface, Subject {
 			o.update(this);
 		}
 	}
+
+	@Override
+	public void close() { }
 }

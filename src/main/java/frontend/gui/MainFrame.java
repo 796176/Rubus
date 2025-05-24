@@ -131,6 +131,7 @@ public class MainFrame extends JFrame {
 	public void play(String id, int progress) {
 		try (RubusClient rubusClient = new RubusClient(rubusSocketSupplier)) {
 			if (player != null) {
+				player.close();
 				player.detach(fetchController);
 				fetchController.close();
 				player.detach(audioController);
