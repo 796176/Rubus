@@ -35,19 +35,19 @@ public class AudioPlayer implements Runnable, AudioPlayerInterface {
 
 	private boolean isTerminated = false;
 
-	private boolean isPaused = false;
+	private volatile boolean isPaused = false;
 
 	private ExceptionHandler handler;
 
 	private final AudioFormat audioFormat;
 
-	private final int updateTimeMs = 50;
+	private final int updateTimeMs = 20;
 
 	private final int framesPerUpdate;
 
 	private final ConcurrentLinkedQueue<byte[]> audioQueue = new ConcurrentLinkedQueue<>();
 
-	private boolean purge = false;
+	private volatile boolean purge = false;
 
 	/**
 	 * Constructs an instance of this class and starts a new thread.
@@ -62,7 +62,7 @@ public class AudioPlayer implements Runnable, AudioPlayerInterface {
 		framesPerUpdate = (int) Math.ceil(audioFormat.getFrameRate() / 1000 * updateTimeMs);
 		try {
 			audioOutput = (SourceDataLine) AudioSystem.getLine(new DataLine.Info(SourceDataLine.class, audioFormat));
-			audioOutput.open(audioFormat, (int) audioFormat.getFrameRate());
+			audioOutput.open(audioFormat, framesPerUpdate * audioFormat.getFrameSize());
 			audioOutput.start();
 
 			Thread thread = new Thread(this);
@@ -104,10 +104,9 @@ public class AudioPlayer implements Runnable, AudioPlayerInterface {
 						Math.min(framesPerUpdate * audioFormat.getFrameSize(), audio.length - i)
 					);
 					i += framesPerUpdate * audioFormat.getFrameSize();
-					Thread.sleep(updateTimeMs);
 				}
 				audioQueue.remove();
-			} catch (NoSuchElementException | InterruptedException ignored) {}
+			} catch (NoSuchElementException ignored) {}
 			catch (Exception e) {
 				if (handler != null) handler.handleException(new AudioException(e.getMessage()));
 			}
