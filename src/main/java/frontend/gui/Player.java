@@ -22,9 +22,8 @@ package frontend.gui;
 import common.DecodingException;
 import common.net.FetchingException;
 import common.net.RubusException;
-import common.net.response.body.MediaInfo;
 import frontend.*;
-import frontend.decoders.BMPDecoder;
+import frontend.decoders.Decoder;
 import frontend.decoders.VideoDecoder;
 
 import javax.swing.*;
@@ -48,17 +47,11 @@ public class Player extends JPanel implements PlayerInterface, ExceptionHandler 
 
 	private long deviation = 0;
 
-	private final int controlsHeight;
+	private int controlsHeight = 0;
 
 	private Rectangle pauseButtonBorders = new Rectangle();
 
 	private Rectangle rewindBarBorders = new Rectangle();
-
-	private final MediaInfo mi;
-
-	private BMPDecoder currentSecondDecoder = null;
-
-	private BMPDecoder nextSecondDecoder = null;
 
 	private int frameCounter = 0;
 
@@ -68,10 +61,29 @@ public class Player extends JPanel implements PlayerInterface, ExceptionHandler 
 
 	private boolean isBuffering = true;
 
-	public Player(int initialProgress, MediaInfo mediaInfo) {
-		assert initialProgress >= 0 && mediaInfo != null;
+	private int duration;
 
-		mi = mediaInfo;
+	private VideoDecoder vd;
+
+	private Decoder.StreamContext sc;
+
+	private enum ScStatus {
+		NOT_INITIATED, INITIATING, INITIATED
+	}
+
+	private ScStatus streamContextStatus = ScStatus.NOT_INITIATED;
+
+	private enum PreDecodingStatus {
+		NOT_PRE_DECODED, DECODING, PRE_DECODED
+	}
+
+	private PreDecodingStatus preDecodingStatus = PreDecodingStatus.NOT_PRE_DECODED;
+
+	public Player(int initialProgress, VideoDecoder videoDecoder, int duration) {
+		assert initialProgress >= 0 && videoDecoder != null && duration > 0;
+
+		vd = videoDecoder;
+		this.duration = duration;
 		setProgress(initialProgress);
 		setBackground(Color.BLACK);
 		addMouseListener(new MouseAdapter() {
@@ -80,16 +92,16 @@ public class Player extends JPanel implements PlayerInterface, ExceptionHandler 
 				controlsClickHandler(mouseEvent);
 			}
 		});
+	}
 
-		int controlHeightPercent = 7;
-		int controlHeightMax = 50;
-		controlsHeight = (int) Math.min(getVideoHeight() / 100D * controlHeightPercent, controlHeightMax);
-
-		Dimension dimension = new Dimension(getVideoWidth(), getVideoHeight() + controlsHeight);
-		setSize(dimension);
-		setPreferredSize(dimension);
-		setMinimumSize(dimension);
-		setMaximumSize(dimension);
+	@Override
+	public void close() throws Exception {
+		switch (preDecodingStatus) {
+			case DECODING -> {
+				if (vd.getStreamContextNow() != null) vd.getStreamContextNow().close();
+			}
+			case PRE_DECODED -> sc.close();
+		}
 	}
 
 	@Override
@@ -122,17 +134,17 @@ public class Player extends JPanel implements PlayerInterface, ExceptionHandler 
 
 	@Override
 	public int getVideoDuration() {
-		return mi.duration();
+		return duration;
 	}
 
 	@Override
 	public int getVideoWidth() {
-		return mi.videoWidth();
+		return 0;
 	}
 
 	@Override
 	public int getVideoHeight() {
-		return mi.videoHeight();
+		return 0;
 	}
 
 	@Override
@@ -195,6 +207,10 @@ public class Player extends JPanel implements PlayerInterface, ExceptionHandler 
 	}
 
 	private void drawControls(Graphics g) {
+		int controlHeightPercent = 7;
+		int controlHeightMax = 50;
+		controlsHeight = (int) Math.min(getHeight() / 100D * controlHeightPercent, controlHeightMax);
+
 		int elementOffset = (int) (controlsHeight / 100.0D * 15);
 		g.setColor(Color.DARK_GRAY);
 		g.fillRect(0, getHeight() - controlsHeight, getWidth(), controlsHeight);
@@ -263,7 +279,8 @@ public class Player extends JPanel implements PlayerInterface, ExceptionHandler 
 			}
 			sendNotification();
 		} else if (rewindBarBorders.contains(me.getPoint())) {
-			currentSecondDecoder = nextSecondDecoder = null;
+			vd.purge();
+			preDecodingStatus = PreDecodingStatus.NOT_PRE_DECODED;
 			occurredException = null;
 			deviation = 0;
 			lastFrameTime = 0;
@@ -289,65 +306,96 @@ public class Player extends JPanel implements PlayerInterface, ExceptionHandler 
 	private void drawFrame(Graphics g) {
 		try {
 			if (occurredException != null) throw occurredException;
-			if (getBuffer().length == 0 && currentSecondDecoder == null) {
+			if (getBuffer().length == 0 && preDecodingStatus == PreDecodingStatus.NOT_PRE_DECODED) {
 				deviation = 0;
 				lastFrameTime = 0;
 				return;
 			}
 
-			if (currentSecondDecoder == null) {
+			if (streamContextStatus == ScStatus.NOT_INITIATED) {
+				vd.startStreamContextInitialization(getBuffer()[0].video());
+				streamContextStatus = ScStatus.INITIATING;
+				return;
+			} else if (
+				streamContextStatus == ScStatus.INITIATING &&
+				vd.getStreamContext() == null &&
+				vd.getStreamContextInitializationException() == null
+			) {
+				return;
+			} else if (
+				streamContextStatus == ScStatus.INITIATING &&
+				(vd.getStreamContext() != null || vd.getStreamContextInitializationException() != null)
+			) {
+				if (vd.getStreamContextInitializationException() != null) {
+					throw vd.getStreamContextInitializationException();
+				}
+				sc = vd.getStreamContext();
+				streamContextStatus = ScStatus.INITIATED;
+			}
+
+			if (preDecodingStatus == PreDecodingStatus.NOT_PRE_DECODED) {
+				vd.startDecodingOfAllFrames(getProgress(), sc, getBuffer()[0].video());
+				if (getBuffer().length > 1) {
+					vd.startDecodingOfAllFrames(getProgress() + 1, sc, getBuffer()[1].video());
+				}
 				playingPiece = getBuffer()[0];
-				currentSecondDecoder = new BMPDecoder(mi.videoContainer(), false, playingPiece.video(), this);
-				if (getBuffer().length > 1)
-					nextSecondDecoder = new BMPDecoder(mi.videoContainer(), true, getBuffer()[1].video(), this);
 				setBuffer(Arrays.copyOfRange(getBuffer(), 1, getBuffer().length));
-				isBuffering = true;
+				preDecodingStatus = PreDecodingStatus.DECODING;
 				sendNotification();
 				return;
-			} else if (!currentSecondDecoder.isDone()) {
+			} else if (preDecodingStatus == PreDecodingStatus.DECODING && !vd.isDecodingComplete(getProgress())) {
 				return;
-			} else if (isBuffering && currentSecondDecoder.isDone()) {
+			} else if (preDecodingStatus == PreDecodingStatus.DECODING && vd.isDecodingComplete(getProgress())) {
+				preDecodingStatus = PreDecodingStatus.PRE_DECODED;
 				isBuffering = false;
 				sendNotification();
 			}
 
-			Image frame = currentSecondDecoder.getFrame(frameCounter);
-			g.drawImage(frame, 0, 0, null);
+			if (vd.getDecodingException(getProgress()) != null) throw vd.getDecodingException(getProgress());
+			Image frame = vd.getDecodedFrames(getProgress()).frames()[frameCounter];
 
-			if (!isPaused() && System.nanoTime() - lastFrameTime >= currentSecondDecoder.framePaceNs() + deviation) {
+			Graphics2D g2 = (Graphics2D) g;
+			g2.setRenderingHints(
+				new RenderingHints(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR)
+			);
+
+			int availableH = getHeight() - controlsHeight;
+			int availableW = getWidth();
+			double widthDif = ((double)availableW / frame.getWidth(null));
+			double heightDif =((double)availableH / frame.getHeight(null));
+			double scale = Math.min(widthDif, heightDif);
+			int renderingWidth = (int)(frame.getWidth(null) * scale);
+			int renderingHeight = (int)(frame.getHeight(null) * scale);
+			int xPoint = (availableW - renderingWidth) / 2;
+			int yPoint = (availableH - renderingHeight) / 2;
+			g.drawImage(frame, xPoint, yPoint, renderingWidth, renderingHeight, null);
+
+			if (!isPaused() && System.nanoTime() - lastFrameTime >= vd.framePaceNs(sc) + deviation) {
 				if (lastFrameTime != 0)
-					deviation += currentSecondDecoder.framePaceNs() - (System.nanoTime() - lastFrameTime);
+					deviation += vd.framePaceNs(sc) - (System.nanoTime() - lastFrameTime);
 				lastFrameTime = System.nanoTime();
 				frameCounter++;
-				if (frameCounter == currentSecondDecoder.getTotalFrames()) {
+				if (frameCounter == vd.getFrameRate(sc)) {
+					vd.freeDecodedFrames(getProgress());
 					setProgress(getProgress() + 1);
-					currentSecondDecoder = nextSecondDecoder;
-
 					if (getBuffer().length > 1) {
-						nextSecondDecoder =
-							new BMPDecoder(
-								mi.videoContainer(),
-								!currentSecondDecoder.isReversed(),
-								getBuffer()[1].video(),
-								this
-							);
 						playingPiece = getBuffer()[0];
+						vd.startDecodingOfAllFrames(getProgress() + 1, sc, getBuffer()[1].video());
 						setBuffer(Arrays.copyOfRange(getBuffer(), 1, getBuffer().length));
 					} else if (getBuffer().length > 0) {
-						nextSecondDecoder = null;
 						playingPiece = getBuffer()[0];
 						setBuffer(Arrays.copyOfRange(getBuffer(), 1, getBuffer().length));
 					} else {
 						playingPiece = null;
 						isBuffering = true;
+						preDecodingStatus = PreDecodingStatus.NOT_PRE_DECODED;
 					}
-
 					sendNotification();
 				}
 			}
 		} catch (Exception e) {
 			g.setColor(Color.BLACK);
-			g.fillRect(0, 0, getVideoWidth(), getVideoHeight());
+			g.fillRect(0, 0, getWidth(), getHeight() - controlsHeight);
 			g.setColor(Color.WHITE);
 			g.setFont(new Font(Font.MONOSPACED, Font.BOLD, 25));
 			g.drawString(e.getClass().getName(), 0, g.getFontMetrics().getMaxAscent());

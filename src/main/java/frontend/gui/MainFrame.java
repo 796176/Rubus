@@ -23,6 +23,7 @@ import common.Config;
 import common.RubusSocket;
 import common.net.response.body.MediaInfo;
 import frontend.*;
+import frontend.decoders.VideoDecoder;
 import frontend.gui.mediasearch.MediaSearchDialog;
 import frontend.gui.settings.SettingsDialog;
 import frontend.gui.settings.SettingsTabs;
@@ -46,27 +47,32 @@ public class MainFrame extends JFrame {
 	private final Supplier<RubusSocket> rubusSocketSupplier;
 	private final Config config;
 	private final WatchHistory watchHistory;
+	private final VideoDecoder vd;
 
 	private PlayerInterface player = null;
 	private FetchController fetchController = null;
 	private AudioPlayerInterface audioPlayer = null;
 	private AudioPlayerController audioController = null;
 	private WatchHistoryRecorder watchHistoryRecorder = null;
+
 	public MainFrame(
 		Config config,
 		Supplier<RubusSocket> rubusSocketSupplier,
 		WatchHistory watchHistory,
-		Supplier<SettingsTabs> settingsTabsSupplier
+		Supplier<SettingsTabs> settingsTabsSupplier,
+		VideoDecoder videoDecoder
 	) {
-		assert config != null && rubusSocketSupplier != null && watchHistory != null;
+		assert config != null && rubusSocketSupplier != null && watchHistory != null && videoDecoder != null;
 
 		this.watchHistory = watchHistory;
 		this.config = config;
 		this.rubusSocketSupplier = rubusSocketSupplier;
+		vd = videoDecoder;
 		setLayout(bagLayout);
 		constraints.anchor = GridBagConstraints.CENTER;
 		constraints.gridheight = GridBagConstraints.REMAINDER;
 		constraints.gridwidth = GridBagConstraints.REMAINDER;
+		constraints.fill = GridBagConstraints.BOTH;
 		constraints.weightx = 1;
 		constraints.weighty = 1;
 
@@ -132,6 +138,7 @@ public class MainFrame extends JFrame {
 		try (RubusClient rubusClient = new RubusClient(rubusSocketSupplier)) {
 			if (player != null) {
 				player.close();
+				vd.purge();
 				player.detach(fetchController);
 				fetchController.close();
 				player.detach(audioController);
@@ -155,7 +162,7 @@ public class MainFrame extends JFrame {
 			});
 			audioPlayer = new AudioPlayer(audioFormat);
 			audioController = new AudioPlayerController(audioPlayer);
-			player = new Player(progress, mediaInfo);
+			player = new Player(progress, vd, mediaInfo.duration());
 			watchHistoryRecorder = new WatchHistoryRecorder(watchHistory, id);
 			player.attach(fetchController);
 			player.attach(audioController);
