@@ -130,6 +130,7 @@ public class MainFrame extends JFrame {
 			}
 		});
 
+		setDefaultCloseOperation(EXIT_ON_CLOSE);
 		thread = new InnerThread();
 		thread.start();
 	}
