@@ -45,7 +45,7 @@ public class FetchController implements Observer, AutoCloseable {
 
 	private int minimumBatchSize;
 
-	private BackgroundFetch backgroundFetch = null;
+	private volatile BackgroundFetch backgroundFetch = null;
 
 	private ExceptionHandler handler = null;
 
@@ -213,7 +213,7 @@ public class FetchController implements Observer, AutoCloseable {
 
 	private class BackgroundFetch extends Thread {
 
-		private boolean isInterrupted = false;
+		private volatile boolean isInterrupted = false;
 
 		private final PlayerInterface player;
 
