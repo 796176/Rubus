@@ -71,6 +71,11 @@ public class DummyPlayer implements PlayerInterface, Subject {
 	}
 
 	@Override
+	public void setVideoDuration(int duration) {
+		videoDuration = duration;
+	}
+
+	@Override
 	public int getVideoWidth() {
 		return videoWidth;
 	}
@@ -108,9 +113,17 @@ public class DummyPlayer implements PlayerInterface, Subject {
 	}
 
 	@Override
+	public void setDecoder(VideoDecoder videoDecoder) {
+		decoder = videoDecoder;
+	}
+
+	@Override
 	public EncodedPlaybackPiece getPlayingPiece() {
 		return playingPiece;
 	}
+
+	@Override
+	public void purge() { }
 
 	@Override
 	public void attach(Observer o) {

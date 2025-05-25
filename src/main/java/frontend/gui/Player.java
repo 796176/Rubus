@@ -80,10 +80,10 @@ public class Player extends JPanel implements PlayerInterface, ExceptionHandler 
 	private PreDecodingStatus preDecodingStatus = PreDecodingStatus.NOT_PRE_DECODED;
 
 	public Player(int initialProgress, VideoDecoder videoDecoder, int duration) {
-		assert initialProgress >= 0 && videoDecoder != null && duration > 0;
+		assert initialProgress >= 0;
 
-		vd = videoDecoder;
-		this.duration = duration;
+		setDecoder(videoDecoder);
+		setVideoDuration(duration);
 		setProgress(initialProgress);
 		setBackground(Color.BLACK);
 		addMouseListener(new MouseAdapter() {
@@ -138,6 +138,13 @@ public class Player extends JPanel implements PlayerInterface, ExceptionHandler 
 	}
 
 	@Override
+	public void setVideoDuration(int newDuration) {
+		assert newDuration > 0;
+
+		duration = newDuration;
+	}
+
+	@Override
 	public int getVideoWidth() {
 		return 0;
 	}
@@ -178,8 +185,31 @@ public class Player extends JPanel implements PlayerInterface, ExceptionHandler 
 	}
 
 	@Override
+	public void setDecoder(VideoDecoder videoDecoder) {
+		assert videoDecoder != null;
+
+		vd = videoDecoder;
+	}
+
+	@Override
 	public EncodedPlaybackPiece getPlayingPiece() {
 		return playingPiece;
+	}
+
+	public void purge() throws Exception {
+		observers.clear();
+		close();
+		streamContextStatus = ScStatus.NOT_INITIATED;
+		preDecodingStatus = PreDecodingStatus.NOT_PRE_DECODED;
+		isBuffering = true;
+		deviation = 0;
+		lastFrameTime = 0;
+		isPaused = false;
+		controlsHeight = 0;
+		frameCounter = 0;
+		duration = 0;
+		buffer = new EncodedPlaybackPiece[0];
+		playingPiece = null;
 	}
 
 	@Override
