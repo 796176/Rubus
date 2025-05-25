@@ -196,6 +196,21 @@ public class FetchController implements Observer, AutoCloseable {
 		rubusClient.close();
 	}
 
+	/**
+	 * Reset the state of this FetchController to the initial state of the instantiation.
+	 * @throws IOException if the underlying resource cannot be closed
+	 * @throws InterruptedException if the current thread is interrupted while waiting
+	 */
+	public void purge() throws IOException, InterruptedException {
+		boolean isBackgroundFetchRunning = backgroundFetch != null && backgroundFetch.isAlive();
+		if (isBackgroundFetchRunning) {
+			backgroundFetch.interrupt();
+			backgroundFetch.join();
+		}
+		backgroundFetch = null;
+		rubusClient.close();
+	}
+
 	private class BackgroundFetch extends Thread {
 
 		private boolean isInterrupted = false;
