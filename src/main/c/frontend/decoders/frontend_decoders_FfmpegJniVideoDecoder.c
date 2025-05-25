@@ -204,6 +204,9 @@ JNIEXPORT jobjectArray JNICALL Java_frontend_decoders_FfmpegJniVideoDecoder_deco
 		AVFormatContext *format_context;
 		int error_code = retrieve_video_format_context(&format_context, encoded_video_data, encoded_video_size);
 		if (error_code) {
+			avio_context_free(&(format_context->pb));
+			avformat_close_input(&format_context);
+
 			char error_mes[256];
 			snprintf(error_mes, sizeof(error_mes), "Demuxing failed, error code: %d", error_code);
 			(*env)->ThrowNew(env, exception_class, error_mes);
@@ -221,6 +224,9 @@ JNIEXPORT jobjectArray JNICALL Java_frontend_decoders_FfmpegJniVideoDecoder_deco
 			// extracting a packet containing one encoded frame
 			error_code = av_read_frame(format_context, packet);
 			if (error_code) {
+				avio_context_free(&(format_context->pb));
+				avformat_close_input(&format_context);
+
 				char error_mes[256];
 				snprintf(error_mes, sizeof(error_mes), "AVPacket initialization failed, error code: %d", error_code);
 				(*env)->ThrowNew(env, exception_class, error_mes);
@@ -230,6 +236,9 @@ JNIEXPORT jobjectArray JNICALL Java_frontend_decoders_FfmpegJniVideoDecoder_deco
 			// sending the packet to the decoding pipeline
 			int error_code = avcodec_send_packet(context->codec_context, context->packet);
 			if (error_code) {
+				avio_context_free(&(format_context->pb));
+				avformat_close_input(&format_context);
+
 				char error_mes[256];
 				snprintf(error_mes, sizeof(error_mes), "Decoding failed, error code %d", error_code);
 				(*env)->ThrowNew(env, exception_class, error_mes);
@@ -239,6 +248,10 @@ JNIEXPORT jobjectArray JNICALL Java_frontend_decoders_FfmpegJniVideoDecoder_deco
 			// receiving a decoded frame from the decoding pipeline
 			error_code = avcodec_receive_frame(context->codec_context, context->frame);
 			if (error_code) {
+				av_packet_unref(context->packet);
+				avio_context_free(&(format_context->pb));
+				avformat_close_input(&format_context);
+
 				char error_mes[216];
 				snprintf(error_mes, sizeof(error_mes), "Decoding failed, error code %d", error_code);
 				(*env)->ThrowNew(env, exception_class, error_mes);
