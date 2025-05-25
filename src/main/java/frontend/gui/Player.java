@@ -32,38 +32,40 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class Player extends JPanel implements PlayerInterface, ExceptionHandler {
 
 	private final ArrayList<Observer> observers = new ArrayList<>();
 
-	private int progress;
+	private volatile int progress;
 
-	private EncodedPlaybackPiece[] buffer = new EncodedPlaybackPiece[0];
+	private volatile EncodedPlaybackPiece[] buffer = new EncodedPlaybackPiece[0];
 
-	private boolean isPaused = false;
+	private volatile boolean isPaused = false;
 
-	private long lastFrameTime = 0;
+	private volatile long lastFrameTime = 0;
 
-	private long deviation = 0;
+	private volatile long deviation = 0;
 
-	private int controlsHeight = 0;
+	private volatile int controlsHeight = 0;
 
 	private Rectangle pauseButtonBorders = new Rectangle();
 
 	private Rectangle rewindBarBorders = new Rectangle();
 
-	private int frameCounter = 0;
+	private volatile int frameCounter = 0;
 
-	private EncodedPlaybackPiece playingPiece = null;
+	private volatile EncodedPlaybackPiece playingPiece = null;
 
 	private Exception occurredException = null;
 
-	private boolean isBuffering = true;
+	private volatile boolean isBuffering = true;
 
-	private int duration;
+	private volatile int duration;
 
-	private VideoDecoder vd;
+	private volatile VideoDecoder vd;
 
 	private Decoder.StreamContext sc;
 
@@ -71,13 +73,15 @@ public class Player extends JPanel implements PlayerInterface, ExceptionHandler 
 		NOT_INITIATED, INITIATING, INITIATED
 	}
 
-	private ScStatus streamContextStatus = ScStatus.NOT_INITIATED;
+	private volatile ScStatus streamContextStatus = ScStatus.NOT_INITIATED;
 
 	private enum PreDecodingStatus {
 		NOT_PRE_DECODED, DECODING, PRE_DECODED
 	}
 
-	private PreDecodingStatus preDecodingStatus = PreDecodingStatus.NOT_PRE_DECODED;
+	private volatile PreDecodingStatus preDecodingStatus = PreDecodingStatus.NOT_PRE_DECODED;
+
+	private final Lock renderLock = new ReentrantLock();
 
 	public Player(int initialProgress, VideoDecoder videoDecoder, int duration) {
 		assert initialProgress >= 0;
@@ -96,11 +100,16 @@ public class Player extends JPanel implements PlayerInterface, ExceptionHandler 
 
 	@Override
 	public void close() throws Exception {
-		switch (preDecodingStatus) {
-			case DECODING -> {
-				if (vd.getStreamContextNow() != null) vd.getStreamContextNow().close();
+		renderLock.lock();
+		try {
+			switch (preDecodingStatus) {
+				case DECODING -> {
+					if (vd.getStreamContextNow() != null) vd.getStreamContextNow().close();
+				}
+				case PRE_DECODED -> sc.close();
 			}
-			case PRE_DECODED -> sc.close();
+		} finally {
+			renderLock.unlock();
 		}
 	}
 
@@ -197,19 +206,24 @@ public class Player extends JPanel implements PlayerInterface, ExceptionHandler 
 	}
 
 	public void purge() throws Exception {
-		observers.clear();
-		close();
-		streamContextStatus = ScStatus.NOT_INITIATED;
-		preDecodingStatus = PreDecodingStatus.NOT_PRE_DECODED;
-		isBuffering = true;
-		deviation = 0;
-		lastFrameTime = 0;
-		isPaused = false;
-		controlsHeight = 0;
-		frameCounter = 0;
-		duration = 0;
-		buffer = new EncodedPlaybackPiece[0];
-		playingPiece = null;
+		renderLock.lock();
+		try {
+			observers.clear();
+			close();
+			streamContextStatus = ScStatus.NOT_INITIATED;
+			preDecodingStatus = PreDecodingStatus.NOT_PRE_DECODED;
+			isBuffering = true;
+			deviation = 0;
+			lastFrameTime = 0;
+			isPaused = false;
+			controlsHeight = 0;
+			frameCounter = 0;
+			duration = 0;
+			setBuffer(new EncodedPlaybackPiece[0]);
+			playingPiece = null;
+		} finally {
+			renderLock.unlock();
+		}
 	}
 
 	@Override
@@ -299,41 +313,48 @@ public class Player extends JPanel implements PlayerInterface, ExceptionHandler 
 	}
 
 	private void controlsClickHandler(MouseEvent me) {
-		if (pauseButtonBorders.contains(me.getPoint())) {
-			if (isPaused()) {
-				deviation = 0;
-				lastFrameTime = 0;
-				resume();
-			} else {
-				pause();
+		if (renderLock.tryLock()) {
+			try {
+				if (pauseButtonBorders.contains(me.getPoint())) {
+					if (isPaused()) {
+						deviation = 0;
+						lastFrameTime = 0;
+						resume();
+					} else {
+						pause();
+					}
+					sendNotification();
+				} else if (rewindBarBorders.contains(me.getPoint())) {
+					vd.purge();
+					preDecodingStatus = PreDecodingStatus.NOT_PRE_DECODED;
+					occurredException = null;
+					deviation = 0;
+					lastFrameTime = 0;
+					isBuffering = true;
+					int previousSecond = getProgress();
+					double relativePosition =
+						(double) (me.getX() - rewindBarBorders.x) / rewindBarBorders.width;
+					setProgress((int) (relativePosition * getVideoDuration()));
+					if (getProgress() > previousSecond && getProgress() - previousSecond < getBuffer().length) {
+						int piecesToSkip = getProgress() - previousSecond;
+						if (getPlayingPiece() != null) piecesToSkip--;
+						setBuffer(Arrays.copyOfRange(
+							getBuffer(),
+							piecesToSkip,
+							getBuffer().length
+						));
+					} else setBuffer(new EncodedPlaybackPiece[0]);
+					playingPiece = null;
+					sendNotification();
+				}
+			} finally {
+				renderLock.unlock();
 			}
-			sendNotification();
-		} else if (rewindBarBorders.contains(me.getPoint())) {
-			vd.purge();
-			preDecodingStatus = PreDecodingStatus.NOT_PRE_DECODED;
-			occurredException = null;
-			deviation = 0;
-			lastFrameTime = 0;
-			isBuffering = true;
-			int previousSecond = getProgress();
-			double relativePosition =
-				(double) (me.getX() - rewindBarBorders.x) / rewindBarBorders.width;
-			setProgress((int) (relativePosition * getVideoDuration()));
-			if (getProgress() > previousSecond && getProgress() - previousSecond < getBuffer().length) {
-				int piecesToSkip = getProgress() - previousSecond;
-				if (getPlayingPiece() != null) piecesToSkip--;
-				setBuffer(Arrays.copyOfRange(
-					getBuffer(),
-					piecesToSkip,
-					getBuffer().length
-				));
-			} else setBuffer(new EncodedPlaybackPiece[0]);
-			playingPiece = null;
-			sendNotification();
 		}
 	}
 
 	private void drawFrame(Graphics g) {
+		if (!renderLock.tryLock()) return;
 		try {
 			if (occurredException != null) throw occurredException;
 			if (getBuffer().length == 0 && preDecodingStatus == PreDecodingStatus.NOT_PRE_DECODED) {
@@ -433,6 +454,7 @@ public class Player extends JPanel implements PlayerInterface, ExceptionHandler 
 				g.drawString(e.getMessage(), 0, g.getFontMetrics().getHeight() + g.getFontMetrics().getMaxAscent());
 			}
 		}
+		renderLock.unlock();
 	}
 
 
