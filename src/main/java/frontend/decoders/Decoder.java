@@ -237,6 +237,12 @@ public interface Decoder <T> extends AutoCloseable {
 	void purge();
 
 	/**
+	 * Same as {@link #purge()} but also waits for all currently executing tasks to finish.
+	 * @throws InterruptedException if the current thread was interrupting while waiting
+	 */
+	void purgeAndFlush() throws InterruptedException;
+
+	/**
 	 * StreamContext is used to accelerate the decoding process of more than one encoded entities that share common
 	 * properties. StreamContext is meant to be used internally by a concrete implementation of Decoder, so it doesn't
 	 * declare any implementation specific methods. If a concrete implementation doesn't want to use StreamContext it

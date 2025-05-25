@@ -221,6 +221,48 @@ public class FfmpegJniVideoDecoder extends VideoDecoder {
 	}
 
 	@Override
+	public void purgeAndFlush() {
+		/* Given that the service executor is single threaded, most of the submitted tasks reside in the queue and wait
+		   to be executed. So the most efficient way to implement this method is to remove all queued tasks and to
+		   wait for the currently executing task to finish. Unfortunately, Java API doesn't offer such functionality.
+
+		   Submitted tasks produce Futures that can be used to cancel the task so it won't be executed, but Future
+		   doesn't distinguish between a running task and a queued task; their Future.State always return RUNNING.
+		   Obviously, it possible to cancel a running task, but it would be impossible to wait for it to finish.
+		   An attempt to call future.get() on a canceled task even if it's still running always results in
+		   CancellationException.
+
+		   The other way is to use ThreadPoolExecutor. Its interface allows us to access the queue of containing queued
+		   tasks as Runnables and then use remove() to empty the queue. The shortcomings are as follows: (1) Java API
+		   discourages invoking getQueue(); (2) the queue contains Runnables and not Futures so there is a need locally
+		   map them to determine what task is currently executing because ThreadPoolExecutor returns only approximate
+		   number of running tasks and there is no other way to wait for termination of currently executing tasks
+		   provided by ThreadPoolExecutor's interface.
+
+		   Lastly, the most straightforward way is to shut down the executor service, cancel all the tasks, and then
+		   call awaitTermination. This is the most efficient way of flushing. Its downside, though, is that there is no
+		   way to resume an executor service after it has been shut down. Instantiating a new executor service is
+		   a perfect solution, but the entire point of the design that provide this method is to reuse as many of
+		   already instantiating objects as possible... So yeah.
+
+		   Naturally waiting for all submitted tasks to be executed and finish doesn't take long in cases where
+		   FfmpegJniVideoDecoder is used anyway. Which is why this method is implemented the way it is.
+		 */
+		decodingStatuses.forEach((i, f) -> {
+			try {
+				f.get();
+			} catch (Exception ignored) { }
+		});
+		try {
+			if (streamContextFuture != null) streamContextFuture.get();
+		} catch (Exception ignored) {}
+		decodingStatuses.clear();
+
+		localContext = null;
+		streamContextFuture = null;
+	}
+
+	@Override
 	public void close() throws Exception {
 		executorService.shutdown();
 		executorService.awaitTermination(Long.MAX_VALUE, TimeUnit.MILLISECONDS);
