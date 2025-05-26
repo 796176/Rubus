@@ -36,7 +36,6 @@ import java.awt.*;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.ByteArrayInputStream;
-import java.io.IOException;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 import java.util.function.Supplier;
@@ -113,21 +112,22 @@ public class MainFrame extends JFrame {
 		addWindowListener(new WindowAdapter() {
 			@Override
 			public void windowClosing(WindowEvent e) {
-			try {
-				if (fetchController != null) fetchController.close();
-				if (audioPlayer != null) audioPlayer.terminate();
+				try {
+					if (fetchController != null) fetchController.close();
+					if (audioPlayer != null) audioPlayer.terminate();
 
-				config.set("main-frame-x", getX() + "");
-				config.set("main-frame-y", getY() + "");
-				config.set("main-frame-width", getWidth() + "");
-				config.set("main-frame-height", getHeight() + "");
-				config.save();
-			} catch (IOException ignored) {}
-			finally {
-				dispose();
-				setVisible(false);
-				thread.terminate();
-			}
+					config.set("main-frame-x", getX() + "");
+					config.set("main-frame-y", getY() + "");
+					config.set("main-frame-width", getWidth() + "");
+					config.set("main-frame-height", getHeight() + "");
+					config.save();
+					if (player != null) player.close();
+				} catch (Exception ignored) {}
+				finally {
+					dispose();
+					setVisible(false);
+					thread.terminate();
+				}
 			}
 		});
 
@@ -164,7 +164,7 @@ public class MainFrame extends JFrame {
 				player.attach(fetchController);
 				watchHistoryRecorder.setMediaId(id);
 				player.attach(watchHistoryRecorder);
-				
+
 				player.sendNotification();
 			} else {
 				config.action(c -> {
