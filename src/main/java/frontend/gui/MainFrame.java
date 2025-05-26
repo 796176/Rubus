@@ -23,6 +23,7 @@ import common.Config;
 import common.RubusSocket;
 import common.net.response.body.MediaInfo;
 import frontend.*;
+import frontend.decoders.Decoder;
 import frontend.decoders.VideoDecoder;
 import frontend.gui.mediasearch.MediaSearchDialog;
 import frontend.gui.settings.SettingsDialog;
@@ -137,42 +138,53 @@ public class MainFrame extends JFrame {
 
 	public void play(String id, int progress) {
 		try (RubusClient rubusClient = new RubusClient(rubusSocketSupplier)) {
-			if (player != null) {
-				player.close();
-				vd.purge();
-				player.detach(fetchController);
-				fetchController.close();
-				player.detach(audioController);
-				audioPlayer.terminate();
-				player.setBuffer(new EncodedPlaybackPiece[0]);
-				((Player) player).setVisible(false);
-			}
 			RubusRequest request = RubusRequest.newBuilder().INFO(id).build();
 			RubusResponse response = rubusClient.send(request, 10000);
 			MediaInfo mediaInfo = response.INFO();
+
 			request = RubusRequest.newBuilder().FETCH(id, 0, 1).build();
 			response = rubusClient.send(request, 10000);
 			byte[] audio = response.FETCH().audio()[0];
 			AudioFormat audioFormat = AudioSystem.getAudioFileFormat(new ByteArrayInputStream(audio)).getFormat();
-
-			config.action(c -> {
-				int bufferSize = Integer.parseInt(c.get("buffer-size"));
-				int minimumBatchSize = Integer.parseInt(c.get("minimum-batch-size"));
-				fetchController = new FetchController(rubusSocketSupplier, id, bufferSize, minimumBatchSize);
-				return null;
-			});
 			audioPlayer = new AudioPlayer(audioFormat);
-			audioController = new AudioPlayerController(audioPlayer);
-			player = new Player(progress, vd, mediaInfo.duration());
-			watchHistoryRecorder = new WatchHistoryRecorder(watchHistory, id);
-			player.attach(fetchController);
-			player.attach(audioController);
-			player.attach(watchHistoryRecorder);
-			player.sendNotification();
 
-			bagLayout.setConstraints((Player) player, constraints);
-			add((Player) player);
-			revalidate();
+			if (player != null) {
+				fetchController.purge();
+				Decoder.StreamContext sc = vd.getStreamContextNow();
+				vd.purgeAndFlush();
+				if (sc != null) sc.close();
+				player.purge();
+
+				player.setVideoDuration(mediaInfo.duration());
+				player.setProgress(progress);
+				audioController.getAudioPlayer().terminate();
+				audioController.setAudioPlayer(audioPlayer);
+				player.attach(audioController);
+				fetchController.setMediaId(id);
+				player.attach(fetchController);
+				watchHistoryRecorder.setMediaId(id);
+				player.attach(watchHistoryRecorder);
+				
+				player.sendNotification();
+			} else {
+				config.action(c -> {
+					int bufferSize = Integer.parseInt(c.get("buffer-size"));
+					int minimumBatchSize = Integer.parseInt(c.get("minimum-batch-size"));
+					fetchController = new FetchController(rubusSocketSupplier, id, bufferSize, minimumBatchSize);
+					return null;
+				});
+				audioController = new AudioPlayerController(audioPlayer);
+				player = new Player(progress, vd, mediaInfo.duration());
+				watchHistoryRecorder = new WatchHistoryRecorder(watchHistory, id);
+				player.attach(fetchController);
+				player.attach(audioController);
+				player.attach(watchHistoryRecorder);
+				player.sendNotification();
+
+				bagLayout.setConstraints((Player) player, constraints);
+				add((Player) player);
+				revalidate();
+			}
 		} catch (Exception e) {
 			JOptionPane.showMessageDialog(this, e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
 		}
