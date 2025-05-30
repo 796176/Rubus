@@ -1,5 +1,5 @@
 /*
- * Rubus is an application level protocol for video and audio streaming and
+ * Rubus is an application layer protocol for video and audio streaming and
  * the client and server reference implementations.
  * Copyright (C) 2024 Yegore Vlussove
  *
@@ -20,6 +20,7 @@
 package auxiliary;
 
 import frontend.*;
+import frontend.decoders.VideoDecoder;
 
 import java.util.ArrayList;
 
@@ -40,7 +41,7 @@ public class DummyPlayer implements PlayerInterface, Subject {
 
 	public int videoHeight = 1600;
 
-	public Decoder decoder = null;
+	public VideoDecoder decoder = null;
 
 	public ArrayList<Observer> observers = new ArrayList<>();
 
@@ -67,6 +68,11 @@ public class DummyPlayer implements PlayerInterface, Subject {
 	@Override
 	public int getVideoDuration() {
 		return videoDuration;
+	}
+
+	@Override
+	public void setVideoDuration(int duration) {
+		videoDuration = duration;
 	}
 
 	@Override
@@ -102,14 +108,22 @@ public class DummyPlayer implements PlayerInterface, Subject {
 	}
 
 	@Override
-	public Decoder getDecoder() {
+	public VideoDecoder getDecoder() {
 		return decoder;
+	}
+
+	@Override
+	public void setDecoder(VideoDecoder videoDecoder) {
+		decoder = videoDecoder;
 	}
 
 	@Override
 	public EncodedPlaybackPiece getPlayingPiece() {
 		return playingPiece;
 	}
+
+	@Override
+	public void purge() { }
 
 	@Override
 	public void attach(Observer o) {
@@ -134,4 +148,7 @@ public class DummyPlayer implements PlayerInterface, Subject {
 			o.update(this);
 		}
 	}
+
+	@Override
+	public void close() { }
 }

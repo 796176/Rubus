@@ -1,5 +1,5 @@
 /*
- * Rubus is an application level protocol for video and audio streaming and
+ * Rubus is an application layer protocol for video and audio streaming and
  * the client and server reference implementations.
  * Copyright (C) 2024 Yegore Vlussove
  *
@@ -183,7 +183,11 @@ public class Config {
 	 * @throws IOException if some I/O error occurs
 	 */
 	public synchronized void duplicate(Path dest) throws IOException {
-		try (ByteChannel wbc = Files.newByteChannel(dest, StandardOpenOption.CREATE, StandardOpenOption.WRITE)) {
+		try (
+			ByteChannel wbc = Files.newByteChannel(
+					dest, StandardOpenOption.CREATE, StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING
+			)
+		) {
 			Map.Entry<String, String> entry = params.firstEntry();
 			while (entry != null) {
 				wbc.write(ByteBuffer.wrap((entry.getKey() + " " + entry.getValue() + "\n").getBytes()));

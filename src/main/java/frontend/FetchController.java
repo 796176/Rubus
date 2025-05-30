@@ -1,5 +1,5 @@
 /*
- * Rubus is an application level protocol for video and audio streaming and
+ * Rubus is an application layer protocol for video and audio streaming and
  * the client and server reference implementations.
  * Copyright (C) 2024-2025 Yegore Vlussove
  *
@@ -45,7 +45,7 @@ public class FetchController implements Observer, AutoCloseable {
 
 	private int minimumBatchSize;
 
-	private BackgroundFetch backgroundFetch = null;
+	private volatile BackgroundFetch backgroundFetch = null;
 
 	private ExceptionHandler handler = null;
 
@@ -196,9 +196,24 @@ public class FetchController implements Observer, AutoCloseable {
 		rubusClient.close();
 	}
 
+	/**
+	 * Reset the state of this FetchController to the initial state of the instantiation.
+	 * @throws IOException if the underlying resource cannot be closed
+	 * @throws InterruptedException if the current thread is interrupted while waiting
+	 */
+	public void purge() throws IOException, InterruptedException {
+		boolean isBackgroundFetchRunning = backgroundFetch != null && backgroundFetch.isAlive();
+		if (isBackgroundFetchRunning) {
+			backgroundFetch.interrupt();
+			backgroundFetch.join();
+		}
+		backgroundFetch = null;
+		rubusClient.close();
+	}
+
 	private class BackgroundFetch extends Thread {
 
-		private boolean isInterrupted = false;
+		private volatile boolean isInterrupted = false;
 
 		private final PlayerInterface player;
 

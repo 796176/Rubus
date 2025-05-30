@@ -1,5 +1,5 @@
 /*
- * Rubus is an application level protocol for video and audio streaming and
+ * Rubus is an application layer protocol for video and audio streaming and
  * the client and server reference implementations.
  * Copyright (C) 2024-2025 Yegore Vlussove
  *
@@ -34,7 +34,7 @@ import java.io.ByteArrayInputStream;
  */
 public class AudioPlayerController implements Observer {
 
-	private final AudioPlayerInterface audioPlayer;
+	private AudioPlayerInterface audioPlayer;
 
 	private int lastTimestamp = -1;
 
@@ -108,5 +108,23 @@ public class AudioPlayerController implements Observer {
 	 */
 	public void setExceptionHandler(ExceptionHandler handler) {
 		this.handler = handler;
+	}
+
+	/**
+	 * Returns the current audio player.
+	 * @return the current audio player
+	 */
+	public AudioPlayerInterface getAudioPlayer() {
+		return audioPlayer;
+	}
+
+	/**
+	 * Sets a new audio player.
+	 * @param newAudioPlayer a new audio player
+	 */
+	public void setAudioPlayer(AudioPlayerInterface newAudioPlayer) {
+		assert newAudioPlayer != null;
+
+		audioPlayer = newAudioPlayer;
 	}
 }

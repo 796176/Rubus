@@ -44,3 +44,4 @@ bin/
 .idea
 /src/test/resources/testDB
 /target
+dependency-reduced-pom.xml

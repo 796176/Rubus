@@ -1,5 +1,5 @@
 /*
- * Rubus is an application level protocol for video and audio streaming and
+ * Rubus is an application layer protocol for video and audio streaming and
  * the client and server reference implementations.
  * Copyright (C) 2024 Yegore Vlussove
  *
@@ -25,6 +25,8 @@ import common.TCPRubusSocket;
 import common.ssl.HandshakeFailedException;
 import common.ssl.SecureSocket;
 import frontend.WatchHistory;
+import frontend.decoders.FfmpegJniVideoDecoder;
+import frontend.decoders.VideoDecoder;
 import frontend.gui.MainFrame;
 import frontend.gui.settings.*;
 import org.springframework.beans.factory.BeanFactory;
@@ -93,16 +95,23 @@ public class RubusConfiguration {
 		return new WatchHistory(watchHistoryPath);
 	}
 
+	@Bean(destroyMethod = "close")
+	VideoDecoder videoDecoder() {
+		System.loadLibrary("rubus");
+		return new FfmpegJniVideoDecoder();
+	}
+
 	@Bean(initMethod = "display")
 	@DependsOn("lookAndFeel")
-	MainFrame mainFrame(Config config, WatchHistory watchHistory, BeanFactory beanFactory) {
+	MainFrame mainFrame(Config config, WatchHistory watchHistory, BeanFactory beanFactory, VideoDecoder videoDecoder) {
 		int x = Integer.parseInt(config.get("main-frame-x"));
 		int y = Integer.parseInt(config.get("main-frame-y"));
 		int width = Integer.parseInt(config.get("main-frame-width"));
 		int height = Integer.parseInt(config.get("main-frame-height"));
 		Supplier<RubusSocket> rubusSocketSupplier = () -> beanFactory.getBeanProvider(RubusSocket.class).getObject();
 		Supplier<SettingsTabs> settingsTabsSupplier = () -> beanFactory.getBeanProvider(SettingsTabs.class).getObject();
-		MainFrame mainFrame = new MainFrame(config, rubusSocketSupplier, watchHistory, settingsTabsSupplier);
+		MainFrame mainFrame =
+			new MainFrame(config, rubusSocketSupplier, watchHistory, settingsTabsSupplier, videoDecoder);
 		mainFrame.setBounds(x, y, width, height);
 		return mainFrame;
 	}

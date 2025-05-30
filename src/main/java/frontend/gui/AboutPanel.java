@@ -1,5 +1,5 @@
 /*
- * Rubus is an application level protocol for video and audio streaming and
+ * Rubus is an application layer protocol for video and audio streaming and
  * the client and server reference implementations.
  * Copyright (C) 2024-2025 Yegore Vlussove
  *
@@ -23,6 +23,7 @@ import javax.swing.*;
 import javax.swing.event.HyperlinkEvent;
 import java.awt.*;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URISyntaxException;
 
 public class AboutPanel extends JPanel {
@@ -54,16 +55,27 @@ public class AboutPanel extends JPanel {
 				} catch (IOException | URISyntaxException ignored) {}
 			}
 		});
+
+		ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+		String version = "Unknown";
+		try (InputStream is = classLoader.getResourceAsStream("version")) {
+			version = new String(is.readAllBytes());
+		} catch (RuntimeException | IOException ignored) { }
 		textPane.setText("""
-			Rubus is an application level protocol for video and audio streaming and
+			<h3>Rubus %s</h3><br>
+			Rubus is an application layer protocol for video and audio streaming and
 			the client and server reference implementations.<br>
 			Copyright (C) 2024-2025 Yegore Vlussove<br><br>
 			
 			Official page: <a href="https://github.com/796176/Rubus">github.com/796176/Rubus</a><br>
 			License: Gnu Public License 3<br><br>
 			
-			FFmpeg: <a href="https://www.ffmpeg.org/">www.ffmpeg.org</a>
-			""");
+			This software included following frameworks/libraries:<br>
+			&emsp;&emsp;FFmpeg: <a href="https://www.ffmpeg.org/">www.ffmpeg.org</a><br>
+			&emsp;&emsp;Spring Framework: <a href="https://spring.io/">spring.io</a><br>
+			&emsp;&emsp;Log4J: <a href="https://logging.apache.org/log4j/2.x/">logging.apache.org</a><br>
+			&emsp;&emsp;FlatLaf: <a href="https://www.formdev.com/flatlaf/">www.formdev.com</a><br>
+			""".formatted(version));
 		bagLayout.setConstraints(textPane, constraints);
 		add(textPane);
 	}

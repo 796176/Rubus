@@ -1,5 +1,5 @@
 /*
- * Rubus is an application level protocol for video and audio streaming and
+ * Rubus is an application layer protocol for video and audio streaming and
  * the client and server reference implementations.
  * Copyright (C) 2024-2025 Yegore Vlussove
  *
@@ -19,6 +19,8 @@
 
 package frontend;
 
+import frontend.decoders.VideoDecoder;
+
 /**
  * PlayerInterface allows the client to control a video player and track its current status. A video player contains
  * a buffer, which is an array of {@link EncodedPlaybackPiece} objects. Each piece must contain one second worth of video.
@@ -32,7 +34,7 @@ package frontend;
  * pre-decoding. So modifying the data of the buffer may cause no effect on the actual playing content. If it's necessary
  * to flush the current buffer and the currently playing video piece setProgress(getProgress()) may be used.
  */
-public interface PlayerInterface extends Subject {
+public interface PlayerInterface extends Subject, AutoCloseable {
 
 	/**
 	 * Pauses the video player.
@@ -61,6 +63,12 @@ public interface PlayerInterface extends Subject {
 	 * @return the duration of the video
 	 */
 	int getVideoDuration();
+
+	/**
+	 * Sets a new duration of the video in seconds.
+	 * @param duration a new duration of the video
+	 */
+	void setVideoDuration(int duration);
 
 	/**
 	 * Returns the video width in pixels.
@@ -102,11 +110,28 @@ public interface PlayerInterface extends Subject {
 	 * Returns the current decoder.
 	 * @return the current decoder
 	 */
-	Decoder getDecoder();
+	VideoDecoder getDecoder();
+
+	/**
+	 * Sets a new decoder
+	 * @param videoDecoder a new decoder
+	 */
+	void setDecoder(VideoDecoder videoDecoder);
 
 	/**
 	 * Returns the currently playing {@link EncodedPlaybackPiece}.
 	 * @return an {@link EncodedPlaybackPiece} instance
 	 */
 	EncodedPlaybackPiece getPlayingPiece();
+
+	/**
+	 * Reset the state of this PlayerInterface to the initial state of the instantiation. There is a few ways
+	 * this method can be implemented: (1) resetting involves each and every field of the implemented class, (2) it
+	 * involves every field but the collection of {@link Observer}s field, and, if this is the latter, should those
+	 * observers be notified by this method or by the caller. The recommended way to implement this method is
+	 * the first one, because it is the least confusing way that follows the description
+	 * "the initial state of the instantiation".
+	 * @throws Exception if the underlying resources cannot be closed
+	 */
+	void purge() throws Exception;
 }
