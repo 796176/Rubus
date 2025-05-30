@@ -1,5 +1,5 @@
 /*
- * Rubus is an application level protocol for video and audio streaming and
+ * Rubus is an application layer protocol for video and audio streaming and
  * the client and server reference implementations.
  * Copyright (C) 2024-2025 Yegore Vlussove
  *
@@ -63,7 +63,7 @@ public class AboutPanel extends JPanel {
 		} catch (RuntimeException | IOException ignored) { }
 		textPane.setText("""
 			<h3>Rubus %s</h3><br>
-			Rubus is an application level protocol for video and audio streaming and
+			Rubus is an application layer protocol for video and audio streaming and
 			the client and server reference implementations.<br>
 			Copyright (C) 2024-2025 Yegore Vlussove<br><br>
 			
