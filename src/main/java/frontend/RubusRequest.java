@@ -20,6 +20,8 @@
 package frontend;
 
 import common.net.request.RubusRequestType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -33,13 +35,18 @@ public class RubusRequest {
 	 * RubusRequest.Builder provide an interface to construct a new request.
 	 */
 	public static class Builder {
-		private Builder() {}
+
+		private final Logger logger = LoggerFactory.getLogger(Builder.class);
 
 		private RubusRequestType requestType;
 
 		private byte[] request = null;
 
 		private final ArrayList<String> params = new ArrayList<>();
+
+		private Builder() {
+			logger.debug("{} instantiated", this);
+		}
 
 		/**
 		 * Constructs the LIST type request with no title filter.
@@ -113,12 +120,16 @@ public class RubusRequest {
 		}
 	}
 
+	private final Logger logger = LoggerFactory.getLogger(RubusRequest.class);
+
 	private final byte[] request;
 
 	private RubusRequest(byte[] request) {
 		assert request != null;
 
 		this.request = request;
+
+		logger.debug("{} instantiated, request size: {}", this, request.length);
 	}
 
 	/**

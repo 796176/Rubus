@@ -28,6 +28,8 @@ import frontend.decoders.VideoDecoder;
 import frontend.gui.mediasearch.MediaSearchDialog;
 import frontend.gui.settings.SettingsDialog;
 import frontend.gui.settings.SettingsTabs;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.AudioSystem;
@@ -41,6 +43,9 @@ import java.time.temporal.ChronoUnit;
 import java.util.function.Supplier;
 
 public class MainFrame extends JFrame {
+
+	private final Logger logger = LoggerFactory.getLogger(MainFrame.class);
+
 	private final InnerThread thread;
 	private final GridBagLayout bagLayout = new GridBagLayout();
 	private final GridBagConstraints constraints = new GridBagConstraints();
@@ -122,18 +127,33 @@ public class MainFrame extends JFrame {
 					config.set("main-frame-height", getHeight() + "");
 					config.save();
 					if (player != null) player.close();
-				} catch (Exception ignored) {}
+				} catch (Exception exception) {
+					logger.warn("Exception occurred while closing {}", MainFrame.this, exception);
+				}
 				finally {
 					dispose();
 					setVisible(false);
 					thread.terminate();
 				}
+				logger.info("{} closed", MainFrame.this);
 			}
 		});
 
 		setDefaultCloseOperation(EXIT_ON_CLOSE);
 		thread = new InnerThread();
 		thread.start();
+
+		logger.debug(
+			"""
+			{} instantiated, Config: {}, RubusSocketSupplier: {}, WatchHistory: {}, SettingsTabSupplier: {}, \
+			VideoDecoder: {}""",
+			this,
+			config,
+			rubusSocketSupplier,
+			watchHistory,
+			settingsTabsSupplier,
+			videoDecoder
+		);
 	}
 
 	public void play(String id, int progress) {
@@ -186,8 +206,11 @@ public class MainFrame extends JFrame {
 				revalidate();
 			}
 		} catch (Exception e) {
+			logger.error("{} failed to play media", this, e);
 			JOptionPane.showMessageDialog(this, e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
 		}
+
+		logger.info("{} plays media with {} id and {} initial progress", this, id, progress);
 	}
 
 	public void display() {
@@ -195,7 +218,14 @@ public class MainFrame extends JFrame {
 	}
 
 	private class InnerThread extends Thread {
+
+		private Logger logger = LoggerFactory.getLogger(InnerThread.class);
+
 		private boolean isTerminated = false;
+
+		private InnerThread() {
+			logger.debug("{} instantiated", this);
+		}
 
 		@Override
 		public void run() {

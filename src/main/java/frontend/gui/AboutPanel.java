@@ -19,14 +19,20 @@
 
 package frontend.gui;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import javax.swing.*;
 import javax.swing.event.HyperlinkEvent;
 import java.awt.*;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URISyntaxException;
+import java.net.URI;
 
 public class AboutPanel extends JPanel {
+
+	private final Logger logger = LoggerFactory.getLogger(AboutPanel.class);
+
 	public AboutPanel() {
 		GridBagLayout bagLayout = new GridBagLayout();
 		setLayout(bagLayout);
@@ -44,7 +50,7 @@ public class AboutPanel extends JPanel {
 				try {
 					Desktop desktop = Desktop.getDesktop();
 					if (Desktop.isDesktopSupported() && desktop.isSupported(Desktop.Action.BROWSE)) {
-						desktop.browse(hyperlinkEvent.getURL().toURI());
+						desktop.browse(URI.create(hyperlinkEvent.getURL().toString()));
 					} else {
 						String os = System.getProperty("os.name").toLowerCase();
 						Runtime runtime = Runtime.getRuntime();
@@ -52,7 +58,9 @@ public class AboutPanel extends JPanel {
 							runtime.exec(new String[]{"xdg-open", hyperlinkEvent.getURL().toString()});
 						}
 					}
-				} catch (IOException | URISyntaxException ignored) {}
+				} catch (IOException e) {
+					logger.info("{} couldn't open hyperlink", this, e);
+				}
 			}
 		});
 
@@ -78,5 +86,7 @@ public class AboutPanel extends JPanel {
 			""".formatted(version));
 		bagLayout.setConstraints(textPane, constraints);
 		add(textPane);
+
+		logger.debug("{} instantiated", this);
 	}
 }

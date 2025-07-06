@@ -27,6 +27,8 @@ import frontend.RubusResponse;
 import frontend.WatchHistory;
 import frontend.gui.CenteredDialog;
 import frontend.gui.MainFrame;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
 import java.awt.*;
@@ -35,6 +37,8 @@ import java.awt.event.KeyEvent;
 import java.util.function.Supplier;
 
 public class MediaSearchDialog extends CenteredDialog implements Runnable {
+
+	private final Logger logger = LoggerFactory.getLogger(MediaSearchDialog.class);
 
 	private final MainFrame mainFrame;
 
@@ -91,6 +95,14 @@ public class MediaSearchDialog extends CenteredDialog implements Runnable {
 
 		new Thread(this).start();
 		setVisible(true);
+
+		logger.debug(
+			"{} instantiated, MainFrame: {}, Supplier: {}, WatchHistory: {}",
+			this,
+			parent,
+			rubusSocketSupplier,
+			watchHistory
+		);
 	}
 
 	@Override
@@ -115,6 +127,8 @@ public class MediaSearchDialog extends CenteredDialog implements Runnable {
 				);
 				setVisible(false);
 			});
+
+			logger.info("{} couldn't retrieve result from server", this, e);
 		}
 	}
 }

@@ -25,6 +25,8 @@ import common.net.RubusException;
 import frontend.*;
 import frontend.decoders.Decoder;
 import frontend.decoders.VideoDecoder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
 import java.awt.*;
@@ -36,6 +38,8 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class Player extends JPanel implements PlayerInterface, ExceptionHandler {
+
+	private final Logger logger = LoggerFactory.getLogger(Player.class);
 
 	private final ArrayList<Observer> observers = new ArrayList<>();
 
@@ -96,6 +100,14 @@ public class Player extends JPanel implements PlayerInterface, ExceptionHandler 
 				controlsClickHandler(mouseEvent);
 			}
 		});
+
+		logger.debug(
+			"{} instantiated, initial progress: {}, VideoDecoder: {}, duration: {}",
+			this,
+			initialProgress,
+			videoDecoder,
+			duration
+		);
 	}
 
 	@Override
@@ -111,6 +123,8 @@ public class Player extends JPanel implements PlayerInterface, ExceptionHandler 
 		} finally {
 			renderLock.unlock();
 		}
+
+		logger.debug("{} closed", this);
 	}
 
 	@Override
@@ -320,8 +334,10 @@ public class Player extends JPanel implements PlayerInterface, ExceptionHandler 
 						deviation = 0;
 						lastFrameTime = 0;
 						resume();
+						logger.debug("{} resumed", this);
 					} else {
 						pause();
+						logger.debug("{} paused", this);
 					}
 					sendNotification();
 				} else if (rewindBarBorders.contains(me.getPoint())) {
@@ -331,12 +347,13 @@ public class Player extends JPanel implements PlayerInterface, ExceptionHandler 
 					deviation = 0;
 					lastFrameTime = 0;
 					isBuffering = true;
-					int previousSecond = getProgress();
+					int previousProgress = getProgress();
 					double relativePosition =
 						(double) (me.getX() - rewindBarBorders.x) / rewindBarBorders.width;
-					setProgress((int) (relativePosition * getVideoDuration()));
-					if (getProgress() > previousSecond && getProgress() - previousSecond < getBuffer().length) {
-						int piecesToSkip = getProgress() - previousSecond;
+					int newProgress = (int) (relativePosition * getVideoDuration());
+					setProgress(newProgress);
+					if (getProgress() > previousProgress && getProgress() - previousProgress < getBuffer().length) {
+						int piecesToSkip = getProgress() - previousProgress;
 						if (getPlayingPiece() != null) piecesToSkip--;
 						setBuffer(Arrays.copyOfRange(
 							getBuffer(),
@@ -346,6 +363,8 @@ public class Player extends JPanel implements PlayerInterface, ExceptionHandler 
 					} else setBuffer(new EncodedPlaybackPiece[0]);
 					playingPiece = null;
 					sendNotification();
+
+					logger.debug("{}'s progress reassigned from {} to {}", this, previousProgress, newProgress);
 				}
 			} finally {
 				renderLock.unlock();

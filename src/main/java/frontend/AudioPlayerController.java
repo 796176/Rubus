@@ -20,6 +20,8 @@
 package frontend;
 
 import common.AudioDecodingException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
@@ -33,6 +35,8 @@ import java.io.ByteArrayInputStream;
  * choose the object responsible for exception handling.
  */
 public class AudioPlayerController implements Observer {
+
+	private final Logger logger = LoggerFactory.getLogger(AudioPlayerController.class);
 
 	private AudioPlayerInterface audioPlayer;
 
@@ -50,6 +54,8 @@ public class AudioPlayerController implements Observer {
 
 		this.handler = handler;
 		this.audioPlayer = audioPlayer;
+
+		logger.debug("{} instantiated, AudioPlayerInterface: {}, ExceptionHandler: {}", this, audioPlayer, handler);
 	}
 
 	/**
@@ -83,6 +89,7 @@ public class AudioPlayerController implements Observer {
 				}
 				lastTimestamp = videoPlayer.getProgress();
 			} catch (Exception e) {
+				logger.info("{} encountered exception", this, e);
 				if (handler != null) handler.handleException(new AudioDecodingException(e.getMessage()));
 			}
 		}

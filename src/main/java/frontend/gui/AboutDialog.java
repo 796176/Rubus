@@ -19,12 +19,18 @@
 
 package frontend.gui;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 
 public class AboutDialog extends CenteredDialog {
+
+	private final Logger logger = LoggerFactory.getLogger(AboutDialog.class);
+
 	public AboutDialog(JFrame parent) {
 		super(parent, "About", true, parent.getWidth() / 3, parent.getHeight());
 
@@ -40,5 +46,7 @@ public class AboutDialog extends CenteredDialog {
 				aboutPanel.setPreferredSize(new Dimension(getWidth(), aboutPanel.getMinimumSize().height));
 			}
 		});
+
+		logger.debug("{} instantiated, JFrame: {}", this, parent);
 	}
 }

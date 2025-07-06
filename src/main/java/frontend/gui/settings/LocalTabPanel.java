@@ -20,12 +20,16 @@
 package frontend.gui.settings;
 
 import frontend.WatchHistory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
 import java.awt.*;
 import java.io.IOException;
 
 public class LocalTabPanel extends TabPanel {
+
+	private final Logger logger = LoggerFactory.getLogger(LocalTabPanel.class);
 
 	private final WatchHistory wh;
 
@@ -49,6 +53,7 @@ public class LocalTabPanel extends TabPanel {
 			try {
 				wh.purge();
 			} catch (IOException e) {
+				logger.warn("{} failed to purge in {}", wh, this, e);
 				JOptionPane.showMessageDialog(
 					this,
 					e.getMessage(),
@@ -66,6 +71,8 @@ public class LocalTabPanel extends TabPanel {
 		constraints.gridheight = GridBagConstraints.REMAINDER;
 		bagLayout.setConstraints(rigidArea, constraints);
 		add(rigidArea);
+
+		logger.debug("{} instantiated, WatchHistory: {}", this, watchHistory);
 	}
 
 	@Override

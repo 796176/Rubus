@@ -19,6 +19,9 @@
 
 package frontend.decoders;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.awt.*;
 
 /**
@@ -26,6 +29,12 @@ import java.awt.*;
  * structure that contains decoded frames and parameterizing Decoder with this type.
  */
 public abstract class VideoDecoder implements Decoder<VideoDecoder.DecodedFrames> {
+
+	private final Logger logger = LoggerFactory.getLogger(VideoDecoder.class);
+
+	public VideoDecoder() {
+		logger.debug("{} instantiated", this);
+	}
 
 	/**
 	 * DecodedFrames represents decoded frames as an array of Image object.

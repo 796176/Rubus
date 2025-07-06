@@ -29,6 +29,8 @@ import frontend.decoders.FfmpegJniVideoDecoder;
 import frontend.decoders.VideoDecoder;
 import frontend.gui.MainFrame;
 import frontend.gui.settings.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.*;
@@ -43,56 +45,80 @@ import java.util.function.Supplier;
 @Import(SettingsTabsConfiguration.class)
 public class RubusConfiguration {
 
+	private static final Logger logger = LoggerFactory.getLogger(RubusConfiguration.class);
+
 	@Bean
 	@Value("${rubus.workingDir}/rubus.conf")
 	Config config(Path configPath) throws IOException {
-		return new Config(configPath);
+		try {
+			return new Config(configPath);
+		} catch (Exception e) {
+			logger.error("Exception occurred while parsing config file located at {}", configPath, e);
+			throw e;
+		}
 	}
 
 	@Bean
 	@Scope("prototype")
 	RubusSocket socket(Config config) throws Exception {
-		return config.action(c -> {
-			String protocol = c.get("connection-protocol");
-			RubusSocket socket;
-			switch (protocol) {
-				case "tcp" -> {
-					InetAddress address = InetAddress.getByName(c.get("bind-address"));
-					int port = Integer.parseInt(c.get("listening-port"));
-					socket = new TCPRubusSocket(address, port);
+		try {
+			return config.action(c -> {
+				String protocol = c.get("connection-protocol");
+				RubusSocket socket;
+				switch (protocol) {
+					case "tcp" -> {
+						InetAddress address = InetAddress.getByName(c.get("bind-address"));
+						int port = Integer.parseInt(c.get("listening-port"));
+						logger.info("Trying to establish tcp connection with {}:{}", address, port);
+						socket = new TCPRubusSocket(address, port);
+					}
+					default -> {
+						throw new RuntimeException("The " + protocol + "transport layer protocol is not available");
+					}
 				}
-				default -> {
-					throw new RuntimeException("The " + protocol + "transport layer protocol is not available");
+				boolean secureConnectionHandshakeDisabled =
+					c.get("secure-connection-handshake-disabled") != null &&
+						Boolean.parseBoolean(c.get("secure-connection-handshake-disabled"));
+				if (secureConnectionHandshakeDisabled) {
+					return socket;
+				} else {
+					boolean secureConnectionRequired = Boolean.parseBoolean(c.get("secure-connection-required"));
+					long handshakeTimeout = Long.parseLong(c.get("secure-connection-handshake-timeout"));
+					try {
+						return new SecureSocket(socket, c, handshakeTimeout, true);
+					} catch (HandshakeFailedException e) {
+						if (!secureConnectionRequired) return socket;
+						else throw e;
+					}
 				}
-			}
-			boolean secureConnectionHandshakeDisabled =
-				c.get("secure-connection-handshake-disabled") != null &&
-				Boolean.parseBoolean(c.get("secure-connection-handshake-disabled"));
-			if (secureConnectionHandshakeDisabled) {
-				return socket;
-			} else {
-				boolean secureConnectionRequired = Boolean.parseBoolean(c.get("secure-connection-required"));
-				long handshakeTimeout = Long.parseLong(c.get("secure-connection-handshake-timeout"));
-				try {
-					return new SecureSocket(socket, c, handshakeTimeout, true);
-				} catch (HandshakeFailedException e) {
-					if (!secureConnectionRequired) return socket;
-					else throw e;
-				}
-			}
-		});
+			});
+		} catch (Exception e) {
+			logger.error("Failed to establish connection", e);
+			throw e;
+		}
 	}
 
 	@Bean
 	Object lookAndFeel(Config config) throws UnsupportedLookAndFeelException, ReflectiveOperationException {
-		UIManager.setLookAndFeel(config.get("look-and-feel"));
+		String laf = config.get("look-and-feel");
+		try {
+			UIManager.setLookAndFeel(laf);
+		} catch (Exception e) {
+			logger.error("Look-and-feel {} was not set", laf, e);
+			throw e;
+		}
 		return null;
 	}
 
 	@Bean(destroyMethod = "close")
 	@Value("${rubus.workingDir}/watch_history")
 	WatchHistory watchHistory(Path watchHistoryPath) throws IOException {
-		return new WatchHistory(watchHistoryPath);
+		try {
+			return new WatchHistory(watchHistoryPath);
+		} catch (Exception e) {
+			logger.error("WatchHistory failed to instantiate, history path: {}", watchHistoryPath, e);
+			throw e;
+		}
 	}
 
 	@Bean(destroyMethod = "close")
@@ -117,7 +143,9 @@ public class RubusConfiguration {
 	}
 
 	public static void main(String[] args) {
+		logger.info("Instantiating ApplicationContext");
 		var applicationContext = new AnnotationConfigApplicationContext(RubusConfiguration.class);
+		logger.info("ApplicationContext {} instantiated", applicationContext);
 		applicationContext.registerShutdownHook();
 	}
 }

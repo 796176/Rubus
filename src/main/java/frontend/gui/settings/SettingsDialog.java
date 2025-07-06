@@ -21,6 +21,8 @@ package frontend.gui.settings;
 
 import frontend.gui.CenteredDialog;
 import frontend.gui.colors.Colors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
 import java.awt.*;
@@ -31,6 +33,8 @@ import java.awt.event.WindowEvent;
 import java.io.IOException;
 
 public class SettingsDialog extends CenteredDialog {
+
+	private final Logger logger = LoggerFactory.getLogger(SettingsDialog.class);
 
 	private JPanel currentTab;
 
@@ -79,6 +83,7 @@ public class SettingsDialog extends CenteredDialog {
 						try {
 							currentTabPanel.save();
 						} catch (IOException e) {
+							logger.warn("{} failed to save", currentTabPanel, e);
 							showIOExceptionDialog(e);
 						}
 						currentTabPanel = settingsTabs.getAssociatedTabPanel(currentTab);
@@ -94,11 +99,14 @@ public class SettingsDialog extends CenteredDialog {
 				try {
 					currentTabPanel.save();
 				} catch (IOException e) {
+					logger.warn("{} failed to save", currentTabPanel, e);
 					showIOExceptionDialog(e);
 					setVisible(false);
 				}
 			}
 		});
+
+		logger.debug("{} instantiated, Frame: {}, SettingTabs: {}", this, parent, settingsTabs);
 	}
 
 	private void showIOExceptionDialog(IOException e) {

@@ -20,15 +20,20 @@
 package frontend.gui.settings;
 
 import frontend.gui.colors.Colors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 
 public class SettingsTabs extends JPanel {
+
+	private final Logger logger = LoggerFactory.getLogger(SettingsTabs.class);
 
 	private final JPanel[] tabs;
 
@@ -56,6 +61,10 @@ public class SettingsTabs extends JPanel {
 				revalidate();
 			}
 		});
+
+		if (logger.isDebugEnabled()) {
+			logger.debug("{} instantiated, tab panels: {}", this, Arrays.toString(tabPanels));
+		}
 	}
 
 	private JPanel createTab(String label) {

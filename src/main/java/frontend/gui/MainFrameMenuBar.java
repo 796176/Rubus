@@ -19,9 +19,14 @@
 
 package frontend.gui;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import javax.swing.*;
 
 public class MainFrameMenuBar extends JMenuBar {
+
+	private final Logger logger = LoggerFactory.getLogger(MainFrameMenuBar.class);
 
 	private final JButton reloadButton;
 
@@ -49,6 +54,8 @@ public class MainFrameMenuBar extends JMenuBar {
 		aboutItem = new JMenuItem("About");
 		helpMenu.add(aboutItem);
 		add(helpMenu);
+
+		logger.debug("{} instantiated", this);
 	}
 
 	public JButton reloadButton() {
