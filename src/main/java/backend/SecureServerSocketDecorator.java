@@ -113,8 +113,9 @@ public class SecureServerSocketDecorator implements RubusServerSocket {
 			backgroundThread.start();
 		}
 		logger.debug(
-			"{} initialized, RubusServerSocket: {}, Config: {}, " +
-				"open connections limit: {}, ExecutorService: {}, handshake timeout: {}",
+			"""
+			{} instantiated, RubusServerSocket: {}, Config: {}, \
+			open connections limit: {}, ExecutorService: {}, handshake timeout: {}""",
 			this,
 			serverSocket,
 			config,
@@ -225,7 +226,7 @@ public class SecureServerSocketDecorator implements RubusServerSocket {
 	private class BackgroundThread extends Thread {
 
 		private BackgroundThread() {
-			logger.debug("{} initialized", this);
+			logger.debug("{} instantiated", this);
 		}
 
 		@Override
@@ -252,7 +253,7 @@ public class SecureServerSocketDecorator implements RubusServerSocket {
 			assert socket != null;
 
 			localSocket = socket;
-			logger.debug("{} initialized, RubusSocket: {}", this, socket);
+			logger.debug("{} instantiated, RubusSocket: {}", this, socket);
 		}
 
 		@Override

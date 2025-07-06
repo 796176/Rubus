@@ -87,10 +87,11 @@ public class RubusMedia implements Media {
 		this.audioCodec = audioEncoding;
 		this.contentPath = contentPath;
 
-		if (logger.isEnabledForLevel(Level.DEBUG)) {
+		if (logger.isDebugEnabled()) {
 			logger.debug(
-				"{} was initialized, id: {}, title: {}, video width: {}, video height: {}, duration: {}" +
-				"video encoding: {}, audio encoding: {}, video container: {}, audio container: {}, content path: {}",
+				"""
+				{} instantiated, id: {}, title: {}, video width: {}, video height: {}, duration: {} \
+				video encoding: {}, audio encoding: {}, video container: {}, audio container: {}, content path: {}""",
 				this,
 				Arrays.toString(id),
 				title,

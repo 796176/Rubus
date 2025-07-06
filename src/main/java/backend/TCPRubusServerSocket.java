@@ -51,7 +51,7 @@ public class TCPRubusServerSocket implements RubusServerSocket {
 		serverSocket = new ServerSocket();
 		serverSocket.bind(new InetSocketAddress(serverAddress, port));
 		defaultTimeout = serverSocket.getSoTimeout();
-		logger.debug("{} initialized, InetAddress: {}, listening port: {}", this, serverAddress, port);
+		logger.debug("{} instantiated, InetAddress: {}, listening port: {}", this, serverAddress, port);
 	}
 
 	@Override

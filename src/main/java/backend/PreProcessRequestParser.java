@@ -53,7 +53,7 @@ public class PreProcessRequestParser implements RequestParserStrategy {
 	private RubusRequestType type;
 
 	public PreProcessRequestParser() {
-		logger.debug("{} initialized", this);
+		logger.debug("{} instantiated", this);
 	}
 
 	@Override

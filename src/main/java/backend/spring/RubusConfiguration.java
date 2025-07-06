@@ -47,7 +47,12 @@ public class RubusConfiguration {
 	@Bean
 	@Value("${rubus.workingDir}/rubus.conf")
 	Config config(Path configPath) throws IOException {
-		return new Config(configPath).immutableConfig();
+		try {
+			return new Config(configPath).immutableConfig();
+		} catch (Exception e) {
+			logger.error("Exception occurred while parsing config file located at {}", configPath, e);
+			throw e;
+		}
 	}
 
 	@Bean
@@ -58,31 +63,34 @@ public class RubusConfiguration {
 
 	@Bean
 	RubusServerSocket rubusServerSocket(Config config, ExecutorService requestExecutorService) throws IOException {
-		String protocol = config.get("connection-protocol");
-		RubusServerSocket rubusServerSocketImpl;
-		switch (protocol) {
-			case "tcp" -> {
-				String address = config.get("bind-address");
-				int port = Integer.parseInt(config.get("listening-port"));
-				rubusServerSocketImpl = new TCPRubusServerSocket(InetAddress.getByName(address), port);
+		try {
+			String protocol = config.get("connection-protocol");
+			RubusServerSocket rubusServerSocketImpl;
+			switch (protocol) {
+				case "tcp" -> {
+					String address = config.get("bind-address");
+					int port = Integer.parseInt(config.get("listening-port"));
+					rubusServerSocketImpl = new TCPRubusServerSocket(InetAddress.getByName(address), port);
+				}
+				default -> {
+					throw new RuntimeException("The " + protocol + " protocol is not supported");
+				}
 			}
-			default -> {
-				logger.error("Protocol {} not available", protocol);
-				throw new RuntimeException("The " + protocol + " protocol is not available");
+			boolean secureConnectionHandshakeDisabled =
+				config.get("secure-connection-handshake-disabled") != null &&
+					Boolean.parseBoolean(config.get("secure-connection-handshake-disabled"));
+			if (secureConnectionHandshakeDisabled) {
+				return rubusServerSocketImpl;
+			} else {
+				int maxConnections = Integer.parseInt(config.get("open-connections-limit"));
+				long handshakeTimeout = Long.parseLong(config.get("secure-connection-handshake-timeout"));
+				return new SecureServerSocketDecorator(
+					rubusServerSocketImpl, config, maxConnections, requestExecutorService, handshakeTimeout
+				);
 			}
-		}
-		boolean secureConnectionHandshakeDisabled =
-			config.get("secure-connection-handshake-disabled") != null &&
-			Boolean.parseBoolean(config.get("secure-connection-handshake-disabled"));
-		if (secureConnectionHandshakeDisabled) {
-			return rubusServerSocketImpl;
-		}
-		else {
-			int maxConnections = Integer.parseInt(config.get("open-connections-limit"));
-			long handshakeTimeout = Long.parseLong(config.get("secure-connection-handshake-timeout"));
-			return new SecureServerSocketDecorator(
-				rubusServerSocketImpl, config, maxConnections, requestExecutorService, handshakeTimeout
-			);
+		} catch (Exception e) {
+			logger.error("Failed to instantiate server socket", e);
+			throw e;
 		}
 	}
 
@@ -141,9 +149,9 @@ public class RubusConfiguration {
 	}
 
 	public static void main(String[] args) {
-		logger.info("Initializing Application context");
+		logger.info("Instantiating Application context");
 		var applicationContext = new AnnotationConfigApplicationContext(RubusConfiguration.class);
-		logger.info("ApplicationContext {} initialized, Class: {}", applicationContext, RubusConfiguration.class);
+		logger.info("ApplicationContext {} instantiated, Class: {}", applicationContext, RubusConfiguration.class);
 		Runtime.getRuntime().addShutdownHook(new Thread(() -> {
 			logger.info("Shutting down ApplicationContext {}", applicationContext);
 			applicationContext.close();

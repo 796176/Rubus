@@ -35,7 +35,7 @@ public class RequestValueChecker {
 	private final static Logger logger = LoggerFactory.getLogger(RequestValueChecker.class);
 
 	public RequestValueChecker() {
-		logger.debug("{} initialized", this);
+		logger.debug("{} instantiated", this);
 	}
 
 	/**

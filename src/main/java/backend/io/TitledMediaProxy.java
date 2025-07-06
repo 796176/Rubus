@@ -45,9 +45,9 @@ public class TitledMediaProxy extends MediaProxy {
 		assert title != null;
 
 		this.title = title;
-		if (logger.isEnabledForLevel(Level.DEBUG)) {
+		if (logger.isDebugEnabled()) {
 			logger.debug(
-				"{} initialized, MediaPool: {}, id: {}, title: {}", this, mediaPool, Arrays.toString(mediaID), title
+				"{} instantiated, MediaPool: {}, id: {}, title: {}", this, mediaPool, Arrays.toString(mediaID), title
 			);
 		}
 	}

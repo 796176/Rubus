@@ -54,7 +54,7 @@ public class MediaPool {
 		assert jdbcTemplate != null;
 
 		this.jdbcTemplate = jdbcTemplate;
-		logger.debug("{} initialized, JdbcTemplate: {}", this, jdbcTemplate);
+		logger.debug("{} instantiated, JdbcTemplate: {}", this, jdbcTemplate);
 	}
 
 	/**

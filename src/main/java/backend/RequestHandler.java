@@ -80,11 +80,11 @@ public class RequestHandler implements Runnable {
 		parser = requestParserStrategy;
 		this.callback = callback;
 		logger.debug(
-			"{} initialized, MediaPool: {} RubusSocket: {}, RequestParserStrategy: {}, callback: {}",
+			"{} instantiated, MediaPool: {} RubusSocket: {}, RequestParserStrategy: {}, callback: {}",
 			this,
 			mediaPool,
 			socket,
-			parser,
+			requestParserStrategy,
 			callback
 		);
 	}
@@ -314,7 +314,7 @@ public class RequestHandler implements Runnable {
 
 			this.executionStatus = executionStatus;
 			e = exception;
-			logger.debug("{} initialized, ExecutionStatus: {}, Exception: ", this, executionStatus, exception);
+			logger.debug("{} instantiated, ExecutionStatus: {}, Exception: ", this, executionStatus, exception);
 		}
 
 		/**
