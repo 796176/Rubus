@@ -52,11 +52,7 @@ public class TCPRubusSocket implements RubusSocket{
 	 * @throws IOException if some I/O error occurs
 	 */
 	public TCPRubusSocket(InetAddress inetAddress, int port) throws IOException {
-		assert inetAddress != null && port >= 0 && port < (1 << 16);
-
-		underlyingSocket = new Socket(inetAddress, port);
-		oTime = System.currentTimeMillis();
-		defaultTimeout = underlyingSocket.getSoTimeout();
+		this(new Socket(inetAddress, port), System.currentTimeMillis());
 	}
 
 	/**
