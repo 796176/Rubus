@@ -66,7 +66,7 @@ public class SocketManager implements AutoCloseable {
 		executorService = requestExecutorService;
 		this.requestParserStrategy = requestParserStrategy;
 		logger.debug(
-			"{} initialized, MediaPool: {}, ExecutorService: {}, RequestParserStrategy: {}",
+			"{} instantiated, MediaPool: {}, ExecutorService: {}, RequestParserStrategy: {}",
 			this,
 			mediaPool,
 			executorService,

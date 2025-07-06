@@ -34,7 +34,7 @@ public class StandardRequestParser implements RequestParserStrategy {
 	private String request;
 
 	public StandardRequestParser() {
-		logger.debug("{} initialized", this);
+		logger.debug("{} instantiated", this);
 	}
 
 	@Override

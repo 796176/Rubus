@@ -20,12 +20,16 @@
 package frontend.gui.settings;
 
 import common.Config;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
 import java.awt.*;
 import java.io.IOException;
 
 public class GeneralTabPanel extends TabPanel {
+
+	private final Logger logger = LoggerFactory.getLogger(GeneralTabPanel.class);
 
 	private final JComboBox<String> languageCB;
 
@@ -73,6 +77,8 @@ public class GeneralTabPanel extends TabPanel {
 		constraints.gridheight = GridBagConstraints.REMAINDER;
 		bagLayout.setConstraints(c, constraints);
 		add(c);
+
+		logger.debug("{} instantiated, Config: {}", this, config);
 	}
 
 	@Override

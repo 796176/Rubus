@@ -19,12 +19,22 @@
 
 package frontend.gui.colors;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.awt.*;
 
 /**
  * A concrete implementation of {@link Colors} for the com.formdev.flatlaf.FlatLightLaf look-and-feel.
  */
 public class FlatLightLaf implements Colors {
+
+	private final Logger logger = LoggerFactory.getLogger(FlatLightLaf.class);
+
+	public FlatLightLaf() {
+		logger.debug("{} instantiated", this);
+	}
+
 	@Override
 	public Color settingsTab() {
 		return new Color(0xD8D8D8);

@@ -54,8 +54,8 @@ public abstract class MediaProxy implements Media {
 
 		this.mediaPool = mediaPool;
 		id = mediaID;
-		if (logger.isEnabledForLevel(Level.DEBUG)) {
-			logger.debug("{} initialized, MediaPool: {}, id: {}", this, mediaPool, Arrays.toString(mediaID));
+		if (logger.isDebugEnabled()) {
+			logger.debug("{} instantiated, MediaPool: {}, id: {}", this, mediaPool, Arrays.toString(mediaID));
 		}
 	}
 	

@@ -21,12 +21,16 @@ package frontend.gui.settings;
 
 import common.Config;
 import frontend.WatchHistory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
 import java.awt.*;
 import java.io.IOException;
 
 public class ConnectionTabPanel extends TabPanel {
+
+	private final Logger logger = LoggerFactory.getLogger(ConnectionTabPanel.class);
 
 	private final Config config;
 
@@ -129,6 +133,8 @@ public class ConnectionTabPanel extends TabPanel {
 		constraints.weighty = 1;
 		bagLayout.setConstraints(rigidArea, constraints);
 		add(rigidArea);
+
+		logger.debug("{} instantiated, Config: {}, WatchHistory: {}", this, config, watchHistory);
 	}
 
 	@Override

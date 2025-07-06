@@ -20,6 +20,8 @@
 package frontend;
 
 import common.AudioException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.sound.sampled.*;
 import java.util.NoSuchElementException;
@@ -30,6 +32,8 @@ import java.util.concurrent.ConcurrentLinkedQueue;
  * AudioPlayer starts a separated thread which retrieves the audio pieces from the buffer and plays them.
  */
 public class AudioPlayer implements Runnable, AudioPlayerInterface {
+
+	private final Logger logger = LoggerFactory.getLogger(AudioPlayer.class);
 
 	private SourceDataLine audioOutput = null;
 
@@ -68,8 +72,11 @@ public class AudioPlayer implements Runnable, AudioPlayerInterface {
 			Thread thread = new Thread(this);
 			thread.start();
 		} catch (Exception e) {
+			logger.info("{} failed to instantiate", this, e);
 			if (handler != null) handler.handleException(new AudioException(e.getMessage()));
 		}
+
+		logger.debug("{} instantiated, AudioFormat: {}, ExceptionHandler: {}", this, audioFormat, handler);
 	}
 
 	/**
@@ -108,6 +115,7 @@ public class AudioPlayer implements Runnable, AudioPlayerInterface {
 				audioQueue.remove();
 			} catch (NoSuchElementException ignored) {}
 			catch (Exception e) {
+				logger.info("{} encountered exception", this, e);
 				if (handler != null) handler.handleException(new AudioException(e.getMessage()));
 			}
 		}
@@ -150,5 +158,7 @@ public class AudioPlayer implements Runnable, AudioPlayerInterface {
 		isTerminated = true;
 		purge();
 		audioOutput.close();
+
+		logger.debug("{} terminated", this);
 	}
 }

@@ -20,12 +20,16 @@
 package frontend.gui.settings;
 
 import common.Config;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
 import java.awt.*;
 import java.io.IOException;
 
 public class PlayerTabPanel extends TabPanel {
+
+	private final Logger logger = LoggerFactory.getLogger(PlayerTabPanel.class);
 
 	private final Config config;
 
@@ -77,6 +81,8 @@ public class PlayerTabPanel extends TabPanel {
 		constraints.gridheight = GridBagConstraints.REMAINDER;
 		bagLayout.setConstraints(rigidArea, constraints);
 		add(rigidArea);
+
+		logger.debug("{} instantiated, Config: {}", this, config);
 	}
 
 	@Override

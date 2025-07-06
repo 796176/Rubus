@@ -23,6 +23,8 @@ import common.net.response.body.MediaList;
 import frontend.WatchHistory;
 import frontend.gui.MainFrame;
 import frontend.gui.colors.Colors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
 import java.awt.*;
@@ -30,6 +32,8 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
 public class MediaListPanel extends JPanel {
+
+	private final Logger logger = LoggerFactory.getLogger(MediaListPanel.class);
 
 	private final WatchHistory wh;
 
@@ -74,6 +78,15 @@ public class MediaListPanel extends JPanel {
 			add(mediaPanel);
 			add(Box.createRigidArea(new Dimension(0, 10)));
 		}
+
+		logger.debug(
+			"{} instantiated, MediaSearchDialog: {}, MainFrame: {}, MediaList: {}, WatchHistory: {}",
+			this,
+			mediaSearchDialog,
+			mainFrame,
+			list,
+			watchHistory
+		);
 	}
 
 	private JPanel createMediaPanel(String title, String id) {

@@ -19,6 +19,9 @@
 
 package frontend.gui;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import javax.swing.*;
 import java.awt.*;
 
@@ -26,6 +29,9 @@ import java.awt.*;
  * CenteredDialog is meant to be subclassed by other gui dialogs if they need to be centered relative to their parent.
  */
 public abstract class CenteredDialog extends JDialog {
+
+	private final Logger logger = LoggerFactory.getLogger(CenteredDialog.class);
+
 	public CenteredDialog(Frame parent, String title, boolean modal, int width, int height) {
 		super(parent, title, modal);
 		assert parent != null && width > 0 && height > 0;
@@ -34,6 +40,16 @@ public abstract class CenteredDialog extends JDialog {
 		setBounds(
 			parentBounds.x + (parentBounds.width - width) / 2,
 			parentBounds.y + (parentBounds.height - height) / 2,
+			width,
+			height
+		);
+
+		logger.debug(
+			"{} instantiated, Frame: {}, title: {}, is modal: {}, width: {}, height: {}",
+			this,
+			parent,
+			title,
+			modal,
 			width,
 			height
 		);

@@ -21,6 +21,8 @@ package frontend;
 
 import common.RubusSocket;
 import common.RubusSockets;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.SocketTimeoutException;
@@ -31,6 +33,8 @@ import java.util.function.Supplier;
  * RubusClient is an auxiliary class designed to simplify sending rubus requests and receiving rubus responses.
  */
 public class RubusClient implements AutoCloseable {
+
+	private final Logger logger = LoggerFactory.getLogger(RubusClient.class);
 
 	private RubusSocket socket;
 
@@ -45,6 +49,8 @@ public class RubusClient implements AutoCloseable {
 
 		setSocketSupplier(socketSupplier);
 		socket = socketSupplier.get();
+
+		logger.debug("{} instantiated, Supplier: {}", this, socketSupplier);
 	}
 
 	/**
@@ -111,6 +117,8 @@ public class RubusClient implements AutoCloseable {
 	@Override
 	public void close() throws IOException {
 		socket.close();
+
+		logger.debug("{} closed", this);
 	}
 }
 

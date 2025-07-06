@@ -19,6 +19,9 @@
 
 package frontend;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 
 /**
@@ -27,6 +30,8 @@ import java.io.IOException;
  * saved to the watch history file by delegating the process to the {@link WatchHistory} class.
  */
 public class WatchHistoryRecorder implements Observer {
+
+	private final Logger logger = LoggerFactory.getLogger(WatchHistoryRecorder.class);
 
 	private String id;
 
@@ -44,6 +49,14 @@ public class WatchHistoryRecorder implements Observer {
 		setWatchHistory(watchHistory);
 		setMediaId(mediaId);
 		setExceptionHandler(exceptionHandler);
+
+		logger.debug(
+			"{} instantiated, WatchHistory: {}, media id: {}, ExceptionHandler: {}",
+			this,
+			watchHistory,
+			mediaId,
+			exceptionHandler
+		);
 	}
 
 	/**
@@ -62,6 +75,7 @@ public class WatchHistoryRecorder implements Observer {
 				wh.setProgress(id, pi.getProgress());
 			}
 		} catch (IOException e) {
+			logger.info("{} failed to update progress", wh, e);
 			handler.handleException(e);
 		}
 	}

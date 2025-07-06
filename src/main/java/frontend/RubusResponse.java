@@ -23,6 +23,8 @@ import common.net.response.RubusResponseType;
 import common.net.response.body.FetchedPieces;
 import common.net.response.body.MediaInfo;
 import common.net.response.body.MediaList;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -32,6 +34,8 @@ import java.io.ObjectInputStream;
  * RubusResponse is an auxiliary class designed to simplify response parsing.
  */
 public class RubusResponse {
+
+	private final Logger logger = LoggerFactory.getLogger(RubusResponse.class);
 
 	private final RubusResponseType responseType;
 	private final int bodyIndex;
@@ -54,6 +58,8 @@ public class RubusResponse {
 		responseMsg = msg;
 
 		bodyIndex = index + 1;
+
+		logger.debug("{} instantiated, response size: {}", this, response.length);
 	}
 
 	/**

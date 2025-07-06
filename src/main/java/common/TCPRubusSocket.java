@@ -19,6 +19,9 @@
 
 package common;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.Socket;
@@ -28,6 +31,8 @@ import java.net.Socket;
  * protocol, so it guarantees that the sent packets arrive and do so in the same order they were sent.
  */
 public class TCPRubusSocket implements RubusSocket{
+
+	private final Logger logger = LoggerFactory.getLogger(TCPRubusSocket.class);
 
 	private final long oTime;
 
@@ -47,11 +52,7 @@ public class TCPRubusSocket implements RubusSocket{
 	 * @throws IOException if some I/O error occurs
 	 */
 	public TCPRubusSocket(InetAddress inetAddress, int port) throws IOException {
-		assert inetAddress != null && port >= 0 && port < (1 << 16);
-
-		underlyingSocket = new Socket(inetAddress, port);
-		oTime = System.currentTimeMillis();
-		defaultTimeout = underlyingSocket.getSoTimeout();
+		this(new Socket(inetAddress, port), System.currentTimeMillis());
 	}
 
 	/**
@@ -66,12 +67,16 @@ public class TCPRubusSocket implements RubusSocket{
 		underlyingSocket = socket;
 		this.oTime = openTime;
 		defaultTimeout = socket.getSoTimeout();
+
+		logger.debug("{} instantiated, Socket: {}, open time: {}", this, socket, openTime);
 	}
 
 	@Override
 	public void close() throws IOException {
 		underlyingSocket.close();
 		cTime = System.currentTimeMillis();
+
+		logger.debug("{} closed", this);
 	}
 
 	@Override
@@ -85,6 +90,9 @@ public class TCPRubusSocket implements RubusSocket{
 	public int read(byte[] in) throws IOException {
 		int byteRead = underlyingSocket.getInputStream().read(in);
 		rTime = System.currentTimeMillis();
+
+		logger.debug("{} read {} bytes into buffer of {} size", this, byteRead, in.length);
+
 		return byteRead;
 	}
 
@@ -93,6 +101,9 @@ public class TCPRubusSocket implements RubusSocket{
 		underlyingSocket.setSoTimeout((int) timeout);
 		int	byteRead = read(in);
 		underlyingSocket.setSoTimeout(defaultTimeout);
+
+		logger.debug("{} read {} bytes into buffer of {} size", this, byteRead, in.length);
+
 		return byteRead;
 	}
 
@@ -100,6 +111,16 @@ public class TCPRubusSocket implements RubusSocket{
 	public int read(byte[] in, int offset, int length) throws IOException {
 		int byteRead = underlyingSocket.getInputStream().read(in, offset, length);
 		rTime = System.currentTimeMillis();
+
+		logger.debug(
+			"{} read {} bytes into buffer of {} size with {} buffer offset and {} available length ",
+			this,
+			byteRead,
+			in.length,
+			offset,
+			length
+		);
+
 		return byteRead;
 	}
 
@@ -108,6 +129,16 @@ public class TCPRubusSocket implements RubusSocket{
 		underlyingSocket.setSoTimeout((int) timeout);
 		int byteRead = underlyingSocket.getInputStream().read(in, offset, length);
 		underlyingSocket.setSoTimeout(defaultTimeout);
+
+		logger.debug(
+			"{} read {} bytes into buffer of size {} with buffer offset {} and available length {}",
+			this,
+			byteRead,
+			in.length,
+			offset,
+			length
+		);
+
 		return byteRead;
 	}
 
@@ -115,12 +146,22 @@ public class TCPRubusSocket implements RubusSocket{
 	public void write(byte[] out) throws IOException {
 		underlyingSocket.getOutputStream().write(out);
 		sTime = System.currentTimeMillis();
+
+		logger.debug("{} wrote buffer of {} size", this, out.length);
 	}
 
 	@Override
 	public void write(byte[] out, int offset, int length) throws IOException {
 		underlyingSocket.getOutputStream().write(out, offset, length);
 		sTime = System.currentTimeMillis();
+
+		logger.debug(
+			"{} wrote buffer of {} size with {} buffer offset and {} length",
+			this,
+			out.length,
+			offset,
+			length
+		);
 	}
 
 	@Override

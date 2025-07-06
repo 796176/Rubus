@@ -21,6 +21,8 @@ package common.ssl;
 
 import common.Config;
 import common.RubusSocket;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.crypto.*;
 import javax.crypto.spec.IvParameterSpec;
@@ -80,6 +82,8 @@ import java.util.concurrent.*;
  * the TODO list but it's not a priority.
  */
 public class SecureSocket implements RubusSocket {
+
+	private final Logger logger = LoggerFactory.getLogger(SecureSocket.class);
 
 	private final static int LENGTH_FIELD_SIZE = 4;
 
@@ -170,6 +174,15 @@ public class SecureSocket implements RubusSocket {
 			throw new RuntimeException(e);
 		}
 		this.socket = socket;
+
+		logger.debug(
+			"{} instantiated, Socket: {}, Config: {}, handshake timeout: {}, handshake initiator: {}",
+			this,
+			socket,
+			config,
+			handshakeTimeout,
+			handshakeInitiator
+		);
 	}
 
 	/**
@@ -199,11 +212,15 @@ public class SecureSocket implements RubusSocket {
 	@Override
 	public void close() throws IOException {
 		socket.close();
+
+		logger.debug("{} closed", this);
 	}
 
 	@Override
 	public void close(long timeout) throws IOException {
 		socket.close(timeout);
+
+		logger.debug("{} closed", this);
 	}
 
 	/**
@@ -305,6 +322,18 @@ public class SecureSocket implements RubusSocket {
 				remainderLength = originalMesLength;
 			}
 			rTime = System.currentTimeMillis();
+
+			logger.debug(
+				"""
+				{} read encrypted payload of {} size and decrypted it \
+				into buffer of {} size with {} buffer offset and {} available length""",
+				this,
+				encryptedMes.length,
+				in.length,
+				offset,
+				length
+			);
+
 			return byteCopied;
 		} catch (GeneralSecurityException e) {
 			throw new RuntimeException(e);
@@ -339,6 +368,8 @@ public class SecureSocket implements RubusSocket {
 			byte[] iv = cipher.getIV();
 			sendMessage(socket, iv, encryptedPayload1, encryptedPayload2);
 			sTime = System.currentTimeMillis();
+
+			logger.debug("{} encrypted payload and wrote it", this);
 		} catch (GeneralSecurityException e) {
 			throw new RuntimeException(e);
 		}

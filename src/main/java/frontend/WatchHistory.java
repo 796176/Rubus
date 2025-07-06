@@ -19,6 +19,9 @@
 
 package frontend;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.Closeable;
 import java.io.IOException;
 import java.io.RandomAccessFile;
@@ -36,6 +39,8 @@ import java.util.regex.Pattern;
  * Thread safety is achieved by acquiring a lock on this object before calling any method.
  */
 public class WatchHistory implements Closeable {
+
+	private final Logger logger = LoggerFactory.getLogger(WatchHistory.class);
 
 	private final Path watchHistoryPath;
 
@@ -55,6 +60,8 @@ public class WatchHistory implements Closeable {
 		this.watchHistoryPath = watchHistoryPath;
 		raf = new RandomAccessFile(watchHistoryPath.toFile(), "rw");
 		watchHistory = Files.readString(watchHistoryPath);
+
+		logger.debug("{} instantiated, Path: {}", this, watchHistoryPath);
 	}
 
 	/**
@@ -114,6 +121,8 @@ public class WatchHistory implements Closeable {
 		Files.delete(watchHistoryPath);
 		raf = new RandomAccessFile(watchHistoryPath.toFile(), "rw");
 		watchHistory = "";
+
+		logger.info("{} purged {}", this, watchHistoryPath);
 	}
 
 	/**
@@ -123,5 +132,7 @@ public class WatchHistory implements Closeable {
 	@Override
 	public synchronized void close() throws IOException {
 		raf.close();
+
+		logger.debug("{} closed", this);
 	}
 }

@@ -19,6 +19,8 @@
 
 package frontend.gui.colors;
 
+import org.slf4j.LoggerFactory;
+
 import javax.swing.*;
 import java.awt.*;
 
@@ -63,7 +65,10 @@ public interface Colors {
 		switch (laf) {
 			case "com.formdev.flatlaf.FlatDarkLaf" -> { return new FlatDarkLaf(); }
 			case "com.formdev.flatlaf.FlatLightLaf" -> { return new FlatLightLaf(); }
-			default -> throw new RuntimeException("The " + laf + "look-and-feel is not supported");
+			default -> {
+				LoggerFactory.getLogger(Colors.class).error("{} doesn't support {}", Colors.class, laf);
+				throw new RuntimeException("The " + laf + "look-and-feel is not supported");
+			}
 		}
 	}
 }

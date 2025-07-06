@@ -53,7 +53,7 @@ public class RubusServer extends Thread implements AutoCloseable {
 		manager = socketManager;
 		this.connectionLimit = openConnectionLimit;
 		logger.debug(
-			"{} initialized, SocketManager: {}, RubusServerSocket: {}, open connections limit {}",
+			"{} instantiated, SocketManager: {}, RubusServerSocket: {}, open connections limit {}",
 			this,
 			socketManager,
 			rubusServerSocket,

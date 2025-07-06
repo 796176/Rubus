@@ -24,6 +24,8 @@ import common.net.FetchingException;
 import common.net.RubusException;
 import common.net.response.RubusResponseType;
 import common.net.response.body.FetchedPieces;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -36,6 +38,8 @@ import java.util.function.Supplier;
  * the video, or the object that handles the network exceptions.
  */
 public class FetchController implements Observer, AutoCloseable {
+
+	private final Logger logger = LoggerFactory.getLogger(FetchController.class);
 
 	private Supplier<RubusSocket> socketSupplier;
 
@@ -64,6 +68,15 @@ public class FetchController implements Observer, AutoCloseable {
 		setSocketSupplier(socketSupplier);
 		setMediaId(mediaId);
 		rubusClient = new RubusClient(socketSupplier);
+
+		logger.debug(
+			"{} instantiated, Supplier: {}, media id: {}, buffer size: {}, minimum batch size: {}",
+			this,
+			socketSupplier,
+			mediaId,
+			bufferSize,
+			minimumBatchSize
+		);
 	}
 
 	// To future me,
@@ -194,6 +207,8 @@ public class FetchController implements Observer, AutoCloseable {
 	@Override
 	public void close() throws IOException {
 		rubusClient.close();
+
+		logger.debug("{} closed", this);
 	}
 
 	/**
@@ -213,6 +228,8 @@ public class FetchController implements Observer, AutoCloseable {
 
 	private class BackgroundFetch extends Thread {
 
+		private final Logger logger = LoggerFactory.getLogger(BackgroundFetch.class);
+
 		private volatile boolean isInterrupted = false;
 
 		private final PlayerInterface player;
@@ -229,6 +246,14 @@ public class FetchController implements Observer, AutoCloseable {
 			player = playerInterface;
 			this.startingPlaybackPiece = startingPlaybackPiece;
 			this.totalPlaybackPieces = totalPlaybackPieces;
+
+			logger.debug(
+				"{} instantiated, PlayerInterface: {}, starting playback piece: {}, total playback pieces: {}",
+				this,
+				playerInterface,
+				startingPlaybackPiece,
+				totalPlaybackPieces
+			);
 		}
 
 		public int getStartingPlaybackPiece() {
@@ -263,8 +288,10 @@ public class FetchController implements Observer, AutoCloseable {
 					player.sendNotification();
 				}
 			} catch (RubusException e) {
+				logger.info("{} failed to fetch result from server", this, e);
 				if (handler != null) handler.handleException(e);
 			} catch (Exception e) {
+				logger.info("{} failed to fetch result from server", this, e);
 				if (handler != null) handler.handleException(new FetchingException(e.getMessage()));
 			}
 		}

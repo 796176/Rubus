@@ -19,12 +19,16 @@
 
 package common;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.ByteChannel;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
+import java.util.Arrays;
 import java.util.Map;
 import java.util.NavigableMap;
 import java.util.TreeMap;
@@ -56,6 +60,8 @@ public class Config {
 		T apply(Config c) throws E;
 	}
 
+	private final Logger logger = LoggerFactory.getLogger(Config.class);
+
 	private final Path configPath;
 
 	private final NavigableMap<String, String> params = new TreeMap<>();
@@ -86,10 +92,14 @@ public class Config {
 			lastLFChar = nextLFChar;
 			nextLFChar = configData.indexOf('\n', lastLFChar + 1);
 		}
+
+		logger.debug("{} instantiated, Path: {}", this, configPath);
 	}
 
 	private Config() {
 		configPath = null;
+
+		logger.debug("{} instantiated with no config path", this);
 	}
 
 	/**
@@ -193,6 +203,8 @@ public class Config {
 				wbc.write(ByteBuffer.wrap((entry.getKey() + " " + entry.getValue() + "\n").getBytes()));
 				entry = params.higherEntry(entry.getKey());
 			}
+
+			logger.debug("{}'s content is written to {}", this, dest);
 		}
 	}
 
@@ -214,6 +226,8 @@ public class Config {
 
 	private static class ImmutableConfig extends Config {
 
+		private final Logger logger = LoggerFactory.getLogger(ImmutableConfig.class);
+
 		private final NavigableMap<String, String> params;
 
 		private final Path configPath;
@@ -223,6 +237,16 @@ public class Config {
 
 			this.configPath = configPath;
 			params = navigableMap;
+
+			if (logger.isDebugEnabled()) {
+				String[] fields =
+					navigableMap
+						.entrySet()
+						.stream()
+						.map(entry-> entry.getKey() + ": " + entry.getValue())
+						.toArray(String[]::new);
+				logger.debug("{} instantiated, Path: {}, fields: {}", this, configPath, Arrays.toString(fields));
+			}
 		}
 
 		@Override

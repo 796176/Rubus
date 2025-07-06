@@ -19,6 +19,9 @@
 
 package frontend.decoders;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.awt.*;
 import java.util.HashMap;
 import java.util.Map;
@@ -54,6 +57,7 @@ public class FfmpegJniVideoDecoder extends VideoDecoder {
 
 	private native void freeContext(long contextAddress, int contextType);
 
+	private final Logger logger = LoggerFactory.getLogger(FfmpegJniVideoDecoder.class);
 
 	private final Map<Integer, Future<DecodedFrames>> decodingStatuses = new HashMap<>();
 
@@ -62,6 +66,10 @@ public class FfmpegJniVideoDecoder extends VideoDecoder {
 	private Future<Decoder.StreamContext> streamContextFuture = null;
 
 	private LocalContext localContext = null;
+
+	public FfmpegJniVideoDecoder() {
+		logger.debug("{} instantiated", this);
+	}
 
 	@Override
 	public void startDecodingOfAllFrames(int id, StreamContext streamContext, byte[] media) {
@@ -266,9 +274,13 @@ public class FfmpegJniVideoDecoder extends VideoDecoder {
 	public void close() throws Exception {
 		executorService.shutdown();
 		executorService.awaitTermination(Long.MAX_VALUE, TimeUnit.MILLISECONDS);
+
+		logger.debug("{} closed", this);
 	}
 
 	private class StreamContextImpl implements StreamContext {
+
+		private final Logger logger = LoggerFactory.getLogger(StreamContextImpl.class);
 
 		private final long memoryAddress;
 
@@ -280,6 +292,8 @@ public class FfmpegJniVideoDecoder extends VideoDecoder {
 
 		private StreamContextImpl(long memoryAddress) {
 			this.memoryAddress = memoryAddress;
+
+			logger.debug("{} instantiated, memory address: {}", this, memoryAddress);
 		}
 
 		@Override
@@ -287,6 +301,8 @@ public class FfmpegJniVideoDecoder extends VideoDecoder {
 			if (isClosed()) return;
 			freeContext(getStreamContextMemoryAddress(), 0);
 			isClosed = true;
+
+			logger.debug("{} closed", this);
 		}
 
 		@Override
@@ -297,12 +313,16 @@ public class FfmpegJniVideoDecoder extends VideoDecoder {
 
 	private class LocalContextImpl implements LocalContext {
 
+		private final Logger logger = LoggerFactory.getLogger(LocalContextImpl.class);
+
 		private final StreamContext streamContext;
 
 		private LocalContextImpl(StreamContextImpl streamContext) {
 			assert streamContext != null;
 
 			this.streamContext = streamContext;
+
+			logger.debug("{} instantiated, StreamContext: {}", this, streamContext);
 		}
 
 		@Override
