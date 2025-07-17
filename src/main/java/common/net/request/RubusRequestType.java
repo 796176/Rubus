@@ -20,7 +20,7 @@
 package common.net.request;
 
 /**
- * Every request message needs to be one of the following types.
+ * RubusRequestType defines types of Rubus request messages.
  */
 public enum RubusRequestType {
 
@@ -30,7 +30,7 @@ public enum RubusRequestType {
 	LIST,
 
 	/**
-	 * The INFO type requests the meta-information of the specified media.
+	 * The INFO type requests the media-specific information..
 	 */
 	INFO,
 

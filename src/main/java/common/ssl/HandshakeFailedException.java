@@ -22,7 +22,7 @@ package common.ssl;
 import java.io.IOException;
 
 /**
- * This exception is thrown by {@link SecureSocket} when one or both peers don't support a secure connection.
+ * This exception is thrown by {@link SecureSocket} when one or both peers don't support secure connection.
  */
 public class HandshakeFailedException extends IOException {
 

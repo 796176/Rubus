@@ -33,16 +33,13 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 
 /**
- * SecureServerSocketDecorator is designed to augment an instance of {@link RubusServerSocket} by establishing secure
- * connections on sockets returned by the accept methods. The reasoning behind creating this class was (1) to delegate
- * secure connection establishing to this class and not to the underlying {@link RubusServerSocket} or the client
- * and (2) to allow establishing multiple ssl handshakes at a time. The implementation of the latter is achieved by
- * continuous establishing regular connections and performing handshakes in separate threads.<br<br>
- *
- * The client may have a limit on the amount of established connections, and this class won't go over this limit if
- * their limits are the same. It's achieved by SecureServerSocketDecorator storing references to every socket even ones
- * it already passed to the client. So if the client closes one of its sockets, SecureServerSocketDecorator sees it and
- * allows itself to establish a new connection if before that the limit had been reached.
+ * SecureServerSocketDecorator performs a secure handshake for every instance of {@link RubusSocket} returned by
+ * the underlying {@link RubusServerSocket}. If both client and server sockets support secure connection, the returned
+ * socket is an instance of {@link SecureSocket}; if only one socket supports secure connection and both client and
+ * socket allow for unsecure connection, the returned socket is the same instance returned by the underlying
+ * RubusServerSocket; otherwise, the connection is not established.<br>
+ * In order to perform a secure handshake, the client socket needs to be passed to a {@link SecureSocket} constructor
+ * and specify that this SecureSocket is a handshake initiator.<br>
  */
 public class SecureServerSocketDecorator implements RubusServerSocket {
 
@@ -71,18 +68,12 @@ public class SecureServerSocketDecorator implements RubusServerSocket {
 	private ExecutorService executorService;
 
 	/**
-	 * Constructs an instance of this class and immediately starts accepting new sockets and establishing secure
-	 * connections. openConnectionsLimit sets a limit of how many secure connections SecureServerSocketDecorator can
-	 * keep open at a time; setting it to zero means secure connections will be established one at a time in the same
-	 * thread and SecureServerSocketDecorator won't store references to sockets as well; this significantly worsens
-	 * the performance so it's intended for debugging only. handshakeExecutorService is responsible for performing
-	 * handshakes. handshakeTimeout is a timeout of the handshake. The config instance must contain
-	 * the "secure-connection-required" value to determine if unsecure connections are allowed.
-	 * @param serverSocket the instance of RubusServerSocket that establishes actual connections
-	 * @param config the config containing the necessary values
-	 * @param openConnectionsLimit the limit of how many connections this SecureServerSocketDecorator can keep open
-	 * @param handshakeExecutorService the execution service that performs handshakes
-	 * @param handshakeTimeout the handshake timeout in milliseconds
+	 * Constructs an instance of this class.
+	 * @param serverSocket the underlying instance of RubusServerSocket
+	 * @param config the config containing the necessary fields to perform secure handshakes
+	 * @param openConnectionsLimit limits the number of open sockets
+	 * @param handshakeExecutorService the execution service that performs secure handshakes
+	 * @param handshakeTimeout the handshake timeout in milliseconds, or 0 to wait indefinitely
 	 */
 	public SecureServerSocketDecorator(
 		RubusServerSocket serverSocket,

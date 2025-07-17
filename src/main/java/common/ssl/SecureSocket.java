@@ -42,13 +42,11 @@ import java.util.Base64;
 import java.util.concurrent.*;
 
 /**
- * SecureSocket class provides transparent encryption of all the data it sends as well as transparent decryption of
- * all the data it receives. The decorator pattern is the core design of this class allowing it to use any instance of
- * {@link RubusSocket} as its underlying socket. The secure connection is established by performing a handshake where
- * 2 hosts exchange the necessary data to generate a symmetric key they use to encrypt and decrypt payloads and a key to
- * generate MAC for payload verification. After the handshake is performed 2 hosts can securely exchange messages
- * between each other.<br><br>
- *
+ * SecureSocket provides an encryption layer over an unencrypted connection.<br>
+ * Two {@link RubusSocket} peer sockets are passed to one of the constructors, where only one instance needs to
+ * a handshake negotiator ( for consistency reasons it's the client socket ). The handshake happens during
+ * the instantiation, and after both instances of SecureSocket are instantiated secure connection is
+ * established.<br><br>
  *
  * The message format of SecureSocket:
  * <pre>
@@ -70,14 +68,14 @@ import java.util.concurrent.*;
  * </pre>
  *
  * Note: the current implementation contains severe security issues:<br>
- * 1. The authenticity of the certificate isn't checked by the client socket<br>
- * 2. The mac uses the outdated hashing protocol<br>
- * 3. The client and the server use the same key to decrypt messages they send to each other<br>
- * 4. The client and the server use the same key to compute mac results<br>
- * 5. The message format doesn't support sequential numbers<br>
- * 6. The integrity of the handshake isn't checked<br>
- * 7. There is no way to generate a new symmetric key without closing the current sockets<br>
- * 8. Hello message don't use nonce making it vulnerable to replay attacks<br>
+ * 1. The authenticity of the certificate isn't checked by the handshake initiator.<br>
+ * 2. The MAC function uses an outdated hashing protocol.<br>
+ * 3. Both peers use the same key to encrypt messages they send to each other.<br>
+ * 4. Both peers use the same key to compute MAC.<br>
+ * 5. The message format doesn't contain sequential numbers.<br>
+ * 6. The integrity of the handshake messages isn't checked.<br>
+ * 7. The same symmetric key is used throughout the connection.<br>
+ * 8. The Hello message doesn't use a nonce, thus making it vulnerable to replay attacks.<br>
  * Improving the current implementation and switching from javax.crypto to modern cryptography libraries is on
  * the TODO list but it's not a priority.
  */
@@ -122,24 +120,19 @@ public class SecureSocket implements RubusSocket {
 	private final boolean scSupported;
 
 	/**
-	 * Constructs an instance of this class and performs the handshake. If this socket is a handshake initiator, the
-	 * handshake starts by sending the hello message. If this socket is not a handshake initiator, it waits to receive
-	 * the hello message. If the handshake isn't done within the specified time, the constructor throws
-	 * {@link InterruptedException} and closes the socket.<br>
-	 * During the construction, this SecureSocket is looking for the "secure-connection-enabled" value in the config.
-	 * If this socket doesn't initiate a handshake it also looks for the "certificate-location" and
-	 * "private-key-location" values.<br>
-	 * If this socket or/and the peer socket don't support a secure connection, the construction fails by throwing
-	 * {@link HandshakeFailedException}.
+	 * Constructs an instance of this class and performs a secure handshake. If this socket is a handshake initiator,
+	 * the handshake starts by sending the hello message. If this socket is not a handshake initiator, it waits for
+	 * the hello message. If the handshake isn't completed within the specified time the constructor closes
+	 * the underlying socket.<br>
 	 * @param socket the instance of {@link RubusSocket}
-	 * @param config the config containing the necessary values
-	 * @param handshakeTimeout the timeout in milliseconds to establish a secure connection, or 0 to wait indefinitely
+	 * @param config the config containing the necessary values to perform a secure handshake
+	 * @param handshakeTimeout the timeout in milliseconds to perform a secure handshake, or 0 to wait indefinitely
 	 * @param handshakeInitiator specifies if this socket is a handshake initiator
 	 * @throws IOException if some I/O error occurs
-	 * @throws SocketTimeoutException if the secure connection wasn't established within the specified time
-	 * @throws InterruptedException if the handshake was interrupted
+	 * @throws SocketTimeoutException if the handshake isn't completed within the specified time
+	 * @throws InterruptedException if the handshake has been interrupted
 	 * @throws HandshakeFailedException if this socket or/and the peer socket don't support secure connection
-	 * @throws CorruptedSSLMessageException if some handshake massages were tampered
+	 * @throws CorruptedSSLMessageException if some handshake messages have been tampered
 	 */
 	public SecureSocket(
 		RubusSocket socket, Config config, long handshakeTimeout, boolean handshakeInitiator
@@ -186,22 +179,17 @@ public class SecureSocket implements RubusSocket {
 	}
 
 	/**
-	 * Constructs an instance of this class and performs the handshake. If this socket is a handshake initiator, the
-	 * handshake starts by sending the hello message. If this socket is not a handshake initiator, it waits to receive
-	 * the hello message. Both peers wait indefinitely to establish a secure connection<br>
-	 * During the construction, this SecureSocket is looking for the "secure-connection-enabled" value in the config.
-	 * If this socket doesn't initiate a handshake it also looks for the "certificate-location" and
-	 * "private-key-location" values.<br>
-	 * If this socket or/and the peer socket don't support a secure connection, the construction fails by throwing
-	 * {@link HandshakeFailedException}.
+	 * Constructs an instance of this class and performs a secure handshake. If this socket is a handshake initiator,
+	 * the handshake starts by sending the hello message. If this socket is not a handshake initiator, it waits for
+	 * the hello message. Both peers wait indefinitely to perform a secure connection<br>
 	 * @param socket the instance of {@link RubusSocket}
-	 * @param config the config containing the necessary values
+	 * @param config the config containing the necessary values to perform a secure handshake
 	 * @param handshakeInitiator specifies if this socket is the handshake initiator
 	 * @throws IOException if some I/O error occurs
-	 * @throws SocketTimeoutException if the secure connection wasn't established within the specified time
-	 * @throws InterruptedException if the handshake was interrupted
+	 * @throws SocketTimeoutException if the handshake isn't completed within the specified time
+	 * @throws InterruptedException if the handshake has been interrupted
 	 * @throws HandshakeFailedException if this socket or/and the peer socket don't support secure connection
-	 * @throws CorruptedSSLMessageException if some handshake massages were tampered
+	 * @throws CorruptedSSLMessageException if some handshake messages has been tampered
 	 */
 	public SecureSocket(
 		RubusSocket socket, Config config, boolean handshakeInitiator
@@ -224,13 +212,13 @@ public class SecureSocket implements RubusSocket {
 	}
 
 	/**
-	 * Receives the message containing the encrypted payload using the underlying socket, decrypts and verifies it, and
-	 * writes the decrypted payload into the given array. If the given array isn't large enough to fit the entire
-	 * payload, the part that wasn't written is cached and will be written during the next invocation of any read methods.
-	 * @param in the array data is written into.
+	 * Receives the message containing the encrypted payload, decrypts and verifies it; then writes the decrypted data
+	 * into the array. If the array isn't large enough to fit the data, the part that wasn't written into the array is
+	 * cached and will be written during the next invocation of the read methods.
+	 * @param in the array the data is written into.
 	 * @return the number of bytes written
 	 * @throws IOException if some I/O error occurs
-	 * @throws CorruptedSSLMessageException if the message was corrupted
+	 * @throws CorruptedSSLMessageException if the message is corrupted
 	 */
 	@Override
 	public int read(byte[] in) throws IOException {
@@ -238,14 +226,16 @@ public class SecureSocket implements RubusSocket {
 	}
 
 	/**
-	 * Receives the message containing the encrypted payload using the underlying socket, decrypts and verifies it, and
-	 * writes the decrypted payload into the given array. If the given array isn't large enough to fit the entire
-	 * payload, the part that wasn't written is cached and will be written during the next invocation of any read method.
-	 * @param in the array data is written into
+	 * Receives the message containing the encrypted payload, decrypts and verifies it; then writes the decrypted data
+	 * into the array. If the array isn't large enough to fit the data, the part that wasn't written into the array is
+	 * cached and will be written during the next invocation of the read methods. If no payload is received within
+	 * the specified timeout, the exception is thrown.
+	 * @param in the array the data is written into.
 	 * @param timeout the timeout in milliseconds
 	 * @return the number of bytes written
 	 * @throws IOException if some I/O error occurs
-	 * @throws CorruptedSSLMessageException if the message was corrupted
+	 * @throws CorruptedSSLMessageException if the message is corrupted
+	 * @throws SocketTimeoutException if no data is received within the timeout
 	 */
 	@Override
 	public int read(byte[] in, long timeout) throws IOException {
@@ -253,16 +243,16 @@ public class SecureSocket implements RubusSocket {
 	}
 
 	/**
-	 * Receives the message containing the encrypted payload using the underlying socket, decrypts and verifies it, and
-	 * writes the decrypted payload into the given array. If the range of the given array isn't large enough to fit
-	 * the entire payload, the part that wasn't written is cached and will be written during the next invocation of
-	 * any read method.
-	 * @param in the array data is written into
-	 * @param offset the index of the array the first byte is written into
-	 * @param length the length of the available array
+	 * Receives the message containing the encrypted payload, decrypts and verifies it; then writes the decrypted data
+	 * into the array of the specified range. If the range isn't large enough to fit the data, the part that wasn't
+	 * written into the array of the specified range is cached and will be written during the next invocation of
+	 * the read methods.
+	 * @param in the array the data is written into.
+	 * @param offset specifies how many bytes to skip before starting writing into the array
+	 * @param length specifies how many bytes are available for writing into the array after offset
 	 * @return the number of bytes written
 	 * @throws IOException if some I/O error occurs
-	 * @throws CorruptedSSLMessageException if the message was corrupted
+	 * @throws CorruptedSSLMessageException if the message is corrupted
 	 */
 	@Override
 	public int read(byte[] in, int offset, int length) throws IOException {
@@ -270,17 +260,18 @@ public class SecureSocket implements RubusSocket {
 	}
 
 	/**
-	 * Receives the message containing the encrypted payload using the underlying socket, decrypts and verifies it, and
-	 * writes the decrypted payload into the given array. If the range of the given array isn't large enough to fit
-	 * the entire payload, the part that wasn't written is cached and will be written during the next invocation of
-	 * any read method.
-	 * @param in the array data is written into
-	 * @param offset the index of the array the first byte is written into
-	 * @param length the length of the available array
+	 * Receives the message containing the encrypted payload, decrypts and verifies it; then writes the decrypted data
+	 * into the array of the specified range. If the range isn't large enough to fit the data, the part that wasn't
+	 * written into the array of the specified range is cached and will be written during the next invocation of
+	 * the read methods. If no payload is received within the specified timeout, the exception is thrown.
+	 * @param in the array the data is written into.
+	 * @param offset specifies how many bytes to skip before starting writing into the array
+	 * @param length specifies how many bytes are available for writing into the array after offset
 	 * @param timeout the timeout in milliseconds
 	 * @return the number of bytes written
 	 * @throws IOException if some I/O error occurs
-	 * @throws CorruptedSSLMessageException if the message was corrupted
+	 * @throws CorruptedSSLMessageException if the message is corrupted
+	 * @throws SocketTimeoutException if no data is received within the timeout
 	 */
 	@Override
 	public int read(byte[] in, int offset, int length, long timeout) throws IOException {
@@ -341,8 +332,8 @@ public class SecureSocket implements RubusSocket {
 	}
 
 	/**
-	 * Encrypts the given array and sends it using the underlying socket.
-	 * @param out data to send
+	 * Encrypts the data of the given array and sends it to the peer socket.
+	 * @param out the array the data is read from
 	 * @throws IOException if some I/O error occurs
 	 */
 	@Override
@@ -351,10 +342,10 @@ public class SecureSocket implements RubusSocket {
 	}
 
 	/**
-	 * Encrypts the range of the given array and sends it using the underlying socket.
-	 * @param out the data to send
-	 * @param offset the index of the first byte to send
-	 * @param length the number of bytes to send
+	 * Encrypts the data of the given array of the specified range and sends it to the peer socket.
+	 * @param out the array the data is read from
+	 * @param offset specifies how many bytes to skip before starting reading from the array
+	 * @param length specifies how many bytes are available for reading from the array after offset
 	 * @throws IOException if some I/O error occurs
 	 */
 	@Override
@@ -380,10 +371,6 @@ public class SecureSocket implements RubusSocket {
 		return socket.isClosed();
 	}
 
-	/**
-	 * Returns the time in milliseconds when the secure connection was established.
-	 * @return the time in milliseconds when the secure connection was established
-	 */
 	@Override
 	public long openTime() {
 		return oTime;

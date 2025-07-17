@@ -25,8 +25,7 @@ import org.slf4j.LoggerFactory;
 import java.awt.*;
 
 /**
- * VideoDecoder accommodates clients that want to use {@link Decoder} to decode video clips by declaring a new data
- * structure that contains decoded frames and parameterizing Decoder with this type.
+ * VideoDecoder is an abstract class that declares {@link DecodedFrames} and parameterizes {@link Decoder} with it.
  */
 public abstract class VideoDecoder implements Decoder<VideoDecoder.DecodedFrames> {
 
@@ -37,10 +36,10 @@ public abstract class VideoDecoder implements Decoder<VideoDecoder.DecodedFrames
 	}
 
 	/**
-	 * DecodedFrames represents decoded frames as an array of Image object.
+	 * DecodedFrames represents decoded frames as an array of Image objects.
 	 * @param frames decoded frames
-	 * @param offset the number of decoded frames skipped relative to the video clip; it can be less than the one
-	 *               the client specified but never greater
+	 * @param offset the number of decoded frames skipped relative to the video clip; this number can be lesser than
+	 *               the specified one but never greater
 	 */
 	public record DecodedFrames(Image[] frames, int offset) {}
 }

@@ -22,6 +22,7 @@ package backend.io;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -29,9 +30,7 @@ import java.util.ArrayList;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
- * MediaPool class allows the client to query information about the available media. It encapsulates the internal logic
- * of how MediaPool communicates with the underlying source of information ( e.g. a database ), which allows the client
- * to just use it without knowing how it works under the hood.
+ * The client uses MediaPool to access the information about the available media.
  */
 public class MediaPool {
 
@@ -44,11 +43,8 @@ public class MediaPool {
 	private Media[] cachedMedia = new Media[0];
 
 	/**
-	 * Constructs an instance of this class with the database storing the essential information. The database must
-	 * have the media table containing specific column names and their types.<br>
-	 * {@link JdbcTemplate} is a class provided by the Spring Framework, and it's used here to streamline the database
-	 * access as it provides {@link java.sql.SQLException} wrapping, thread safety, and automatic connection closing.
-	 * @param jdbcTemplate a JdbcTemplate instance
+	 * Constructs an instance of this class.
+	 * @param jdbcTemplate the JdbcTemplate instance that is connected to the database containing the 'media' table
 	 */
 	public MediaPool(JdbcTemplate jdbcTemplate) {
 		assert jdbcTemplate != null;
@@ -88,8 +84,9 @@ public class MediaPool {
 	}
 
 	/**
-	 * Same as {@link #availableMedia} but potentially performs the retrieval faster because it's not necessary refer
-	 * to the database.
+	 * Same as {@link #availableMedia} but it doesn't retrieve all the data in a single operation; the rest of the data
+	 * is retrieved only when accessed. Invoking this method may be preferential when only partial data access is
+	 * performed.
 	 * @return an array containing all the available media represented as {@link Media}
 	 * @throws IOException if some I/O error occurs
 	 */
@@ -120,11 +117,12 @@ public class MediaPool {
 	}
 
 	/**
-	 * Returns the media represented as {@link Media} with the specified media id.
-	 * @param mediaId the id of the media
-	 * @return the {@link Media} object
+	 * Returns a {@link Media} instance associated with the specified id.
+	 * @param mediaId the media id
+	 * @return the {@link Media} instance
 	 * @throws IOException if some I/O occurs
 	 */
+	@Transactional()
 	public Media getMedia(byte[] mediaId) throws IOException {
 		String sql = "select * from media where id=?;";
 		logger.debug("{} querying {}", this, sql);

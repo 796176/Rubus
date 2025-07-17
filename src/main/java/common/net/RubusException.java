@@ -22,7 +22,7 @@ package common.net;
 import java.io.IOException;
 
 /**
- * This exception is thrown by {@link frontend.FetchController} when the response type isn't OK.
+ * This exception is thrown by {@link frontend.FetchController} when the response message type isn't OK.
  */
 public class RubusException extends IOException {
 

@@ -20,7 +20,7 @@
 package common;
 
 /**
- * The exception is thrown when a video decoder class failed to decode the required video file.
+ * This exception is thrown when a video decoder class fails to decode a video clip.
  */
 public class DecodingException extends RuntimeException {
 

@@ -27,12 +27,12 @@ import java.util.ArrayList;
 import java.util.Collections;
 
 /**
- * RubusRequest is an auxiliary class designed to simplify the construction of rubus requests.
+ * RubusRequest is an auxiliary class designed to simplify construction of rubus request messages.
  */
 public class RubusRequest {
 
 	/**
-	 * RubusRequest.Builder provide an interface to construct a new request.
+	 * RubusRequest.Builder provides an interface to construct a new request message.
 	 */
 	public static class Builder {
 
@@ -49,7 +49,7 @@ public class RubusRequest {
 		}
 
 		/**
-		 * Constructs the LIST type request with no title filter.
+		 * Constructs the LIST type request message that includes all media titles.
 		 * @return the current builder
 		 */
 		public Builder LIST() {
@@ -57,8 +57,8 @@ public class RubusRequest {
 		}
 
 		/**
-		 * Constructs the LIST type request with the specified title filter.
-		 * @param titleContains request for titles containing the string
+		 * Constructs the LIST type request message with the specified search query.
+		 * @param titleContains search query
 		 * @return the current builder
 		 */
 		public Builder LIST(String titleContains) {
@@ -68,7 +68,7 @@ public class RubusRequest {
 		}
 
 		/**
-		 * Constructs the INFO type request.
+		 * Constructs the INFO type request message.
 		 * @param mediaId the media id
 		 * @return the current builder
 		 */
@@ -79,10 +79,10 @@ public class RubusRequest {
 		}
 
 		/**
-		 * Constructs the FETCH type request.
+		 * Constructs the FETCH type request message.
 		 * @param mediaID the media id
-		 * @param startingIndex the starting index of the playback piece
-		 * @param amount the amount of playback pieces to request
+		 * @param startingIndex the starting index of the playback clips
+		 * @param amount the amount of playback clips to retrieve
 		 * @return the current builder
 		 */
 		public Builder FETCH(String mediaID, int startingIndex, int amount) {
@@ -104,7 +104,7 @@ public class RubusRequest {
 		}
 
 		/**
-		 * Builds the request using the set type and parameters
+		 * Constructs a RubusRequest instance using the state of this RubusRequest.Builder.
 		 * @return a RubusRequest instance
 		 * @throws IllegalStateException if parameters are not acceptable
 		 */
@@ -134,15 +134,15 @@ public class RubusRequest {
 
 	/**
 	 * Constructs a new RubusRequest.Builder.
-	 * @return a Builder instance
+	 * @return a RubusRequest.Builder instance
 	 */
 	public static RubusRequest.Builder newBuilder() {
 		return new Builder();
 	}
 
 	/**
-	 * Returns the built request represented as a byte array.
-	 * @return the built request represented as a byte array
+	 * Returns the request message represented as a byte array.
+	 * @return the request message represented as a byte array
 	 */
 	public byte[] getBytes() {
 		return request;

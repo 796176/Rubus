@@ -23,8 +23,8 @@ import javax.swing.*;
 import java.io.IOException;
 
 /**
- * TabPanel represents any settings layout containing text fields, combo boxes, etc., which displays the current
- * state of config file parameters, and allows the user to change them and to save that change to the config file.
+ * TabPanel represents a settings layout containing text fields, combo boxes, etc., which displays the current
+ * configuration, and allows the user to change it and to save the changes to the config file.
  */
 public abstract class TabPanel extends JPanel {
 
@@ -35,8 +35,7 @@ public abstract class TabPanel extends JPanel {
 	public void save() throws IOException { }
 
 	/**
-	 * This method should be called by the subclasses to sanitize the value the user entered manually. It may change
-	 * the value so it can be saved to the config file.
+	 * This method should be called by the subclasses to sanitize the value the user enters manually.
 	 * @param value the value user entered manually
 	 * @return the sanitized value
 	 */

@@ -22,9 +22,9 @@ package common.net.response.body;
 import java.io.Serializable;
 
 /**
- * MediaInfo is a body part of the response message to the INFO type of the request. It contains the meta-information
- * of the specified media.
- * @param id the id of the media specified by the client
+ * MediaInfo is a body part of the response message to the INFO request message. It contains the media-specific
+ * information.
+ * @param id the media id
  * @param title the title of the media
  * @param videoWidth the width of the video in pixels
  * @param videoHeight the height of the video in pixels

@@ -31,11 +31,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * WatchHistory isolates clients from accessing the watch history file and the data composition of the file. At its
- * core, the watch history is a set of key-value pairs, where the key is a media id and the value is media progress in
- * seconds. WatchHistory is implemented to be able to handle a medium file size, approximately from several hundred to
- * several thousand pairs; the more specific approximation would require making assumptions about the media id size,
- * the underlying file system, etc.<br>
+ * WatchHistory defines a data structure that stores watch history. At its core, the watch history of is a set of
+ * key-value pairs, where the key is a media id and the value is the media progress in seconds. WatchHistory is
+ * associated with a file.<br>
  * Thread safety is achieved by acquiring a lock on this object before calling any method.
  */
 public class WatchHistory implements Closeable {
@@ -49,7 +47,7 @@ public class WatchHistory implements Closeable {
 	private RandomAccessFile raf;
 
 	/**
-	 * Constructs an instance of this class using the given file location of the watch history file. If the file doesn't
+	 * Constructs an instance of this class using the given location of the watch history file. If the file doesn't
 	 * exist the constructor attempts to create it.
 	 * @param watchHistoryPath the location of the watch history file
 	 * @throws IOException if some I/O exception occurs
@@ -65,10 +63,10 @@ public class WatchHistory implements Closeable {
 	}
 
 	/**
-	 * Sets the media progress to the given media id; the file modification is limited to the part where the progress
-	 * value resides, no extra bytes are added/removed or unnecessary rewritten. If the file doesn't contain
-	 * the media id a new pair is created and immediately appended to the file. If the current media id progress is
-	 * equal to the new one, the method does nothing.
+	 * Sets the media progress associated with the given media id; the file modification is limited to the part where
+	 * the progress value resides, no extra bytes are added/removed or unnecessary rewritten. If the file doesn't
+	 * contain the media id, a new pair is created and immediately appended to the file. If the current media id
+	 * progress is equal to the new one, the method does nothing.
 	 * @param mediaId the media id
 	 * @param progress the media progress
 	 * @throws IOException if some I/O exception occurs
@@ -76,7 +74,7 @@ public class WatchHistory implements Closeable {
 	public synchronized void setProgress(String mediaId, int progress) throws IOException {
 		assert mediaId != null && progress >= 0;
 
-		// 8 is the size of a hexadecimal string representation of 4 byte integer
+		// the progress value occupies 8 character
 		String newRecord = "%s %08x\n".formatted(mediaId, progress);
 		Pattern pattern = Pattern.compile(mediaId + " [0-9a-f]{8}\n");
 		Matcher matcher = pattern.matcher(watchHistory);
@@ -96,13 +94,13 @@ public class WatchHistory implements Closeable {
 	}
 
 	/**
-	 * Returns the media progress of the given media id. If the file doesn't contain the media id, the method
-	 * returns -1. This method doesn't access the file eliminating the I/O bottleneck.
+	 * Returns the media progress associated the given media id. If the file doesn't contain the media id, the method
+	 * returns -1.
 	 * @param mediaId the media id
 	 * @return the media progress
 	 */
 	public synchronized int getProgress(String mediaId) {
-		// 8 is the size of a hexadecimal string representation of 4 byte integer
+		// the progress value occupies 8 character
 		Pattern pattern = Pattern.compile(mediaId + " [0-9a-f]{8}\n");
 		Matcher matcher = pattern.matcher(watchHistory);
 		if (matcher.find()) {

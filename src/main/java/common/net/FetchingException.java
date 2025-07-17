@@ -22,7 +22,7 @@ package common.net;
 import java.io.IOException;
 
 /**
- * This exception is thrown by {@link frontend.FetchController} when it couldn't retrieve the playback pieces from
+ * This exception is thrown by {@link frontend.FetchController} when it can't retrieve the playback pieces from
  * the server.
  */
 public class FetchingException extends IOException {

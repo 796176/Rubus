@@ -30,7 +30,8 @@ import java.util.concurrent.*;
 import java.util.function.Supplier;
 
 /**
- * RubusClient is an auxiliary class designed to simplify sending rubus requests and receiving rubus responses.
+ * RubusClient is an auxiliary class designed to simplify sending rubus request messages and receiving rubus response
+ * messages.
  */
 public class RubusClient implements AutoCloseable {
 
@@ -41,8 +42,8 @@ public class RubusClient implements AutoCloseable {
 	private Supplier<RubusSocket> socketSupplier;
 
 	/**
-	 * Constructs this class using a network socket.
-	 * @param socketSupplier a socket supplier
+	 * Constructs an instance of this class.
+	 * @param socketSupplier the socket supplier that instantiates sockets connected to the server
 	 */
 	public RubusClient(Supplier<RubusSocket> socketSupplier) {
 		assert socketSupplier != null;
@@ -54,9 +55,9 @@ public class RubusClient implements AutoCloseable {
 	}
 
 	/**
-	 * Sets a new socket. If it's necessary to reinitialize the already created sockets using this socket
+	 * Sets a new socket supplier. If it's necessary to reinstantiate the already created sockets using this socket
 	 * supplier, the invocation of {@link #close()} is required.
-	 * @param socketSupplier a new socket supplier
+	 * @param socketSupplier the socket supplier that instantiates sockets connected to the server
 	 */
 	public void setSocketSupplier(Supplier<RubusSocket> socketSupplier) {
 		assert socketSupplier != null;
@@ -73,13 +74,14 @@ public class RubusClient implements AutoCloseable {
 	}
 
 	/**
-	 * Sends the request and waits to receive the server response. 0 ms long timeout makes the method to wait
-	 * indefinitely. If the sending and the receiving is not completed within the specified time it exits by throwing
-	 * an exception.
-	 * @param request a request to send
-	 * @param timeout a timeout
-	 * @return a server response
+	 * Sends the request message and blocks until the response message is received. 0 timeout makes the method to wait
+	 * indefinitely. If the request-response message exchange is not completed within the specified time the exception
+	 * is thrown.
+	 * @param request the request message
+	 * @param timeout the timeout in milliseconds
+	 * @return the response message
 	 * @throws IOException if some I/O error occur
+	 * @throws SocketTimeoutException if the request-response message exchange is not complete within the timeout
 	 */
 	public RubusResponse send(RubusRequest request, long timeout) throws InterruptedException, IOException {
 		assert request != null && timeout >= 0;

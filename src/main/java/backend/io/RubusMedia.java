@@ -32,7 +32,7 @@ import java.util.Arrays;
 import java.util.HexFormat;
 
 /**
- * A class-container to store the information about the media.
+ * RubusMedia is a concrete implementation of {@link Media} that stores media-specific information.
  */
 public class RubusMedia implements Media {
 
@@ -60,7 +60,7 @@ public class RubusMedia implements Media {
 	 * @param audioContainer the audio container
 	 * @param videoEncoding the video codec
 	 * @param audioEncoding the audio codec
-	 * @param contentPath the location to a directory where media pieces are stored in
+	 * @param contentPath the directory that contains this media-specific files
 	 */
 	public RubusMedia(
 		byte[] id,
@@ -198,9 +198,9 @@ public class RubusMedia implements Media {
 
 	/**
 	 * Compares the RubusMedia with another object. Returns true only if the other object is an instance of {@link Media}
-	 * and all its field are equal to these fields.
+	 * and its fields respectively are equal to these fields.
 	 * @param obj an object
-	 * @return true if the other object is a Media and has the fields, false otherwise
+	 * @return true if the other object is a Media and their fields are respectively equal, false otherwise
 	 */
 	@Override
 	public boolean equals(Object obj) {

@@ -22,7 +22,7 @@ package common.net;
 import java.io.IOException;
 
 /**
- * This exception is thrown when the header exceeds 8192 bytes or the body length property is missing.
+ * This exception is thrown when the header length exceeds 8192 bytes or the body length property is missing.
  */
 public class CorruptedMessageHeaderException extends IOException {
 	/**

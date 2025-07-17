@@ -20,9 +20,9 @@
 package frontend;
 
 /**
- * EncodedPlayingPiece stores a video piece and an audio piece represented as byte arrays. If used in
- * {@link PlayerInterface} the duration of both needs to be exactly one second.
- * @param video a video piece
- * @param audio an audio piece
+ * EncodedPlayingPiece stores a 1 second long video clip and a 1 second-long audio clip; both are represented as byte
+ * arrays.
+ * @param video a video clip
+ * @param audio an audio clip
  */
 public record EncodedPlaybackPiece(byte[] video, byte[] audio) { }

@@ -30,9 +30,9 @@ import java.nio.file.Path;
 import java.util.Arrays;
 
 /**
- * MediaProxy is an abstract class containing only the {@link MediaPool} instance and the media id value. Attempt to
- * access other fields or invoke data access methods will result in delegation of this task to the subject.
- * It's a proxy participant of the proxy pattern.
+ * MediaProxy is an abstract class that stores only the {@link MediaPool} instance and the media id. Accessing other
+ * media-specific information will be delegated to the subject.
+ * It's the proxy participant of the proxy pattern.
  */
 public abstract class MediaProxy implements Media {
 
@@ -142,9 +142,9 @@ public abstract class MediaProxy implements Media {
 
 	/**
 	 * Compares this MediaProxy with another object. Returns true only if the other object is an instance of {@link Media}
-	 * and all its field are equal to these fields.
+	 * and its fields are respectively equal to these fields.
 	 * @param obj an object
-	 * @return true if the object is a MediaProxy and has the same media pool and media id, false otherwise
+	 * @return true if the object is a Media and their fields are respectively equal to these fields, false otherwise
 	 */
 	@Override
 	public boolean equals(Object obj) {
