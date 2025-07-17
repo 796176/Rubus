@@ -27,22 +27,19 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * PreProcessRequestParser is a concrete implementation of {@link RequestParserStrategy}. It parses the request
- * the moment it's fed and stores the key-value pairs. When the client queries a value PreProcessRequestParser returns it
- * without referring to the request.<br><br>
+ * PreProcessRequestParser is a concrete implementation of {@link RequestParserStrategy}. It parses the request message
+ * the moment it's fed and stores the result.<br><br>
  *
  * PreProcessRequestParser vs {@link StandardRequestParser} comparison:<br>
- *     Memory usage: PreProcessRequestParser has to store both keys and values of the request making it much more memory
- *     inefficient than StandardRequestParser, which stores only the request reference.<br>
- *     Performance: asymptotically PreProcessRequestParser is more efficient because it parses the request once where
- *     the parsing algorithm complexity is O(n). Whereas StandardRequestParser has to parse it as many times as there are
- *     {@link #value(String)} invocations where each invocation is O(n). But this description doesn't show the full
- *     picture. The PreProcessRequestParser's parsing strategy is more expensive in terms of cycles: extracting not only
- *     values but also keys, memory allocation to store the pairs. That makes PreProcessorRequestParser, in fact, less
- *     efficient if the request is relatively small ( up to one to one and a half hundred characters ). Or if the client
- *     makes only few {@link #value(String)} invocations ( e.g. the client specified the key the request doesn't
- *     contain, and it's its first invocation after witch the client doesn't do any more invocations and just discards
- *     the entire request ) resulting in PrePrecessRequestParser being slower.
+ *     Memory usage: PreProcessRequestParser in addition to a message reference stores the parsed data of that
+ *     message.<br>
+ *     Performance: asymptotically PreProcessRequestParser is more efficient because it parses the request once with
+ *     O(n) algorithm complexity. Whereas StandardRequestParser parses it as many times as type() and value()
+ *     are called where the complexity of value() is O(n). But this analysis doesn't show the full picture.
+ *     The PreProcessRequestParser's parsing strategy is more expensive in terms of cpu cycles: extracting
+ *     keys and values from the message and storing them. Thus making PreProcessorRequestParser, in fact, less
+ *     efficient if messages are relatively small; or if the client makes only a few value() invocations
+ *     ( e.g. the message doesn't contain a requested key so the client discards the entire message ).
  */
 public class PreProcessRequestParser implements RequestParserStrategy {
 

@@ -20,7 +20,7 @@
 package common;
 
 /**
- * The exception is thrown when an audio file couldn't be processed because of various reasons.
+ * This exception is thrown when an audio clip can't be processed for various reasons.
  */
 public class AudioException extends RuntimeException {
 

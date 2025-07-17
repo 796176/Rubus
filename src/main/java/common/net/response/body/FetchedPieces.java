@@ -22,10 +22,10 @@ package common.net.response.body;
 import java.io.Serializable;
 
 /**
- * FetchedPieces is a body part of the response message to the FETCH type of the request. It contains an array of video
+ * FetchedPieces is a body part of the response message to the FETCH request message. It contains an array of video
  * pieces represented as byte arrays and an array of audio pieces represented as byte arrays.
- * @param id the media id of the required media
- * @param startingPieceIndex the starting index of the media required by the client
+ * @param id the media id
+ * @param startingPieceIndex the starting index of the playback piece
  * @param video the array containing video pieces
  * @param audio the array containing audio pieces
  */

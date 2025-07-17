@@ -22,8 +22,8 @@ package common.ssl;
 import java.io.IOException;
 
 /**
- * This exception is thrown by {@link SecureSocket}'s read methods if the decrypted payload failed data integrity
- * verification, or during certain stages of the handshake.
+ * This exception is thrown by {@link SecureSocket}'s read() methods if the decrypted payload failed data integrity
+ * check, or during certain stages of the handshake.
  */
 public class CorruptedSSLMessageException extends IOException {
 

@@ -20,23 +20,22 @@
 package common.net.response;
 
 /**
- * Every response message needs to be one of the following types.
+ * RubusResponseType defines types of Rubus response messages.
  */
 public enum RubusResponseType {
 
 	/**
-	 * The OK type specified that the request was handled appropriately and the response contains the data required
-	 * by the client.
+	 * The OK type specifies that the request was handled appropriately.
 	 */
 	OK,
 
 	/**
-	 * The BAD_REQUEST type specifies that the request message was not acceptable.
+	 * The BAD_REQUEST type specifies that the request message was not accepted.
 	 */
 	BAD_REQUEST,
 
 	/**
-	 * The SERVER_ERROR type specifies that the request wasn't handled appropriately because of a server error.
+	 * The SERVER_ERROR type specifies that the request wasn't handled appropriately due to a server error.
 	 */
 	SERVER_ERROR
 }

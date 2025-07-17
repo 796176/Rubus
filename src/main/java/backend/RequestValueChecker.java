@@ -26,9 +26,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * RequestValueChecker makes sure the values retrieved from rubus requests are valid. The request received from
- * the client is not guaranteed to be of the format the server expects due to the client malfunctioning, malicious
- * intents etc. RequestValueChecker is created to address this issue.
+ * RequestValueChecker provides sanitizing of data retrieved from request messages.
  */
 public class RequestValueChecker {
 
@@ -39,7 +37,7 @@ public class RequestValueChecker {
 	}
 
 	/**
-	 * Checks if the id length is even and every character is hexadecimal.
+	 * Checks if the media id length is even and every character is hexadecimal.
 	 * @param id the id
 	 * @return the same id
 	 * @throws IllegalArgumentException if the id is of a wrong format
@@ -53,7 +51,7 @@ public class RequestValueChecker {
 	}
 
 	/**
-	 * Checks if the value is negative.
+	 * Checks if the value is non-negative.
 	 * @param i the value
 	 * @return the same value
 	 * @throws IllegalArgumentException if the value is negative
@@ -64,7 +62,7 @@ public class RequestValueChecker {
 	}
 
 	/**
-	 * Checks if the value is non-positive
+	 * Checks if the value is positive
 	 * @param i the value
 	 * @return the same value
 	 * @throws IllegalArgumentException if the value is non-positive

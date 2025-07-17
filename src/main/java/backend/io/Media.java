@@ -25,7 +25,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 
 /**
- * An interface to access the information about the media.
+ * Media interface provides access to the media-specific information.
  */
 public interface Media {
 
@@ -93,14 +93,14 @@ public interface Media {
 	String getAudioContainer() throws IOException;
 
 	/**
-	 * Returns the location to the directory containing this media specific files.
-	 * @return the location to the directory containing this media specific files
-	 * @throws IOException if some I/O exception occurs
+	 * Returns the directory that contains this media-specific files.
+	 * @return the directory that contains this media-specific files
+	 * @throws IOException if some I/O error occurs
 	 */
 	Path getContentPath() throws IOException;
 
 	/**
-	 * Retrieve audio pieces of the specified range where each piece is represented as a byte array.
+	 * Retrieves audio pieces of the specified range. Audio pieces are represented as byte arrays.
 	 * @param pieceIndex the index of the first piece
 	 * @param number the number of pieces to retrieve
 	 * @return an array of audio pieces
@@ -109,7 +109,7 @@ public interface Media {
 	byte[][] fetchAudioPieces(int pieceIndex, int number) throws IOException;
 
 	/**
-	 * Retrieve video pieces of the specified range where each piece is represented as a byte array.
+	 * Retrieves video pieces of the specified range. Video pieces are represented as byte arrays.
 	 * @param pieceIndex the index of the first piece
 	 * @param number the number of pieces to retrieve
 	 * @return an array of video pieces
@@ -118,8 +118,8 @@ public interface Media {
 	byte[][] fetchVideoPieces(int pieceIndex, int number) throws IOException;
 
 	/**
-	 * Convert this Media instance into {@link MediaInfo}.
-	 * @return a {@link MediaInfo} instance
+	 * Convert this Media instance into a {@link MediaInfo} instance.
+	 * @return the {@link MediaInfo} instance
 	 * @throws IOException if some I/O error occurs
 	 */
 	MediaInfo toMediaInfo() throws IOException;

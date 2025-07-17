@@ -30,7 +30,7 @@
 #include <string.h>
 
 /**
- * context0 stores the information associated with the current video stream and its type is 0.
+ * context0 stores the information associated with a video stream. The context type is 0.
  * frame is an allocated AVFrame to perform video decoding
  * packet is an allocated AVPacket to perform video decoding
  * buffer is an allocated byte array to store intermediate data while performing video decoding
@@ -48,7 +48,7 @@ struct context0 {
 };
 
 /**
- * Instantiates an AVFormatContext using data in media to determine the video format.
+ * Instantiates an AVFormatContext using media to determine the format.
  * @param context the address the instance of AVFormatContext is written into
  * @param media the encoded video
  * @param media_size the size of media
@@ -66,7 +66,7 @@ static int retrieve_video_format_context(AVFormatContext **context, uint8_t *med
 /**
  * Instantiates an AVCodecContext given the specified parameters.
  * @param context the address the instance of AVCodecContext is written into
- * @param params the parameters necessary to initialize AVCodecContext
+ * @param params the parameters necessary to instantiate AVCodecContext
  * @return 0 on success or <0 on error
  */
 static int retrieve_codec_context(AVCodecContext **context, AVCodecParameters *params) {
@@ -79,8 +79,8 @@ static int retrieve_codec_context(AVCodecContext **context, AVCodecParameters *p
 }
 /**
  * Instantiates a java Image.
- * @param arr a java array that stores pixels represented as ints
- * @param env java environment
+ * @param arr a java array that stores pixels represented as ARGB32 with the alpha bits discarded
+ * @param env the java environment
  * @param width the frame width
  * @param height the frame height
  * @return the java Image
@@ -147,7 +147,7 @@ static jobject create_java_frame(jintArray arr, JNIEnv *env, int width, int heig
 
 /**
  * Converts an AVFrame into a java Image.
- * @param frame an AVFrame content of which needs to be represented as a java Image
+ * @param frame an AVFrame the content of which needs to be represented as a java Image
  * @param context an instance of SwsContext
  * @param buf a buffer to store intermediate data with the size of width * height * 3
  * @param width the frame width
@@ -174,14 +174,14 @@ static jobject convert_to_java_frame(
 
 /**
  * Decodes a video clip using the video clip format information and the context data structure information.
- * @param env java environment
+ * @param env the java environment
  * @param obj the caller
- * @param context_address the memory address of the allocated and initialized context data structure
+ * @param context_address the memory address of the allocated context data structure containing the necessary data
  * @param context_type the type of the context data structure
  * @param encoded_video the video clip
  * @param offset the number of frames to skip
  * @param total the number of frames to decode
- * @return a java array containing instances of Image
+ * @return the java array containing Image instances
  */
 JNIEXPORT jobjectArray JNICALL Java_frontend_decoders_FfmpegJniVideoDecoder_decodeFrames(
 	JNIEnv *env,
@@ -288,9 +288,9 @@ JNIEXPORT jobjectArray JNICALL Java_frontend_decoders_FfmpegJniVideoDecoder_deco
 
 /**
  * Retrieve the frame-rate from the context. If the frame-rate is unknown the exception is thrown.
- * @param env java environment
+ * @param env the java environment
  * @param obj the caller
- * @param context_address the memory address of the allocated and initialized context data structure
+ * @param context_address the memory address of the allocated context data structure containing the necessary data
  * @param context_type the type of the context data structure
  * @return the frame-rate
  */
@@ -315,12 +315,13 @@ JNIEXPORT jint JNICALL Java_frontend_decoders_FfmpegJniVideoDecoder_frames (
 }
 
 /**
- * Allocates and initializes a new context data structure of the specified type.
- * @param env java environment
+ * Allocates a new context data structure of the specified type and assigns values to the members according to
+ * encoded_video.
+ * @param env the java environment
  * @param obj the caller
  * @param encoded_video the video clip
  * @param context_type the type of the context data structure
- * @return the memory address of allocated and initialized data structure
+ * @return the memory address of the allocated data structure
  */
 JNIEXPORT jlong JNICALL Java_frontend_decoders_FfmpegJniVideoDecoder_initContext(
 	JNIEnv *env, jobject obj, jbyteArray encoded_video, jint context_type
@@ -394,7 +395,7 @@ JNIEXPORT jlong JNICALL Java_frontend_decoders_FfmpegJniVideoDecoder_initContext
 
 /**
  * Deallocates the context data structure
- * @param env java environment
+ * @param env the java environment
  * @param obj the caller
  * @param context_address the memory address of the allocated context data structure
  * @param context_type the type of the context data structure

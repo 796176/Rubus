@@ -24,8 +24,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * StandardRequestParser is a concrete implementation of {@link RequestParserStrategy}, where parsing doesn't happen
- * until the client asked for a specific value. This class doesn't store anything but the reference to the fed request.
+ * StandardRequestParser is a concrete implementation of {@link RequestParserStrategy}, where parsing is only performed
+ * when calling {@link #type()} and {@link #value(String)}. The results returned by these methods are not cached
+ * locally.
  */
 public class StandardRequestParser implements RequestParserStrategy {
 

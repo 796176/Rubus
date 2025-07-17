@@ -28,11 +28,10 @@ import javax.sound.sampled.AudioSystem;
 import java.io.ByteArrayInputStream;
 
 /**
- * AudioPlayerController is responsible for synchronization the video and the audio playback between the {@link PlayerInterface}
- * object and the {@link AudioPlayerInterface} object respectively. The controller keeps track of
- * the {@link PlayerInterface}'s state and changes the state of {@link AudioPlayerInterface} accordingly.
- * AudioPlaybackController retrieves the audio pieces to play from {@link PlayerInterface}' buffer. The client can
- * choose the object responsible for exception handling.
+ * AudioPlayerController links a particular instance of {@link AudioPlayerInterface} to an instance of
+ * {@link PlayerInterface}. It tracks the state of the {@link PlayerInterface} instance and changes the state of
+ * the {@link AudioPlayerInterface} instance accordingly. It also supplies the {@link AudioPlayerInterface} instance's
+ * buffer with audio clips retrieved from the {@link PlayerInterface}.
  */
 public class AudioPlayerController implements Observer {
 
@@ -47,7 +46,7 @@ public class AudioPlayerController implements Observer {
 	/**
 	 * Constructs an instance of this class.
 	 * @param audioPlayer the audio player
-	 * @param handler an exception handler
+	 * @param handler the exception handler
 	 */
 	public AudioPlayerController(AudioPlayerInterface audioPlayer, ExceptionHandler handler) {
 		assert audioPlayer != null;
@@ -59,7 +58,7 @@ public class AudioPlayerController implements Observer {
 	}
 
 	/**
-	 * Constructs an instance of this class without an exception handler.
+	 * Constructs an instance of this class without the exception handler.
 	 * @param audioPlayer the audio player
 	 */
 	public AudioPlayerController(AudioPlayerInterface audioPlayer) {
@@ -98,8 +97,8 @@ public class AudioPlayerController implements Observer {
 	/**
 	 * Returns the current exception handler.<br><br>
 	 *
-	 * The passed exceptions:
-	 *     {@link AudioDecodingException} if the controller failed to decode an audio piece
+	 * Exception classes that get passed to the handler:<br>
+	 * &emsp;{@link AudioDecodingException} if the controller failed to decode an audio clip
 	 * @return the current exception handler
 	 */
 	public ExceptionHandler getExceptionHandler() {
@@ -109,8 +108,8 @@ public class AudioPlayerController implements Observer {
 	/**
 	 * Sets a new exception handler.<br><br>
 	 *
-	 * The passed exceptions:
-	 *     {@link AudioDecodingException} if the controller failed to decode an audio piece
+	 * Exception classes that get passed to the handler:<br>
+	 * &emsp;{@link AudioDecodingException} if the controller failed to decode an audio clip
 	 * @param handler a new exception handler
 	 */
 	public void setExceptionHandler(ExceptionHandler handler) {

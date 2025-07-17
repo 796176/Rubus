@@ -31,7 +31,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 
 /**
- * RubusResponse is an auxiliary class designed to simplify response parsing.
+ * RubusResponse is an auxiliary class designed to simplify response message parsing.
  */
 public class RubusResponse {
 
@@ -44,7 +44,7 @@ public class RubusResponse {
 
 	/**
 	 * Constructs an instance of this class.
-	 * @param response a response represented as a byte array
+	 * @param response a response message represented as a byte array
 	 */
 	public RubusResponse(byte[] response) {
 		assert response != null;
@@ -71,7 +71,7 @@ public class RubusResponse {
 	}
 
 	/**
-	 * Return the body part of the response to the LIST type request represented as {@link MediaList}.
+	 * Returns the body part of the response message to the LIST request message represented as {@link MediaList}.
 	 * @return a {@link MediaList} instance
 	 */
 	public MediaList LIST() {
@@ -88,7 +88,7 @@ public class RubusResponse {
 	}
 
 	/**
-	 * Return the body part of the response to the INFO type request represented as {@link MediaInfo}.
+	 * Returns the body part of the response message to the INFO request message represented as {@link MediaInfo}.
 	 * @return a {@link MediaInfo} instance
 	 */
 	public MediaInfo INFO() {
@@ -105,7 +105,7 @@ public class RubusResponse {
 	}
 
 	/**
-	 * Return the body part of the response to the FETCH type request represented as {@link FetchedPieces}.
+	 * Returns the body part of the response message to the FETCH request message represented as {@link FetchedPieces}.
 	 * @return a {@link FetchedPieces} instance
 	 */
 	public FetchedPieces FETCH() {

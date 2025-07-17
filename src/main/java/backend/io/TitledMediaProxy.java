@@ -26,8 +26,8 @@ import org.slf4j.event.Level;
 import java.util.Arrays;
 
 /**
- * TitledMediaProxy stores only the media pool, the id, and the title. Attempts to access other fields or the media
- * content will be delegated to the subject retrieved using the media pool.
+ * TitledMediaProxy stores only the media pool, the id, and the title. Accessing other media-specific information
+ * will be delegated to the subject.
  */
 public class TitledMediaProxy extends MediaProxy {
 
@@ -39,6 +39,7 @@ public class TitledMediaProxy extends MediaProxy {
 	 * Constructs an instance of this class
 	 * @param mediaPool the mediaPool
 	 * @param mediaID the media id
+	 * @param title the title
 	 */
 	public TitledMediaProxy(MediaPool mediaPool, byte[] mediaID, String title) {
 		super(mediaPool, mediaID);

@@ -20,14 +20,19 @@
 package frontend;
 
 /**
- * ExceptionHandler is used when the caller isn't necessary responsible for handling callee's exceptions. This is
- * a handler participant of the Handler pattern.
+ * ExceptionHandler is an alternative to Java's try/catch statement. It is a functional interface similar to
+ * {@link java.util.function.Consumer}, but the parameter type is limited to {@link Exception} and its subclasses.<br>
+ * The shortcoming of the try/catch statement this functional interface addresses is its inflexibility. If the method A
+ * invokes the method B, the B's exceptions need to be either handled by A or passed further up the invocation stuck.
+ * With ExceptionHandler, however, the B's exceptions can be handled by the object C that implements this functional
+ * interface.<br>
+ * This is the handler participant of the Chain-of-responsibility pattern.
  */
 public interface ExceptionHandler {
 
 	/**
 	 * Handles the passed exception.
-	 * @param e an exception to handle
+	 * @param e the exception to handle
 	 */
 	void handleException(Exception e);
 }

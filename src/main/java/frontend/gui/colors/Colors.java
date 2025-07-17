@@ -25,9 +25,7 @@ import javax.swing.*;
 import java.awt.*;
 
 /**
- * The Colors interface allows the client classes to set a color of a component independently of the look-and-feel in use.
- * In other words, Colors abstracts the component from the actual color it uses, where the actual color is dependent on
- * the current look-and-feel.
+ * Colors declares a set of methods that return look-and-feel dependent color of GUI components.
  */
 public interface Colors {
 
@@ -50,8 +48,8 @@ public interface Colors {
 	Color listedMediaPanel();
 
 	/**
-	 * Returns the background color of the media panel the pointer is pointed at.
-	 * @return the background color of the media panel the pointer is pointed at
+	 * Returns the background color of the media panel when the pointer is pointed at it.
+	 * @return the background color of the media panel when the pointer is pointed at it
 	 */
 	Color listedMediaPanelFocused();
 

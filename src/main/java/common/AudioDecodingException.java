@@ -20,7 +20,7 @@
 package common;
 
 /**
- * The exception is thrown by {@link frontend.AudioPlayerController} when it failed to decode an audio file.
+ * This exception is thrown by {@link frontend.AudioPlayerController} when it fails to decode an audio clip.
  */
 public class AudioDecodingException extends RuntimeException {
 

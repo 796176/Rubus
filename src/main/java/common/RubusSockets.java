@@ -91,6 +91,14 @@ public class RubusSockets {
 	}
 
 
+	/**
+	 * Reads a Rubus message from the socket. If the message isn't read within the specified time, the exception is
+	 * thrown.
+	 * @param socket the socket
+	 * @param timeout the timeout in milliseconds
+	 * @return the message
+	 * @throws IOException if some I/O error occurs
+	 */
 	public static byte[] extractMessage(RubusSocket socket, long timeout) throws IOException {
 		int maxHeaderAllocation = 1024 * 8;
 		byte[] response = new byte[1024];

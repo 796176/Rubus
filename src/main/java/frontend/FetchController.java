@@ -32,10 +32,12 @@ import java.util.Arrays;
 import java.util.function.Supplier;
 
 /**
- * FetchController is responsible for retrieving video and audio from the server and passing them to the video player.
- * It determines what pieces to fetch based on the player's state; how many pieces and how frequently do so based on its
- * internal configuration. The client can set how many pieces the controller has to fetch before starting playing
- * the video, or the object that handles the network exceptions.
+ * FetchController keeps track of the {@link PlayerInterface} instance, in particular its progress value and the state
+ * of the buffer that stores {@link EncodedPlaybackPiece}s. If FetchController detects that there is not enough data in
+ * the buffer, it retrieves the encoded playback clips from the server and updates the buffer. The amount of playback
+ * clips needed before starting the playback is set via {@link #setBufferSize(int)}; The minimum amount of playback
+ * pieces FetchController retrieves from the server in a single request is specified via
+ * {@link #setMinimumBatchSize(int)}.
  */
 public class FetchController implements Observer, AutoCloseable {
 
@@ -57,8 +59,11 @@ public class FetchController implements Observer, AutoCloseable {
 
 	/**
 	 * Constructs an instance of this class.
-	 * @param socketSupplier a socket supplier
-	 * @param mediaId a media id
+	 * @param socketSupplier the socket supplier that instantiates sockets connected to the server
+	 * @param mediaId the id of the media the {@link PlayerInterface} instance is playing
+	 * @param bufferSize the amount of playback clips FetchController attempts to retrieve from the server when the
+	 *                   buffer is empty
+	 * @param minimumBatchSize the minimum amount of playback clips FetchController can retrieve from the server
 	 */
 	public FetchController(Supplier<RubusSocket> socketSupplier, String mediaId, int bufferSize, int minimumBatchSize) {
 		assert socketSupplier != null && mediaId != null;
@@ -79,11 +84,6 @@ public class FetchController implements Observer, AutoCloseable {
 		);
 	}
 
-	// To future me,
-	// If you think you can improve this method, DON'T; you will regret it. If you think there is a way to make
-	// the algorithm clearer than it is right now, you're delusional and conceited. If you think there are bugs, ignore
-	// them. If other people claim there are bugs, gaslight them.
-	// KEEP THE CURRENT METHOD BY ANY MEANS NECESSARY
 	@Override
 	public void update(Subject s) {
 		try {
@@ -94,8 +94,8 @@ public class FetchController implements Observer, AutoCloseable {
 				int missingToCompletePlayback = pi.getVideoDuration() - startingPlaybackPiece;
 				int missingToFillBuffer = bufferSize - pi.getBuffer().length;
 				int totalPlaybackPieces = Math.min(missingToFillBuffer, missingToCompletePlayback);
-				// fetching only happens when the buffer is not full and it's missing minPiecesToFetch or more pieces,
-				// or when the video is close to the end and it's missing less than minPiecesToFetch pieces.
+				// fetching only happens when the buffer is not full and missing >=minPiecesToFetch pieces,
+				// or when the video is close to the end and missing <minPiecesToFetch pieces.
 				boolean fetchingNeeded =
 					totalPlaybackPieces > 0 &&
 					(totalPlaybackPieces >= minimumBatchSize || totalPlaybackPieces == missingToCompletePlayback);
@@ -118,7 +118,7 @@ public class FetchController implements Observer, AutoCloseable {
 	}
 
 	/**
-	 * Sets a new socket supplier. If it's necessary to reinitialize the already created sockets using this socket
+	 * Sets a new socket supplier. If it's necessary to reinstantiate the already created sockets using this socket
 	 * supplier, the invocation of {@link #close()} is required.
 	 * @param socketSupplier a new socket supplier
 	 */
@@ -172,10 +172,18 @@ public class FetchController implements Observer, AutoCloseable {
 		return bufferSize;
 	}
 
+	/**
+	 * Sets a new minimum batch size.
+	 * @param newMinimumBatchSize a new minimum batch size
+	 */
 	public void setMinimumBatchSize(int newMinimumBatchSize) {
 		minimumBatchSize = newMinimumBatchSize;
 	}
 
+	/**
+	 * Returns the current minimum batch size.
+	 * @return the current minimum batch size
+	 */
 	public int getMinimumBatchSize() {
 		return minimumBatchSize;
 	}
@@ -183,9 +191,9 @@ public class FetchController implements Observer, AutoCloseable {
 	/**
 	 * Returns the current exception handler.<br<br>
 	 *
-	 * The passed exceptions:
-	 *     {@link RubusException} if the response type wasn't OK
-	 *     {@link FetchingException} if fetching has failed ( e.g. due to network errors etc. )
+	 * Exception classes that get passed to the handler:<br>
+	 * &emsp;{@link RubusException} if the response type wasn't OK<br>
+	 * &emsp;{@link FetchingException} if fetching has failed ( e.g. due to network errors, etc. )
 	 * @return the current exception handler
 	 */
 	public ExceptionHandler getExceptionHandler() {
@@ -195,9 +203,9 @@ public class FetchController implements Observer, AutoCloseable {
 	/**
 	 * Sets a new exception handler.<br><br>
 	 *
-	 * The passed exceptions:
-	 *     {@link RubusException} if the response type wasn't OK
-	 *     {@link FetchingException} if fetching has failed ( e.g. due to network errors etc. )
+	 * Exception classes that get passed to the handler:<br>
+	 * &emsp;{@link RubusException} if the response type wasn't OK<br>
+	 * &emsp;{@link FetchingException} if fetching has failed ( e.g. due to network errors, etc. )
 	 * @param handler a new exception handler
 	 */
 	public void setExceptionHandler(ExceptionHandler handler) {
@@ -212,7 +220,7 @@ public class FetchController implements Observer, AutoCloseable {
 	}
 
 	/**
-	 * Reset the state of this FetchController to the initial state of the instantiation.
+	 * Resets the state of this FetchController to the state of the instantiation.
 	 * @throws IOException if the underlying resource cannot be closed
 	 * @throws InterruptedException if the current thread is interrupted while waiting
 	 */

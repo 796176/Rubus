@@ -40,11 +40,12 @@ import java.util.HexFormat;
 import java.util.function.Consumer;
 
 /**
- * RequestHandler is responsible for receiving clients' requests and sending the appropriate responses. RequestHandler
- * is designed in the way that the same instance can be used to process different requests, as well as an ability to
- * set different objects if it's necessary before invoking {@link #run()}. After the {@link #run()} execution
- * RequestHandler calls the callback function and passes itself as parameter. The client can query the details about
- * the execution by calling the {@link #getRequestHandlerStatus()} method.
+ * RequestHandler is responsible for receiving request messages, processing them, and sending response messages.
+ * RequestHandler is designed so that the same instance can be reused multiple times to receive and process different
+ * request messages.<br>
+ * After the {@link #run()} method execution, RequestHandler invokes the callback function and passes itself as an
+ * argument. The client can query the details about the execution of {@link #run()} method by invoking
+ * the {@link #getRequestHandlerStatus()} method.
  */
 public class RequestHandler implements Runnable {
 
@@ -63,9 +64,9 @@ public class RequestHandler implements Runnable {
 	/**
 	 * Creates a new instance of this class.
 	 * @param mediaPool the media pool containing the available media
-	 * @param socket the socket requests of which need to be handled
-	 * @param requestParserStrategy the parser strategy to use
-	 * @param callback the function this RequestHandler calls after being completed
+	 * @param socket the socket a request message is to be extracted from
+	 * @param requestParserStrategy the parsing strategy
+	 * @param callback the function {@link #run()} invokes after being completed
 	 */
 	public RequestHandler(
 		MediaPool mediaPool,
@@ -92,8 +93,8 @@ public class RequestHandler implements Runnable {
 	/**
 	 * Creates a new instance of this class without the callback function.
 	 * @param mediaPool the media pool containing the available media
-	 * @param socket the socket requests of which need to be handled
-	 * @param requestParserStrategy the parser strategy to use
+	 * @param socket the socket a request message is to be extracted from
+	 * @param requestParserStrategy the parsing strategy
 	 */
 	public RequestHandler(MediaPool mediaPool, RubusSocket socket, RequestParserStrategy requestParserStrategy) {
 		this(mediaPool, socket, requestParserStrategy, requestHandler -> {});
@@ -204,24 +205,24 @@ public class RequestHandler implements Runnable {
 	}
 
 	/**
-	 * Returns the status of this RequestHandler. The return value is updated every time on completion of {@link #run()}.
-	 * @return the status of this RequestHandler
+	 * Returns the execution status of {@link #run()}.
+	 * @return the execution status of {@link #run()}
 	 */
 	public RequestHandler.Status getRequestHandlerStatus() {
 		return status;
 	}
 
 	/**
-	 * Returns the MediaPool reference.
-	 * @return the MediaPool reference
+	 * Returns the current MediaPool instance.
+	 * @return the current MediaPool instance
 	 */
 	public MediaPool getMediaPool() {
 		return pool;
 	}
 
 	/**
-	 * Returns the RubusSocket reference.
-	 * @return the RubusSocket reference
+	 * Returns the current RubusSocket instance.
+	 * @return the current RubusSocket instance
 	 */
 	public RubusSocket getRubusSocket() {
 		return socket;
@@ -236,16 +237,16 @@ public class RequestHandler implements Runnable {
 	}
 
 	/**
-	 * Returns the RequestParserStrategy reference.
-	 * @return the RequestParserStrategy reference
+	 * Returns the current RequestParserStrategy instance.
+	 * @return the current RequestParserStrategy instance
 	 */
 	public RequestParserStrategy getRequestParserStrategy() {
 		return parser;
 	}
 
 	/**
-	 * Sets a new MediaPool reference.
-	 * @param newMediaPool a new MediaPool
+	 * Sets a new MediaPool instance.
+	 * @param newMediaPool a new MediaPool instance
 	 */
 	public void setMediaPool(MediaPool newMediaPool) {
 		assert newMediaPool != null;
@@ -254,8 +255,8 @@ public class RequestHandler implements Runnable {
 	}
 
 	/**
-	 * Sets a new RubusSocket reference.
-	 * @param newRubusSocket a new RubusSocket
+	 * Sets a new RubusSocket instance.
+	 * @param newRubusSocket a new RubusSocket instance
 	 */
 	public void setRubusSocket(RubusSocket newRubusSocket) {
 		assert newRubusSocket != null;
@@ -264,8 +265,8 @@ public class RequestHandler implements Runnable {
 	}
 
 	/**
-	 * Sets a new RequestParserStrategy reference.
-	 * @param newRequestParserStrategy a new RequestParserStrategy
+	 * Sets a new RequestParserStrategy instance.
+	 * @param newRequestParserStrategy a new RequestParserStrategy instance
 	 */
 	public void setRequestParserStrategy(RequestParserStrategy newRequestParserStrategy) {
 		assert newRequestParserStrategy != null;
@@ -284,7 +285,7 @@ public class RequestHandler implements Runnable {
 	}
 
 	/**
-	 * Defines the set of possible outcomes of {@link #run()} execution.
+	 * Defines the set of {@link #run()} execution results.
 	 */
 	public enum ExecutionStatus {
 		/**
@@ -293,13 +294,13 @@ public class RequestHandler implements Runnable {
 		SUCCESS,
 
 		/**
-		 * The exception occurred while attempting to handle the request ( e.g. timeout exception, io exception etc. )
+		 * The exception occurred while processing the request message ( e.g. timeout exception, I/O exception etc. )
 		 */
 		EXCEPTION
 	}
 
 	/**
-	 * RequestHandler.Status allows the client to get the detailed information about execution of this RequestHandler.
+	 * RequestHandler.Status allows the client to get the detailed information on {@link #run()} execution.
 	 */
 	public static class Status {
 

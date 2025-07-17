@@ -30,8 +30,7 @@ import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * SocketManager keeps track of open connections. It's responsible for handing the incoming requests, closing
- * the connections or keeping them open.
+ * SocketManager is responsible for managing the lifecycle of {@link RubusSocket} instances.
  */
 public class SocketManager implements AutoCloseable {
 
@@ -52,8 +51,8 @@ public class SocketManager implements AutoCloseable {
 	/**
 	 * Constructs a new instance of this class.
 	 * @param mediaPool the media pool containing the available media
-	 * @param requestExecutorService the executor service that performs request handling
-	 * @param requestParserStrategy the parser strategy to use
+	 * @param requestExecutorService the executor service that performs message handling
+	 * @param requestParserStrategy the parsing strategy
 	 */
 	public SocketManager(
 		MediaPool mediaPool,
@@ -75,8 +74,8 @@ public class SocketManager implements AutoCloseable {
 	}
 
 	/**
-	 * Adds a socket to handle its requests.
-	 * @param socket the socket requests of which need to be handled
+	 * Adds a new socket.
+	 * @param socket a new socket
 	 */
 	public void add(RubusSocket socket) {
 		assert socket != null;
@@ -94,7 +93,7 @@ public class SocketManager implements AutoCloseable {
 	}
 
 	/**
-	 * Closes this SocketManager and all the open connections.
+	 * Closes this SocketManager and all the added sockets.
 	 */
 	@Override
 	public void close() {
@@ -115,8 +114,8 @@ public class SocketManager implements AutoCloseable {
 	}
 
 	/**
-	 * Returns the number of the currently open connections.
-	 * @return the number of the currently open connections
+	 * Returns the number of the currently open sockets.
+	 * @return the number of the currently open sockets.
 	 */
 	public int getOpenConnections() {
 		return activeConnections.get();

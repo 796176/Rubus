@@ -22,16 +22,17 @@ package frontend;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
- * AudioPlayerInterface allows the client to control an audio player. The audio player contains a buffer containing
- * PCM encoded ( raw ) audio pieces each 1 second long. If the audio player isn't paused an audio piece gets polled
- * from the buffer and played. This process repeats until the buffer isn't empty. The client can choose what object
- * handles the playback related exceptions.
+ * AudioPlayerInterface provides methods to control audio playback. Every instance of AudioPlayerInterface has a buffer
+ * associated with it. The buffer stores 1 second long PCM encoded audio clips represented as byte arrays. The buffer is
+ * available via {@link #getBuffer()}. All changes made in the returned buffer are visible to the instance. When the
+ * currently playing audio clip is exhausted, AudioPlayerInterface retrieves the next one from the buffer
+ * ( if available ) and starts playing it.
  */
 public interface AudioPlayerInterface {
 
 	/**
-	 * The buffer containing the audio pieces. The changes made by the client are visible to this audio player.
-	 * @return the buffer containing the audio pieces
+	 * The buffer containing audio clips. All changes made in the returned buffer are visible to the instance.
+	 * @return the buffer containing the audio clips
 	 */
 	ConcurrentLinkedQueue<byte[]> getBuffer();
 
@@ -54,23 +55,23 @@ public interface AudioPlayerInterface {
 	/**
 	 * Returns the current exception handler.<br<br>
 	 *
-	 * The passed exceptions:
-	 *     {@link common.AudioException} if the audio can't be played ( e.g. the audio sinks aren't available etc.)
+	 * Exception classes that get passed to the handler:<br>
+	 * &emsp;{@link common.AudioException} if the audio can't be played ( e.g. the audio sinks aren't available, etc.)
 	 * @return the current exception handler
 	 */
 	ExceptionHandler getExceptionHandler();
 
 	/**
-	 * Sets a new exception handler<br><br>
+	 * Sets a new exception handler.<br><br>
 	 *
-	 * The passed exceptions:
-	 *     {@link common.AudioException} if the audio can't be played ( e.g. the audio sinks aren't available etc.)
+	 * Exception classes that get passed to the handler:<br>
+	 * &emsp;{@link common.AudioException} if the audio can't be played ( e.g. the audio sinks aren't available, etc.)
 	 * @param handler a new exception handler
 	 */
 	void setExceptionHandler(ExceptionHandler handler);
 
 	/**
-	 * Purges the currently playing and in the buffer audio pieces.
+	 * Removes all the audio clips from the buffer and exhausts the currently playing audio clip.
 	 */
 	void purge();
 

@@ -29,7 +29,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
  * AudioPlayer is the default implementation of {@link AudioPlayerInterface} that uses the audio sink provided by the OS.
- * AudioPlayer starts a separated thread which retrieves the audio pieces from the buffer and plays them.
+ * The audio is played in a separate thread.
  */
 public class AudioPlayer implements Runnable, AudioPlayerInterface {
 
@@ -55,8 +55,8 @@ public class AudioPlayer implements Runnable, AudioPlayerInterface {
 
 	/**
 	 * Constructs an instance of this class and starts a new thread.
-	 * @param audioFormat a format of the playback pieces
-	 * @param handler an exception handler
+	 * @param audioFormat the audio format
+	 * @param handler the exception handler
 	 */
 	public AudioPlayer(AudioFormat audioFormat, ExceptionHandler handler) {
 		assert audioFormat != null;
@@ -81,7 +81,7 @@ public class AudioPlayer implements Runnable, AudioPlayerInterface {
 
 	/**
 	 * Constructs an instance of this class without an exception handler and starts a new thread.
-	 * @param audioFormat a format of the playback pieces
+	 * @param audioFormat the audio format
 	 */
 	public AudioPlayer(AudioFormat audioFormat) {
 		this(audioFormat, null);

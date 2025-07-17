@@ -25,9 +25,9 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 
 /**
- * WatchHistoryRecorder serves as a bridge between a {@link PlayerInterface} instance and a {@link WatchHistory} class.
- * The media id provided to this object and the media progress provided by the {@link PlayerInterface} instance get
- * saved to the watch history file by delegating the process to the {@link WatchHistory} class.
+ * WatchHistoryRecorder links a particular instance of {@link WatchHistory} to an instance of {@link PlayerInterface}.
+ * It tracks the progress of the currently playing media of the {@link PlayerInterface} instance and transmit
+ * the changes to the {@link WatchHistory} instance.
  */
 public class WatchHistoryRecorder implements Observer {
 
@@ -42,7 +42,7 @@ public class WatchHistoryRecorder implements Observer {
 	/**
 	 * Constructs an instance of this class.
 	 * @param watchHistory the WatchHistory instance
-	 * @param mediaId the media id
+	 * @param mediaId the media id the {@link PlayerInterface} instance is playing
 	 * @param exceptionHandler the exception handler
 	 */
 	public WatchHistoryRecorder(WatchHistory watchHistory, String mediaId, ExceptionHandler exceptionHandler) {
@@ -62,7 +62,7 @@ public class WatchHistoryRecorder implements Observer {
 	/**
 	 * Constructs an instance of this class without an exception handler.
 	 * @param watchHistory the WatchHistory instance
-	 * @param mediaId the media id
+	 * @param mediaId the media id the {@link PlayerInterface} instance is playing
 	 */
 	public WatchHistoryRecorder(WatchHistory watchHistory, String mediaId) {
 		this(watchHistory, mediaId, e -> {});
@@ -119,8 +119,8 @@ public class WatchHistoryRecorder implements Observer {
 	/**
 	 * Sets a new exception handler.<br<br>
 	 *
-	 * The passed exception:
-	 *     {@link IOException} if an I/O exception occurs in the underlying WatchHistory instance
+	 * Exception classes that get passed to the handler:<br>
+	 * &emsp;{@link IOException} if an I/O exception occurs in the underlying WatchHistory instance
 	 * @param newExceptionHandler a new exception handler
 	 */
 	public void setExceptionHandler(ExceptionHandler newExceptionHandler) {
@@ -132,8 +132,8 @@ public class WatchHistoryRecorder implements Observer {
 	/**
 	 * Returns the current exception handler.<br<br>
 	 *
-	 * The passed exception:
-	 *     {@link IOException} if an I/O exception occurs in the underlying WatchHistory instance
+	 * Exception classes that get passed to the handler:<br>
+	 * &emsp;{@link IOException} if an I/O exception occurs in the underlying WatchHistory instance
 	 * @return the current exception handler
 	 */
 	public ExceptionHandler getExceptionHandler() {

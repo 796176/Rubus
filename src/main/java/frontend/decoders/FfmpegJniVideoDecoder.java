@@ -28,21 +28,19 @@ import java.util.Map;
 import java.util.concurrent.*;
 
 /**
- * FfmpegJniVideoDecoder is an implementation of {@link Decoder} that targets decoding of video clips consisting of (1)
- * a single video stream itself and (2) a container that contains necessary information to decode and output the content
- * ( e.g. the resolution, frame-rate, etc. ). The range of supported containers and video decoders is platform specific
- * and depends on the version of the ffmpeg library.<br>
+ * FfmpegJniVideoDecoder is an implementation of {@link Decoder} that targets decoding of video clips that are encoded
+ * in the traditional format, meaning an encoded file is enough to perform its decoding. The range of
+ * supported containers and video codecs depends on the version of the ffmpeg library and the target platform.<br>
  * This class doesn't perform decoding in Java but instead delegates it to the functions declared in
  * src/main/c/fronted/decoders/fronted_decoders_FfmpegJniVideoDecoder.h and implemented in
- * src/main/c/fronted/decoders/fronted_decoders_FfmpegJniVideoDecoder.c. They, in turn, call functions provided by
+ * src/main/c/fronted/decoders/fronted_decoders_FfmpegJniVideoDecoder.c. They, in turn, call the functions provided by
  * the ffmpeg library. That means the target platform has to have the ffmpeg library installed and have the platform
- * specific binary of the C code placed somewhere. After the location of the binary is specified in the
- * java.library.path system property, it can be loaded via {@link System#loadLibrary(String)} using platform
- * independent name.<br>
+ * specific binary of the C code placed somewhere. After the location of the binary is specified in
+ * the java.library.path system property, it can be loaded via {@link System#loadLibrary(String)}.<br>
  * This class is quite limited because it doesn't provide support for {@link Decoder.LocalContext} and parallel
  * decoding. LocalContext or StreamContext instances used here has to be instantiated by the respective methods
  * implemented by this class. Using a LocalContext/StreamContext instance with a video clip that is not intended to be
- * used with that particular instance can result in a program crash, so the client needs to use contexts with extreme
+ * used with that particular clip can result in a program crash, so the client needs to use the contexts with extreme
  * caution.
  */
 public class FfmpegJniVideoDecoder extends VideoDecoder {
@@ -232,26 +230,26 @@ public class FfmpegJniVideoDecoder extends VideoDecoder {
 	public void purgeAndFlush() {
 		/* Given that the service executor is single threaded, most of the submitted tasks reside in the queue and wait
 		   to be executed. So the most efficient way to implement this method is to remove all queued tasks and to
-		   wait for the currently executing task to finish. Unfortunately, Java API doesn't offer such functionality.
+		   wait for the currently executing one to finish. Unfortunately, the Java API doesn't offer such functionality.
 
-		   Submitted tasks produce Futures that can be used to cancel the task so it won't be executed, but Future
-		   doesn't distinguish between a running task and a queued task; their Future.State always return RUNNING.
-		   Obviously, it possible to cancel a running task, but it would be impossible to wait for it to finish.
-		   An attempt to call future.get() on a canceled task even if it's still running always results in
-		   CancellationException.
+		   Submitted tasks produce Futures that can be used to cancel the task so it won't be executed, but a Future
+		   doesn't distinguish between a running task and a queued task; its Future.State always returns RUNNING.
+		   These tasks can be canceled but in this case it would be impossible to determine if the service executor is
+		   still running a task. Attempts to invoke future.get() on a canceled task even if it's still running always
+		   result in CancellationException.
 
-		   The other way is to use ThreadPoolExecutor. Its interface allows us to access the queue of containing queued
-		   tasks as Runnables and then use remove() to empty the queue. The shortcomings are as follows: (1) Java API
-		   discourages invoking getQueue(); (2) the queue contains Runnables and not Futures so there is a need locally
-		   map them to determine what task is currently executing because ThreadPoolExecutor returns only approximate
-		   number of running tasks and there is no other way to wait for termination of currently executing tasks
-		   provided by ThreadPoolExecutor's interface.
+		   The other way is to use ThreadPoolExecutor. Its interface allows us to access the queue that contains
+		   the queued tasks as Runnables and then use remove() to empty the queue. The shortcomings are as follows:
+		   (1) Java API discourages accessing it; (2) the queue contains Runnables and not Futures so there is a need
+		   locally map them to determine what task is currently executing because ThreadPoolExecutor returns only
+		   approximate number of running tasks and there is no other way to wait for termination of currently executing
+		   tasks provided by ThreadPoolExecutor's interface.
 
 		   Lastly, the most straightforward way is to shut down the executor service, cancel all the tasks, and then
 		   call awaitTermination. This is the most efficient way of flushing. Its downside, though, is that there is no
 		   way to resume an executor service after it has been shut down. Instantiating a new executor service is
-		   a perfect solution, but the entire point of the design that provide this method is to reuse as many of
-		   already instantiating objects as possible... So yeah.
+		   a perfect solution, but the entire point of this method is to reuse as many of already instantiating objects
+		   as possible... So yeah.
 
 		   Naturally waiting for all submitted tasks to be executed and finish doesn't take long in cases where
 		   FfmpegJniVideoDecoder is used anyway. Which is why this method is implemented the way it is.

@@ -34,18 +34,19 @@ import java.util.NavigableMap;
 import java.util.TreeMap;
 
 /**
- * Config is an auxiliary class to manage simple, flat config files. A config files consists of fields separated with
- * a line feeder. A field itself is a key and a value both of which are represented as strings and separated with
- * a space character. If a space character is the only and last character of the field it makes a value
- * an empty string "". If a space character is the first character of the field it makes a key an empty string "".<br>
- * No key must have any space characters; because the first space character is the key-value separator.<br>
- * Thread safety is achieved by acquiring a lock on this object before calling any method.
+ * Config is an auxiliary class to manage simple, flat config files. A config file consists of fields separated with
+ * a line feed (0a). A field itself is a key-value pair represented as a string. A key is separated from a value with
+ * a space character (20). If there is only one space character in the filed, and it is the last character of the field
+ * it makes the value an empty string "". If a space character is the first character of the field it makes the key
+ * an empty string "". If the field contains multiple space characters, the first character is the one that separates
+ * the key from the value.<br>
+ * Thread safety of Config instances is achieved by acquiring a lock on this object before calling any method.
  */
 public class Config {
 
 	/**
-	 * ConfigFunction is similar to Java's {@link java.util.function.Function}, but the argument type is bound to Config
-	 * and a checked exception can be thrown inside the body.
+	 * ConfigFunction is similar to Java's {@link java.util.function.Function}, but the parameter is always the Config
+	 * type. The exception {@link ConfigFunction#apply(Config)} throws is parameterized.
 	 * @param <T> the type of the result of the function
 	 * @param <E> the type of the exception the function may throw
 	 */
@@ -53,9 +54,9 @@ public class Config {
 	public interface ConfigFunction<T, E extends Exception> {
 		/**
 		 * Applies this function to the given Config.
-		 * @param c a Config instance
+		 * @param c the Config instance
 		 * @return the lambda function result
-		 * @throws E if an exception is thrown inside the lambda function body
+		 * @throws E if the exception is thrown inside the lambda function body
 		 */
 		T apply(Config c) throws E;
 	}
@@ -67,8 +68,8 @@ public class Config {
 	private final NavigableMap<String, String> params = new TreeMap<>();
 
 	/**
-	 * Construct an instance of this class.
-	 * @param configPath a path of the config
+	 * Constructs an instance of this class.
+	 * @param configPath the location of the config file
 	 * @throws IOException if some I/O error occurs
 	 */
 	public Config(Path configPath) throws IOException {
@@ -128,7 +129,7 @@ public class Config {
 	}
 
 	/**
-	 * Adds or replaces a field.
+	 * Adds a new field, or sets a new value.
 	 * @param key the key
 	 * @param value the value
 	 */
@@ -139,7 +140,7 @@ public class Config {
 	}
 
 	/**
-	 * Returns the value by the key or null if the field is absent.
+	 * Returns the value associated with the key, or null if the field is absent.
 	 * @param key the key
 	 * @return the value
 	 */
@@ -156,19 +157,17 @@ public class Config {
 	}
 
 	/**
-	 * Allows the caller to perform as many calls on this Config as necessary, blocking other threads from accessing or
-	 * modifying this Config. The method is designed to be flexible so a checked exception can be thrown inside
-	 * the lambda function body, which will be propagated to the caller; the lambda function can return any object,
-	 * which will be returned by this method.<br>
-	 * The main purpose of this method as opposed to simply calling Config methods directly is an intermediate state this
-	 * Config object may have while performing modifications and other threads shouldn't be able to access this state.
-	 * Let's assume, for example, that a Config consists of two fields: an ip address and a port; and the values are
-	 * already set and can be accessed by some thread to create sockets. Then, if a different thread wants to change
-	 * both ip address and the port, it doesn't want another thread to access a new ip address value but access the old
-	 * port value. And this can happen if the thread calls {@link #set(String, String)} two times even if these calls
-	 * are consecutive. And in order to avoid this the thread must modify both the ip address and port values inside
-	 * the lambda function body.
-	 * @param a an action this method performs supplying it with this Config
+	 * Allows to perform many calls on this Config in a single batch. The method is designed to be flexible so a checked
+	 * exception can be thrown inside the lambda function body, which will be propagated to the caller; the lambda
+	 * function can return any object, which will be returned by this method.<br>
+	 * The main purpose of this method as opposed to simply calling Config methods directly is to block other threads
+	 * from accessing this Config instance while the lambda function body is executed. Let's assume, for example, that
+	 * Config has two fields: an ip address and a port; and the values are already set and can be accessed by some
+	 * thread. Then, if a different thread wants to change both ip address and the port, and it doesn't want another
+	 * thread to access a new ip address value but access the old port value. And this can happen if the thread calls
+	 * {@link #set(String, String)} two times even if these calls are consecutive. So, in order to avoid this,
+	 * the thread must modify both the ip address and port values inside the lambda function body.
+	 * @param a the action this method performs passing this Config instance as an argument
 	 * @return the object the lambda function returns
 	 * @param <T> the object type the lambda function returns
 	 * @param <E> the exception type that can be thrown inside the lambda body function
@@ -179,8 +178,7 @@ public class Config {
 	}
 
 	/**
-	 * Saves all the fields to the file specified in the constructor. The behaviour is the same as calling
-	 * duplicate(configPath).
+	 * Saves this Config to the file located at configPath. It is the same as calling duplicate(configPath).
 	 * @throws IOException if some I/O error occurs
 	 */
 	public synchronized void save() throws IOException {
@@ -188,7 +186,7 @@ public class Config {
 	}
 
 	/**
-	 * Saves all the fields to the specified file. The order in which fields are saved is based on the order of the keys.
+	 * Saves this Config to the file located at dest.
 	 * @param dest the location of the file
 	 * @throws IOException if some I/O error occurs
 	 */
@@ -209,15 +207,15 @@ public class Config {
 	}
 
 	/**
-	 * Returns an immutable instance of this Config. Because thread safety of Config is achieved through locking,
-	 * it results in performance loss even if the operations themselves are thread safe ( e.g. only {@link #get(String)}
-	 * invocations ). The Config instance returned by this method doesn't use locking on any of its methods, but it has
-	 * the following limitations: <br>
+	 * Returns an immutable instance of this Config. Thread safety of Config is achieved through locking, so it may
+	 * result in performance loss even if the operations themselves are thread safe ( e.g. only
+	 * {@link #get(String)} invocations ). The Config instance returned by this method doesn't use locking on any of its
+	 * methods, but it has the following limitations: <br>
 	 * 1. Attempts to call any modification method like {@link #set(String, String)}, {@link #remove(String)}, etc. will
-	 * throw {@link UnsupportedOperationException}<br>
-	 * 2. Attempts to call {@link #save()} will be ignored<br>
-	 * 3. Attempts to call {@link #duplicate(Path)} will be ignored if and only if the passed parameter is equal to
-	 * configPath, otherwise it will throw {@link UnsupportedOperationException}<br>
+	 * throw {@link UnsupportedOperationException}.<br>
+	 * 2. Attempts to call {@link #save()} will be ignored.<br>
+	 * 3. Attempts to call {@link #duplicate(Path)} will be ignored if and only if the passed argument is equal to
+	 * configPath, otherwise it will throw {@link UnsupportedOperationException}.<br>
 	 * @return an immutable Config
 	 */
 	public synchronized Config immutableConfig() {

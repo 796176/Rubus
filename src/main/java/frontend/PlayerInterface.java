@@ -22,51 +22,67 @@ package frontend;
 import frontend.decoders.VideoDecoder;
 
 /**
- * PlayerInterface allows the client to control a video player and track its current status. A video player contains
- * a buffer, which is an array of {@link EncodedPlaybackPiece} objects. Each piece must contain one second worth of video.
- * If a video player isn't paused and the buffer contains at least one {@link EncodedPlaybackPiece} it takes it out of
- * the buffer and starts decoding it. At this moment the current playing piece is available via {@link #getPlayingPiece()}.
- * After the video piece gets decoded the player actually starts playing the video and at this moment the {@link #isBuffering()},
- * value is false. After the current video piece finished playing, the video player increments the playing progress by one.
- * This process repeats until the buffer is empty. {@link #setBuffer(EncodedPlaybackPiece[])} and {@link #getBuffer()}
- * allow to access the entire video buffer, but it's recommended to use them only to append the current buffer. It's
- * because a video player may still keep references to {@link EncodedPlaybackPiece} objects to perform, for example,
- * pre-decoding. So modifying the data of the buffer may cause no effect on the actual playing content. If it's necessary
- * to flush the current buffer and the currently playing video piece setProgress(getProgress()) may be used.
+ * PlayerInterface provides an interface to control video playback. The video data itself is stored in a buffer and
+ * represented as {@link EncodedPlaybackPiece} objects that store 1 second long video clip.<br>
+ * The lifecycle of PlayerInterface should be as follows:<br>
+ * 1. When the PlayerInterface instance is instantiated its buffer is empty and the {@link #isBuffering()} value is
+ * true.<br>
+ * 2. When the buffer gets filled with one or more {@link EncodedPlaybackPiece} objects, PlayerInterface retrieves
+ * the first {@link EncodedPlaybackPiece} from the buffer, and it becomes available via {@link #getPlayingPiece()}.
+ * PlayerInterface then starts decoding of the video of this {@link EncodedPlaybackPiece}.<br>
+ * 3. When the decoding of the {@link EncodedPlaybackPiece} is complete, PlayerInterface starts playing it and
+ * the {@link #isBuffering()} value becomes false.<br>
+ * 4. After the first decoded video clip is exhausted, which is exactly 1 second later after step 3, the next
+ * {@link EncodedPlaybackPiece} object is pulled from the buffer and becomes available via {@link #getPlayingPiece()}.
+ * If the PlayerInterface interface is implemented properly then the video data of this {@link EncodedPlaybackPiece}
+ * is already decoded at this point and will be played, so the {@link #isBuffering()} value stays false and the progress
+ * value is incremented by one. This step repeats until the buffer is fully exhausted.<br><br>
+ * The buffer containing {@link EncodedPlaybackPiece} objects is available via {@link #getBuffer()}. The buffer can be
+ * set via {@link #setBuffer(EncodedPlaybackPiece[])}. Note that although any array can be set via
+ * {@link #setBuffer(EncodedPlaybackPiece[])} it is recommended to append the already in-PlayerInterface
+ * {@link EncodedPlaybackPiece} objects. This is because a proper implementation is likely to pre-decode several video
+ * clips of the {@link EncodedPlaybackPiece} objects. So replacing the objects will result in a discrepancy between
+ * the content of the buffer and PlayerInterface's playback.<br>
+ * PlayerInterface extends {@link Subject}, so any object that changes its state including PlayerInterface itself must
+ * send a notification via {@link #sendNotification()} when:<br>
+ * 1. The content of the buffer has changed.<br>
+ * 2. The progress value has changed.<br>
+ * 3. The {@link #isBuffering()} value has changed.<br>
+ * 4. The playback was paused or resumed.<br>
  */
 public interface PlayerInterface extends Subject, AutoCloseable {
 
 	/**
-	 * Pauses the video player.
+	 * Pauses the playback.
 	 */
 	void pause();
 
 	/**
-	 * Resumes the video player.
+	 * Resumes the playback.
 	 */
 	void resume();
 
 	/**
-	 * Returns true if the video player is paused, false otherwise.
-	 * @return true if the video player is paused, false otherwise
+	 * Returns true if the playback is paused, false otherwise.
+	 * @return true if the playback is paused, false otherwise
 	 */
 	boolean isPaused();
 
 	/**
-	 * Returns the playing progress in seconds.
-	 * @return the playing progress
+	 * Returns the playback progress in seconds.
+	 * @return the playback progress in seconds
 	 */
 	int getProgress();
 
 	/**
-	 * Returns the duration of the video in seconds.
-	 * @return the duration of the video
+	 * Returns the duration of the playback in seconds.
+	 * @return the duration of the playback in seconds
 	 */
 	int getVideoDuration();
 
 	/**
-	 * Sets a new duration of the video in seconds.
-	 * @param duration a new duration of the video
+	 * Sets a new duration of the playback in seconds.
+	 * @param duration a new duration of the playback in seconds
 	 */
 	void setVideoDuration(int duration);
 
@@ -83,20 +99,20 @@ public interface PlayerInterface extends Subject, AutoCloseable {
 	int getVideoHeight();
 
 	/**
-	 * Sets the playing progress.
-	 * @param timestamp a new playing progress
+	 * Sets the playback progress in seconds.
+	 * @param timestamp a new playback progress in seconds
 	 */
 	void setProgress(int timestamp);
 
 	/**
-	 * Returns the current video buffer.
-	 * @return the current video buffer
+	 * Returns the current buffer.
+	 * @return the current buffer
 	 */
 	EncodedPlaybackPiece[] getBuffer();
 
 	/**
-	 * Sets a new video buffer.
-	 * @param buffer a new video buffer
+	 * Sets a new buffer.
+	 * @param buffer a new buffer
 	 */
 	void setBuffer(EncodedPlaybackPiece[] buffer);
 
@@ -120,17 +136,16 @@ public interface PlayerInterface extends Subject, AutoCloseable {
 
 	/**
 	 * Returns the currently playing {@link EncodedPlaybackPiece}.
-	 * @return an {@link EncodedPlaybackPiece} instance
+	 * @return the currently playing {@link EncodedPlaybackPiece}
 	 */
 	EncodedPlaybackPiece getPlayingPiece();
 
 	/**
-	 * Reset the state of this PlayerInterface to the initial state of the instantiation. There is a few ways
+	 * Resets the state of this PlayerInterface to the state of the instantiation. There is a few ways
 	 * this method can be implemented: (1) resetting involves each and every field of the implemented class, (2) it
-	 * involves every field but the collection of {@link Observer}s field, and, if this is the latter, should those
-	 * observers be notified by this method or by the caller. The recommended way to implement this method is
-	 * the first one, because it is the least confusing way that follows the description
-	 * "the initial state of the instantiation".
+	 * involves every field but the collection of {@link Observer}s field. The recommended way to implement this method
+	 * is the first one, because it is the least confusing way that follows the description "the state of the
+	 * instantiation".
 	 * @throws Exception if the underlying resources cannot be closed
 	 */
 	void purge() throws Exception;
