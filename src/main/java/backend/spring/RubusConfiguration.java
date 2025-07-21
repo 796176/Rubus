@@ -21,6 +21,7 @@ package backend.spring;
 
 import backend.*;
 import backend.io.MediaPool;
+import backend.io.TransactionLockFailureAdvising;
 import common.Config;
 import org.postgresql.ds.PGSimpleDataSource;
 import org.slf4j.Logger;
@@ -42,6 +43,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 @Configuration
+@EnableAspectJAutoProxy
 @EnableTransactionManagement(proxyTargetClass = true, rollbackOn = RollbackOn.ALL_EXCEPTIONS)
 public class RubusConfiguration {
 
@@ -127,6 +129,13 @@ public class RubusConfiguration {
 	@Bean
 	PlatformTransactionManager platformTransactionManager(DataSource dataSource) {
 		return new JdbcTransactionManager(dataSource);
+	}
+
+	@Order(1)
+	@Bean
+	TransactionLockFailureAdvising transactionLockFailureAdvising(Config config) {
+		int retryAttempts = Integer.parseInt(config.get("transaction-failure-retry-attempts"));
+		return new TransactionLockFailureAdvising(retryAttempts);
 	}
 
 	@Bean
