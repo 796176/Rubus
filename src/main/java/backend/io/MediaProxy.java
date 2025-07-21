@@ -81,42 +81,6 @@ public abstract class MediaProxy implements Media {
 	}
 
 	@Override
-	public int getVideoWidth() throws IOException {
-		if (subject == null) subject = mediaPool.getMedia(getID());
-		return subject.getVideoWidth();
-	}
-
-	@Override
-	public int getVideoHeight() throws IOException {
-		if (subject == null) subject = mediaPool.getMedia(getID());
-		return subject.getVideoHeight();
-	}
-
-	@Override
-	public String getVideoCodec() throws IOException {
-		if (subject == null) subject = mediaPool.getMedia(getID());
-		return subject.getVideoCodec();
-	}
-
-	@Override
-	public String getAudioCodec() throws IOException {
-		if (subject == null) subject = mediaPool.getMedia(getID());
-		return subject.getAudioCodec();
-	}
-
-	@Override
-	public String getVideoContainer() throws IOException {
-		if (subject == null) subject = mediaPool.getMedia(getID());
-		return subject.getVideoContainer();
-	}
-
-	@Override
-	public String getAudioContainer() throws IOException {
-		if (subject == null) subject = mediaPool.getMedia(getID());
-		return subject.getAudioContainer();
-	}
-
-	@Override
 	public Path getContentPath() throws IOException {
 		if (subject == null) subject = mediaPool.getMedia(getID());
 		return subject.getContentPath();
@@ -154,12 +118,6 @@ public abstract class MediaProxy implements Media {
 					Arrays.equals(getID(), media.getID()) &&
 						getTitle().equals(media.getTitle()) &&
 						getDuration() == media.getDuration() &&
-						getVideoWidth() == media.getVideoWidth() &&
-						getVideoHeight() == media.getVideoHeight() &&
-						getVideoCodec().equals(media.getVideoCodec()) &&
-						getAudioCodec().equals(media.getAudioCodec()) &&
-						getVideoContainer().equals(media.getVideoContainer()) &&
-						getAudioContainer().equals(media.getAudioContainer()) &&
 						getContentPath().equals(media.getContentPath());
 			} catch (IOException e) {
 				throw new UncheckedIOException(e);

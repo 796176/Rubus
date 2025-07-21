@@ -51,48 +51,6 @@ public interface Media {
 	int getDuration() throws IOException;
 
 	/**
-	 * Returns the width of the video in pixels.
-	 * @return the width of the video in pixels
-	 * @throws IOException if some I/O error occurs
-	 */
-	int getVideoWidth() throws IOException;
-
-	/**
-	 * Returns the height of the video in pixels.
-	 * @return the height of the video in pixels
-	 * @throws IOException if some I/O error occurs
-	 */
-	int getVideoHeight() throws IOException;
-
-	/**
-	 * Returns the codec of the video.
-	 * @return the codec of the video
-	 * @throws IOException if some I/O error occurs
-	 */
-	String getVideoCodec() throws IOException;
-
-	/**
-	 * Returns the codec of the audio.
-	 * @return the codec of the audio
-	 * @throws IOException if some I/O error occurs
-	 */
-	String getAudioCodec() throws IOException;
-
-	/**
-	 * Returns the container of the video.
-	 * @return the container of the video
-	 * @throws IOException if some I/O error occurs
-	 */
-	String getVideoContainer() throws IOException;
-
-	/**
-	 * Returns the container of the audio.
-	 * @return the container of the audio
-	 * @throws IOException if some I/O error occurs
-	 */
-	String getAudioContainer() throws IOException;
-
-	/**
 	 * Returns the directory that contains this media-specific files.
 	 * @return the directory that contains this media-specific files
 	 * @throws IOException if some I/O error occurs

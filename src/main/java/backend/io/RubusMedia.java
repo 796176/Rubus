@@ -123,36 +123,6 @@ public class RubusMedia implements Media {
 	}
 
 	@Override
-	public int getVideoWidth() {
-		return videoWidth;
-	}
-
-	@Override
-	public int getVideoHeight() {
-		return videoHeight;
-	}
-
-	@Override
-	public String getVideoCodec() {
-		return videoCodec;
-	}
-
-	@Override
-	public String getAudioCodec() {
-		return audioCodec;
-	}
-
-	@Override
-	public String getVideoContainer() {
-		return videoContainer;
-	}
-
-	@Override
-	public String getAudioContainer() {
-		return audioContainer;
-	}
-
-	@Override
 	public Path getContentPath() {
 		return contentPath;
 	}
@@ -163,7 +133,7 @@ public class RubusMedia implements Media {
 
 		byte[][] audioPieces = new byte[number][];
 		for (int arrayIndex = 0; arrayIndex < audioPieces.length; arrayIndex++) {
-			Path audioPiecePath = Path.of(contentPath.toString(), "a" + (arrayIndex + pieceIndex) + "." + getAudioContainer());
+			Path audioPiecePath = Path.of(contentPath.toString(), "a" + (arrayIndex + pieceIndex));
 			audioPieces[arrayIndex] = Files.exists(audioPiecePath) ? Files.readAllBytes(audioPiecePath) : null;
 		}
 		return audioPieces;
@@ -175,7 +145,7 @@ public class RubusMedia implements Media {
 
 		byte[][] videoPieces = new byte[number][];
 		for (int arrayIndex = 0; arrayIndex < videoPieces.length; arrayIndex++) {
-			Path videoPiecePath = Path.of(contentPath.toString(), "v" + (arrayIndex + pieceIndex) + "." + getVideoContainer());
+			Path videoPiecePath = Path.of(contentPath.toString(), "v" + (arrayIndex + pieceIndex));
 			videoPieces[arrayIndex] = Files.exists(videoPiecePath) ? Files.readAllBytes(videoPiecePath) : null;
 		}
 		return videoPieces;
@@ -204,12 +174,6 @@ public class RubusMedia implements Media {
 					Arrays.equals(getID(), media.getID()) &&
 						getTitle().equals(media.getTitle()) &&
 						getDuration() == media.getDuration() &&
-						getVideoWidth() == media.getVideoWidth() &&
-						getVideoHeight() == media.getVideoHeight() &&
-						getVideoCodec().equals(media.getVideoCodec()) &&
-						getAudioCodec().equals(media.getAudioCodec()) &&
-						getVideoContainer().equals(media.getVideoContainer()) &&
-						getAudioContainer().equals(media.getAudioContainer()) &&
 						getContentPath().equals(media.getContentPath());
 			} catch (IOException e) {
 				throw new UncheckedIOException(e);
