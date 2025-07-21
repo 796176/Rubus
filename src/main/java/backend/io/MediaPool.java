@@ -22,6 +22,7 @@ package backend.io;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
@@ -32,6 +33,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 /**
  * The client uses MediaPool to access the information about the available media.
  */
+@Transactional(readOnly = true, isolation = Isolation.SERIALIZABLE)
 public class MediaPool {
 
 	private final static Logger logger = LoggerFactory.getLogger(MediaPool.class);
@@ -122,7 +124,6 @@ public class MediaPool {
 	 * @return the {@link Media} instance
 	 * @throws IOException if some I/O occurs
 	 */
-	@Transactional()
 	public Media getMedia(byte[] mediaId) throws IOException {
 		String sql = "select * from media where id=?;";
 		logger.debug("{} querying {}", this, sql);

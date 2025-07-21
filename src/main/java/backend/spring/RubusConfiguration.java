@@ -26,11 +26,13 @@ import org.postgresql.ds.PGSimpleDataSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.AnnotationConfigApplicationContext;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Primary;
+import org.springframework.context.annotation.*;
+import org.springframework.core.annotation.Order;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.support.JdbcTransactionManager;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.annotation.EnableTransactionManagement;
+import org.springframework.transaction.annotation.RollbackOn;
 
 import javax.sql.DataSource;
 import java.io.IOException;
@@ -40,6 +42,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 @Configuration
+@EnableTransactionManagement(proxyTargetClass = true, rollbackOn = RollbackOn.ALL_EXCEPTIONS)
 public class RubusConfiguration {
 
 	private final static Logger logger = LoggerFactory.getLogger(RubusConfiguration.class);
@@ -113,8 +116,17 @@ public class RubusConfiguration {
 	}
 
 	@Bean
-	JdbcTemplate jdbcTemplate(DataSource dataSource) {
-		return new JdbcTemplate(dataSource);
+	JdbcTemplate jdbcTemplate(DataSource dataSource, Config config) {
+		JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
+		int timeout = Integer.parseInt(config.get("transaction-timeout"));
+		jdbcTemplate.setQueryTimeout(timeout);
+		return jdbcTemplate;
+	}
+
+	@Order(200)
+	@Bean
+	PlatformTransactionManager platformTransactionManager(DataSource dataSource) {
+		return new JdbcTransactionManager(dataSource);
 	}
 
 	@Bean
