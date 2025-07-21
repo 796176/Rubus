@@ -204,13 +204,7 @@ public class RequestHandlerTests {
 		MediaInfo mediaInfo = new MediaInfo(
 			"cd",
 			"Title2",
-			1280,
-			720,
-			2,
-			"null1",
-			"null2",
-			"null3",
-			"null4"
+			2
 		);
 
 		@Test

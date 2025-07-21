@@ -186,13 +186,7 @@ public class RubusMedia implements Media {
 		return new MediaInfo(
 			HexFormat.of().formatHex(getID()),
 			getTitle(),
-			getVideoWidth(),
-			getVideoHeight(),
-			getDuration(),
-			getVideoCodec(),
-			getAudioCodec(),
-			getVideoContainer(),
-			getAudioContainer()
+			getDuration()
 		);
 	}
 
