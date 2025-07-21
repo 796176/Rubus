@@ -70,13 +70,7 @@ public class MediaPool {
 					new RubusMedia(
 						rs.getBytes("id"),
 						new String(rs.getBytes("title")),
-						rs.getInt("videoWidth"),
-						rs.getInt("videoHeight"),
 						rs.getInt("duration"),
-						new String(rs.getBytes("videoEncoding")),
-						new String(rs.getBytes("audioEncoding")),
-						new String(rs.getBytes("videoContainer")),
-						new String(rs.getBytes("audioContainer")),
 						Path.of(new String(rs.getBytes("contentPath")))
 					)
 				);
@@ -137,13 +131,7 @@ public class MediaPool {
 				return new RubusMedia(
 					mediaId,
 					new String(rs.getBytes("title")),
-					rs.getInt("videoWidth"),
-					rs.getInt("videoHeight"),
 					rs.getInt("duration"),
-					new String(rs.getBytes("videoEncoding")),
-					new String(rs.getBytes("audioEncoding")),
-					new String(rs.getBytes("videoContainer")),
-					new String(rs.getBytes("audioContainer")),
 					Path.of(new String(rs.getBytes("contentPath")))
 				);
 			}

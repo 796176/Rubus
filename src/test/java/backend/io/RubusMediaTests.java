@@ -28,12 +28,6 @@ public class RubusMediaTests extends MediaTests {
 			new byte[] { (byte) 0xab},
 			"Original Title",
 			10,
-			1920,
-			1080,
-			"mp4",
-			"mp3",
-			"H.264",
-			"mp3",
 			Path.of("/tmp/path")
 		);
 	}
@@ -44,12 +38,6 @@ public class RubusMediaTests extends MediaTests {
 			new byte[] { (byte) 0xcd },
 			"Another Original Title",
 			20,
-			1600,
-			900,
-			"mkv",
-			"flac",
-			"AV1",
-			"flac",
 			Path.of("/media/vids")
 		);
 	}

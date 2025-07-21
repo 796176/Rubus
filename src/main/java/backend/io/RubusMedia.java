@@ -41,67 +41,35 @@ public class RubusMedia implements Media {
 	private final byte[] id;
 	private final String title;
 	private final int duration;
-	private final int videoWidth;
-	private final int videoHeight;
-	private final String videoContainer;
-	private final String audioContainer;
-	private final String videoCodec;
-	private final String audioCodec;
 	private final Path contentPath;
 
 	/**
 	 * Constructs an instance of this class.
 	 * @param id the media id
 	 * @param title the title
-	 * @param videoWidth the video width in pixels
-	 * @param videoHeight the video height in pixels
 	 * @param duration the duration
-	 * @param videoContainer the video container
-	 * @param audioContainer the audio container
-	 * @param videoEncoding the video codec
-	 * @param audioEncoding the audio codec
 	 * @param contentPath the directory that contains this media-specific files
 	 */
 	public RubusMedia(
 		byte[] id,
 		String title,
-		int videoWidth,
-		int videoHeight,
 		int duration,
-		String videoEncoding,
-		String audioEncoding,
-		String videoContainer,
-		String audioContainer,
 		Path contentPath
 	) {
-		assert id != null && title != null && contentPath != null && duration > 0 && videoWidth >= 0 && videoHeight >= 0;
+		assert id != null && title != null && contentPath != null && duration > 0;
 
 		this.id = id;
 		this.title = title;
 		this.duration = duration;
-		this.videoWidth = videoWidth;
-		this.videoHeight = videoHeight;
-		this.videoContainer = videoContainer;
-		this.audioContainer = audioContainer;
-		this.videoCodec = videoEncoding;
-		this.audioCodec = audioEncoding;
 		this.contentPath = contentPath;
 
 		if (logger.isDebugEnabled()) {
 			logger.debug(
-				"""
-				{} instantiated, id: {}, title: {}, video width: {}, video height: {}, duration: {} \
-				video encoding: {}, audio encoding: {}, video container: {}, audio container: {}, content path: {}""",
+				"{} instantiated, id: {}, title: {}, duration: {} content path: {}",
 				this,
 				Arrays.toString(id),
 				title,
-				videoWidth,
-				videoHeight,
 				duration,
-				videoEncoding,
-				audioEncoding,
-				videoContainer,
-				audioContainer,
 				contentPath
 			);
 		}

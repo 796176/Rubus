@@ -39,26 +39,14 @@ public class MediaPoolTests {
 	static Media media1 = new RubusMedia(
 		new byte[] { (byte) 0xab },
 		"Title1",
-		854,
-		480,
 		1,
-		"null1",
-		"null2",
-		"null3",
-		"null4",
 		Path.of(System.getProperty("user.dir"), "src", "test", "resources", "data1")
 	);
 
 	static Media media2 = new RubusMedia(
 		new byte[] { (byte) 0xcd },
 		"Title2",
-		1280,
-		720,
 		2,
-		"null1",
-		"null2",
-		"null3",
-		"null4",
 		Path.of(System.getProperty("user.dir"), "src", "test", "resources", "data2")
 	);
 
