@@ -28,6 +28,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.HexFormat;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -68,10 +69,10 @@ public class MediaPool {
 			while (rs.next()) {
 				media.add(
 					new RubusMedia(
-						rs.getBytes("id"),
-						new String(rs.getBytes("title")),
+						HexFormat.of().parseHex(rs.getString("id")),
+						rs.getString("title"),
 						rs.getInt("duration"),
-						Path.of(new String(rs.getBytes("contentPath")))
+						Path.of(rs.getString("contentPath"))
 					)
 				);
 			}
@@ -100,8 +101,8 @@ public class MediaPool {
 					media.add(
 						new TitledMediaProxy(
 							this,
-							rs.getBytes("id"),
-							new String(rs.getBytes("title"))
+							HexFormat.of().parseHex(rs.getString("id")),
+							rs.getString("title")
 						)
 					);
 				}
@@ -124,15 +125,15 @@ public class MediaPool {
 		return jdbcTemplate.query(
 			sql,
 			preparedStatement -> {
-				preparedStatement.setBytes(1, mediaId);
+				preparedStatement.setString(1, HexFormat.of().formatHex(mediaId));
 			},
 			rs -> {
 				if (!rs.next()) return null;
 				return new RubusMedia(
 					mediaId,
-					new String(rs.getBytes("title")),
+					rs.getString("title"),
 					rs.getInt("duration"),
-					Path.of(new String(rs.getBytes("contentPath")))
+					Path.of(rs.getString("contentPath"))
 				);
 			}
 		);
