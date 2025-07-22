@@ -72,7 +72,7 @@ public class MediaPool {
 						HexFormat.of().parseHex(rs.getString("id")),
 						rs.getString("title"),
 						rs.getInt("duration"),
-						Path.of(rs.getString("contentPath"))
+						Path.of(rs.getString("media_content_uri"))
 					)
 				);
 			}
@@ -133,7 +133,7 @@ public class MediaPool {
 					mediaId,
 					rs.getString("title"),
 					rs.getInt("duration"),
-					Path.of(rs.getString("contentPath"))
+					Path.of(rs.getString("media_content_uri"))
 				);
 			}
 		);
