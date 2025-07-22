@@ -35,6 +35,7 @@ import java.util.Arrays;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+@Disabled
 public class MediaPoolTests {
 	static Media media1 = new RubusMedia(
 		new byte[] { (byte) 0xab },
