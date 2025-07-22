@@ -22,12 +22,11 @@ package backend.io;
 import common.net.response.body.MediaInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.slf4j.event.Level;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.file.Path;
-import java.util.Arrays;
+import java.util.UUID;
 
 /**
  * MediaProxy is an abstract class that stores only the {@link MediaPool} instance and the media id. Accessing other
@@ -40,7 +39,7 @@ public abstract class MediaProxy implements Media {
 
 	private final MediaPool mediaPool;
 
-	private final byte[] id;
+	private final UUID id;
 
 	private Media subject = null;
 
@@ -49,14 +48,12 @@ public abstract class MediaProxy implements Media {
 	 * @param mediaPool the mediaPool
 	 * @param mediaID the media id
 	 */
-	public MediaProxy(MediaPool mediaPool, byte[] mediaID) {
+	public MediaProxy(MediaPool mediaPool, UUID mediaID) {
 		assert mediaID != null;
 
 		this.mediaPool = mediaPool;
 		id = mediaID;
-		if (logger.isDebugEnabled()) {
-			logger.debug("{} instantiated, MediaPool: {}, id: {}", this, mediaPool, Arrays.toString(mediaID));
-		}
+		logger.debug("{} instantiated, MediaPool: {}, id: {}", this, mediaPool, mediaID);
 	}
 	
 	public MediaPool getMediaPool() {
@@ -64,7 +61,7 @@ public abstract class MediaProxy implements Media {
 	}
 
 	@Override
-	public byte[] getID() {
+	public UUID getID() {
 		return id;
 	}
 
@@ -115,7 +112,7 @@ public abstract class MediaProxy implements Media {
 		if (obj instanceof Media media) {
 			try {
 				return
-					Arrays.equals(getID(), media.getID()) &&
+					getID().equals(media.getID()) &&
 						getTitle().equals(media.getTitle()) &&
 						getDuration() == media.getDuration() &&
 						getContentPath().equals(media.getContentPath());

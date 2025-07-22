@@ -23,6 +23,7 @@ import common.net.response.body.MediaInfo;
 
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.UUID;
 
 /**
  * Media interface provides access to the media-specific information.
@@ -34,7 +35,7 @@ public interface Media {
 	 * @return the media id
 	 * @throws IOException if some I/O error occurs
 	 */
-	byte[] getID() throws IOException;
+	UUID getID() throws IOException;
 
 	/**
 	 * Returns the title of the media.

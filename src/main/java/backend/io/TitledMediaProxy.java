@@ -21,9 +21,8 @@ package backend.io;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.slf4j.event.Level;
 
-import java.util.Arrays;
+import java.util.UUID;
 
 /**
  * TitledMediaProxy stores only the media pool, the id, and the title. Accessing other media-specific information
@@ -41,16 +40,14 @@ public class TitledMediaProxy extends MediaProxy {
 	 * @param mediaID the media id
 	 * @param title the title
 	 */
-	public TitledMediaProxy(MediaPool mediaPool, byte[] mediaID, String title) {
+	public TitledMediaProxy(MediaPool mediaPool, UUID mediaID, String title) {
 		super(mediaPool, mediaID);
 		assert title != null;
 
 		this.title = title;
-		if (logger.isDebugEnabled()) {
-			logger.debug(
-				"{} instantiated, MediaPool: {}, id: {}, title: {}", this, mediaPool, Arrays.toString(mediaID), title
-			);
-		}
+		logger.debug(
+			"{} instantiated, MediaPool: {}, id: {}, title: {}", this, mediaPool, mediaID, title
+		);
 	}
 
 	@Override

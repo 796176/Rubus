@@ -28,7 +28,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.HexFormat;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -69,7 +69,7 @@ public class MediaPool {
 			while (rs.next()) {
 				media.add(
 					new RubusMedia(
-						HexFormat.of().parseHex(rs.getString("id")),
+						UUID.fromString(rs.getString("id")),
 						rs.getString("title"),
 						rs.getInt("duration"),
 						Path.of(rs.getString("media_content_uri"))
@@ -101,7 +101,7 @@ public class MediaPool {
 					media.add(
 						new TitledMediaProxy(
 							this,
-							HexFormat.of().parseHex(rs.getString("id")),
+							UUID.fromString(rs.getString("id")),
 							rs.getString("title")
 						)
 					);
@@ -119,13 +119,13 @@ public class MediaPool {
 	 * @return the {@link Media} instance
 	 * @throws IOException if some I/O occurs
 	 */
-	public Media getMedia(byte[] mediaId) throws IOException {
+	public Media getMedia(UUID mediaId) throws IOException {
 		String sql = "select * from media where id=?;";
 		logger.debug("{} querying {}", this, sql);
 		return jdbcTemplate.query(
 			sql,
 			preparedStatement -> {
-				preparedStatement.setString(1, HexFormat.of().formatHex(mediaId));
+				preparedStatement.setString(1, mediaId.toString());
 			},
 			rs -> {
 				if (!rs.next()) return null;

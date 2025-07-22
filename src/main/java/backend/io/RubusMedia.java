@@ -22,14 +22,12 @@ package backend.io;
 import common.net.response.body.MediaInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.slf4j.event.Level;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Arrays;
-import java.util.HexFormat;
+import java.util.UUID;
 
 /**
  * RubusMedia is a concrete implementation of {@link Media} that stores media-specific information.
@@ -38,7 +36,7 @@ public class RubusMedia implements Media {
 
 	private final static Logger logger = LoggerFactory.getLogger(RubusMedia.class);
 
-	private final byte[] id;
+	private final UUID id;
 	private final String title;
 	private final int duration;
 	private final Path contentPath;
@@ -51,7 +49,7 @@ public class RubusMedia implements Media {
 	 * @param contentPath the directory that contains this media-specific files
 	 */
 	public RubusMedia(
-		byte[] id,
+		UUID id,
 		String title,
 		int duration,
 		Path contentPath
@@ -63,20 +61,13 @@ public class RubusMedia implements Media {
 		this.duration = duration;
 		this.contentPath = contentPath;
 
-		if (logger.isDebugEnabled()) {
-			logger.debug(
-				"{} instantiated, id: {}, title: {}, duration: {} content path: {}",
-				this,
-				Arrays.toString(id),
-				title,
-				duration,
-				contentPath
-			);
-		}
+		logger.debug(
+			"{} instantiated, id: {}, title: {}, duration: {} content path: {}", this, id, title, duration, contentPath
+		);
 	}
 
 	@Override
-	public byte[] getID() {
+	public UUID getID() {
 		return id;
 	}
 
@@ -122,7 +113,7 @@ public class RubusMedia implements Media {
 	@Override
 	public MediaInfo toMediaInfo() {
 		return new MediaInfo(
-			HexFormat.of().formatHex(getID()),
+			getID().toString(),
 			getTitle(),
 			getDuration()
 		);
@@ -139,7 +130,7 @@ public class RubusMedia implements Media {
 		if (obj instanceof Media media) {
 			try {
 				return
-					Arrays.equals(getID(), media.getID()) &&
+					getID().equals(media.getID()) &&
 						getTitle().equals(media.getTitle()) &&
 						getDuration() == media.getDuration() &&
 						getContentPath().equals(media.getContentPath());

@@ -20,12 +20,13 @@
 package backend.io;
 
 import java.nio.file.Path;
+import java.util.UUID;
 
 public class RubusMediaTests extends MediaTests {
 	@Override
 	Media getMedia() {
 		return new RubusMedia(
-			new byte[] { (byte) 0xab},
+			UUID.fromString("00000000-0000-4000-b000-000000000000"),
 			"Original Title",
 			10,
 			Path.of("/tmp/path")
@@ -35,7 +36,7 @@ public class RubusMediaTests extends MediaTests {
 	@Override
 	Media getDifferentMedia() {
 		return new RubusMedia(
-			new byte[] { (byte) 0xcd },
+			UUID.fromString("11111111-1111-4111-b111-111111111111"),
 			"Another Original Title",
 			20,
 			Path.of("/media/vids")
