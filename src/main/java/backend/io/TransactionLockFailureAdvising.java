@@ -49,7 +49,7 @@ public class TransactionLockFailureAdvising {
 		setLockFailureRetryAttempts(retryAttempts);
 	}
 
-	@Pointcut("execution(* *getMedia*(..)) || execution(* *availableMedia*(..))")
+	@Pointcut("execution(* *getMedia*(..)) || execution(* *availableMedia*(..)) || execution(* *searchMedia*(..))")
 	private void anyTransactionalMethod() {}
 
 	/**

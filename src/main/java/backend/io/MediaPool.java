@@ -113,6 +113,35 @@ public class MediaPool {
 		}
 	}
 
+	public Media[] searchMedia(String searchQuery) {
+		assert searchQuery != null;
+
+		String sqlQuery = """
+			WITH w1 (res1) AS (SELECT websearch_to_tsquery('english', ?)), \
+			w2 (res2) AS (SELECT numnode(res1) FROM w1) \
+			SELECT id, title FROM media WHERE \
+			((SELECT res1 FROM w1) @@ title_tsvector) OR ((SELECT res2 FROM w2) = 0);""";
+		return jdbcTemplate.query(
+			sqlQuery,
+			preparedStatement -> {
+				preparedStatement.setString(1, searchQuery);
+			},
+			rs -> {
+				ArrayList<Media> media = new ArrayList<>();
+				while (rs.next()) {
+					media.add(
+						new TitledMediaProxy(
+							this,
+							UUID.fromString(rs.getString("id")),
+							rs.getString("title")
+						)
+					);
+				}
+				return media.toArray(new Media[0]);
+			}
+		);
+	}
+
 	/**
 	 * Returns a {@link Media} instance associated with the specified id.
 	 * @param mediaId the media id
