@@ -1,5 +1,5 @@
 # Rubus
-Rubus means an application layer protocol, a client reference implementation, and 
+Rubus is an application layer protocol, a client reference implementation, and 
 a server reference implementation. These parts constitute a video streaming service.
 The end user can configure the server side and the client side and use the service by
 themself. As a different scenario, the user can set up only the server side and provide
