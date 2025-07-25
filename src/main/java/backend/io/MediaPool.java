@@ -36,15 +36,6 @@ public interface MediaPool {
 	Media[] availableMedia() throws IOException;
 
 	/**
-	 * Same as {@link #availableMedia} but it doesn't retrieve all the data in a single operation; the rest of the data
-	 * is retrieved only when accessed. Invoking this method may be preferential when only partial data access is
-	 * performed.
-	 * @return an array containing all the available media represented as {@link Media}
-	 * @throws IOException if some I/O error occurs
-	 */
-	Media[] availableMediaFast() throws IOException;
-
-	/**
 	 * Returns an array containing media whose title matches the specified search query.<br>
 	 * The syntax of the search query is determined by the concrete implementations.
 	 * @param searchQuery the search query

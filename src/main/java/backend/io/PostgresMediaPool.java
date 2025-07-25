@@ -29,7 +29,6 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.UUID;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * PostgresMediaPool is an implementation of {@link MediaPool} that uses a Postgres database as an underlying storage.
@@ -40,10 +39,6 @@ public class PostgresMediaPool implements MediaPool {
 	private final static Logger logger = LoggerFactory.getLogger(PostgresMediaPool.class);
 
 	private JdbcTemplate jdbcTemplate;
-
-	private AtomicBoolean cacheUpdateNeeded = new AtomicBoolean(true);
-
-	private Media[] cachedMedia = new Media[0];
 
 	/**
 	 * Constructs an instance of this class.
@@ -74,33 +69,6 @@ public class PostgresMediaPool implements MediaPool {
 			}
 			return media.toArray(new Media[0]);
 		});
-	}
-
-	@Override
-	public Media[] availableMediaFast() throws IOException {
-		if (!cacheUpdateNeeded.get()) return cachedMedia;
-		synchronized (this) {
-			// a condition statement for threads that had been locked meaning cacheUpdateNeeded could've been flipped by
-			// a preceding thread
-			if (!cacheUpdateNeeded.get()) return cachedMedia;
-			String sqlQuery = "select id, title from media;";
-			logger.debug("{} querying {}", this, sqlQuery);
-			cachedMedia = jdbcTemplate.query(sqlQuery, rs -> {
-				ArrayList<Media> media = new ArrayList<>();
-				while (rs.next()) {
-					media.add(
-						new TitledMediaProxy(
-							this,
-							UUID.fromString(rs.getString("id")),
-							rs.getString("title")
-						)
-					);
-				}
-				return media.toArray(new Media[0]);
-			});
-			cacheUpdateNeeded.set(false);
-			return cachedMedia;
-		}
 	}
 
 	/**

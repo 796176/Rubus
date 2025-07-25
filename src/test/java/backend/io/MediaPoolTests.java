@@ -88,20 +88,6 @@ public class MediaPoolTests {
 	}
 
 	@Test
-	void getAvailableMediaFast() throws IOException {
-		Media[] media = mediaPool.availableMediaFast();
-		assertEquals(2, media.length);
-
-		if (media[0].getID().equals(media1.getID())) {
-			assertEquals(media1, media[0], "The media don't match");
-			assertEquals(media2, media[1], "The media don't match");
-		} else {
-			assertEquals(media1, media[1], "The media don't match");
-			assertEquals(media2, media[2], "The media don't match");
-		}
-	}
-
-	@Test
 	void getMediaByID() throws IOException {
 		Media media = mediaPool.getMedia(media2ID);
 		assertEquals(media2, media);
