@@ -19,6 +19,7 @@
 
 package auxiliary;
 
+import common.Config;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.GenericApplicationContext;
@@ -28,9 +29,7 @@ import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseType;
 
 import javax.sql.DataSource;
 import java.nio.file.Path;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.HexFormat;
 
 public class DatabaseCreator {
@@ -46,14 +45,14 @@ public class DatabaseCreator {
 			.build();
 		try (
 			Connection connection = dataSource.getConnection();
-			PreparedStatement ps = connection.prepareStatement("update media set contentPath = ? where id=?;")
+			PreparedStatement ps = connection.prepareStatement("update media set media_content_uri = ? where id=?;")
 		) {
-			ps.setBytes(1, media1ContentPath.toString().getBytes());
-			ps.setBytes(2, HexFormat.of().parseHex("ab"));
+			ps.setString(1, media1ContentPath.toString());
+			ps.setString(2, "00000000-0000-4000-b000-000000000000");
 			ps.execute();
 
-			ps.setBytes(1, media2ContentPath.toString().getBytes());
-			ps.setBytes(2, HexFormat.of().parseHex("cd"));
+			ps.setString(1, media2ContentPath.toString());
+			ps.setString(2, "11111111-1111-4111-b111-111111111111");
 			ps.execute();
 		}
 		return dataSource;

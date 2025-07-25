@@ -22,6 +22,7 @@ package backend;
 import auxiliary.DatabaseCreator;
 import auxiliary.DummySocket;
 import backend.io.MediaPool;
+import backend.io.PostgresMediaPool;
 import common.RubusSocket;
 import common.net.response.RubusResponseType;
 import common.net.response.body.FetchedPieces;
@@ -55,7 +56,7 @@ public class RequestHandlerTests {
 	static void beforeAll() throws SQLException {
 		dataSource = DatabaseCreator.createdMediaFilledDB();
 		ApplicationContext applicationContext = DatabaseCreator.wrapDS(dataSource);
-		mediaPool = new MediaPool(new JdbcTemplate(applicationContext.getBean(DataSource.class)));
+		mediaPool = new PostgresMediaPool(new JdbcTemplate(applicationContext.getBean(DataSource.class)));
 	}
 
 	@AfterAll

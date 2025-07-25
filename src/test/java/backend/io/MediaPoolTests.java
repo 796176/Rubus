@@ -22,6 +22,7 @@ package backend.io;
 import auxiliary.DatabaseCreator;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.context.ApplicationContext;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -31,21 +32,26 @@ import javax.sql.DataSource;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.sql.SQLException;
-import java.util.Arrays;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @Disabled
 public class MediaPoolTests {
+
+	static UUID media1ID = UUID.randomUUID();
+
 	static Media media1 = new RubusMedia(
-		new byte[] { (byte) 0xab },
+		media1ID,
 		"Title1",
 		1,
 		Path.of(System.getProperty("user.dir"), "src", "test", "resources", "data1")
 	);
 
+	static UUID media2ID = UUID.randomUUID();
+
 	static Media media2 = new RubusMedia(
-		new byte[] { (byte) 0xcd },
+		media2ID,
 		"Title2",
 		2,
 		Path.of(System.getProperty("user.dir"), "src", "test", "resources", "data2")
@@ -59,7 +65,7 @@ public class MediaPoolTests {
 	static void beforeAll() throws SQLException {
 		dataSource = DatabaseCreator.createdMediaFilledDB();
 		ApplicationContext applicationContext = DatabaseCreator.wrapDS(dataSource);
-		mediaPool = new MediaPool(new JdbcTemplate(applicationContext.getBean(DataSource.class)));
+		mediaPool = new PostgresMediaPool(new JdbcTemplate(applicationContext.getBean(DataSource.class)));
 	}
 
 	@AfterAll
@@ -72,7 +78,7 @@ public class MediaPoolTests {
 		Media[] media = mediaPool.availableMedia();
 		assertEquals(2, media.length);
 
-		if (Arrays.equals(media[0].getID(), media1.getID())) {
+		if (media[0].getID().equals(media1.getID())) {
 			assertEquals(media1, media[0], "The media don't match");
 			assertEquals(media2, media[1], "The media don't match");
 		} else {
@@ -86,7 +92,7 @@ public class MediaPoolTests {
 		Media[] media = mediaPool.availableMediaFast();
 		assertEquals(2, media.length);
 
-		if (Arrays.equals(media[0].getID(), media1.getID())) {
+		if (media[0].getID().equals(media1.getID())) {
 			assertEquals(media1, media[0], "The media don't match");
 			assertEquals(media2, media[1], "The media don't match");
 		} else {
@@ -97,7 +103,7 @@ public class MediaPoolTests {
 
 	@Test
 	void getMediaByID() throws IOException {
-		Media media = mediaPool.getMedia(new byte[] { (byte) 0xcd });
+		Media media = mediaPool.getMedia(media2ID);
 		assertEquals(media2, media);
 	}
 }

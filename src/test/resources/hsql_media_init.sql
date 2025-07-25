@@ -1,58 +1,28 @@
-create table media (
-    id blob,
-    title blob,
-    videoWidth int,
-    videoHeight int,
+ CREATE TABLE media (
+    id clob,
+    title clob,
     duration int,
-    videoEncoding blob,
-    audioEncoding blob,
-    videoContainer blob,
-    audioContainer blob,
-    contentPath blob
+    media_content_uri clob
 );
-insert into media (
+INSERT INTO media (
     id,
     title,
-    videoWidth,
-    videoHeight,
     duration,
-    videoEncoding,
-    audioEncoding,
-    videoContainer,
-    audioContainer,
-    contentPath
-) values (
-    X'ab',
-    X'5469746c6531',
-    854,
-    480,
+    media_content_uri
+) VALUES (
+    '00000000-0000-4000-b000-000000000000',
+    'Title1',
     1,
-    X'6e756c6c31',
-    X'6e756c6c32',
-    X'6e756c6c33',
-    X'6e756c6c34',
-    null
+    NULL
 );
-insert into media (
+INSERT INTO media (
     id,
     title,
-    videoWidth,
-    videoHeight,
     duration,
-    videoEncoding,
-    audioEncoding,
-    videoContainer,
-    audioContainer,
-    contentPath
-) values (
-    X'cd',
-    X'5469746c6532',
-    1280,
-    720,
+    media_content_uri
+) VALUES (
+    '11111111-1111-4111-b111-111111111111',
+    'Title2',
     2,
-    X'6e756c6c31',
-    X'6e756c6c32',
-    X'6e756c6c33',
-    X'6e756c6c34',
-    null
+    NULL
 );

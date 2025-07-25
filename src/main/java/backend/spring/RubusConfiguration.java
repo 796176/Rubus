@@ -21,6 +21,7 @@ package backend.spring;
 
 import backend.*;
 import backend.io.MediaPool;
+import backend.io.PostgresMediaPool;
 import backend.io.TransactionLockFailureAdvising;
 import common.Config;
 import org.postgresql.ds.PGSimpleDataSource;
@@ -140,7 +141,7 @@ public class RubusConfiguration {
 
 	@Bean
 	MediaPool mediaPool(JdbcTemplate jdbcTemplate) {
-		return new MediaPool(jdbcTemplate);
+		return new PostgresMediaPool(jdbcTemplate);
 	}
 
 	@Bean
