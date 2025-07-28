@@ -109,8 +109,7 @@ public class MediaSearchDialog extends CenteredDialog implements Runnable {
 	public synchronized void run() {
 		try (RubusClient rubusClient = new RubusClient(rubusSocketSupplier)) {
 			RubusRequest.Builder requestBuilder = RubusRequest.newBuilder();
-			if (searchTF.getText().isBlank()) requestBuilder.LIST();
-			else requestBuilder.LIST(searchTF.getText());
+			requestBuilder.LIST(searchTF.getText());
 			RubusResponse response = rubusClient.send(requestBuilder.build(), 10000);
 			MediaList mediaList = response.LIST();
 

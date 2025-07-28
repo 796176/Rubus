@@ -26,22 +26,10 @@ import java.io.Serializable;
  * information.
  * @param id the media id
  * @param title the title of the media
- * @param videoWidth the width of the video in pixels
- * @param videoHeight the height of the video in pixels
  * @param duration the duration of the media in seconds
- * @param videoEncoding the codec of the video
- * @param audioEncoding the codec of the audio
- * @param videoContainer the container of the video
- * @param audioContainer the container of the audio
  */
 public record MediaInfo(
 	String id,
 	String title,
-	int videoWidth,
-	int videoHeight,
-	int duration,
-	String videoEncoding,
-	String audioEncoding,
-	String videoContainer,
-	String audioContainer
+	int duration
 ) implements Serializable { }

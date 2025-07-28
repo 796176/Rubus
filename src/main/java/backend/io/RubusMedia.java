@@ -22,14 +22,12 @@ package backend.io;
 import common.net.response.body.MediaInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.slf4j.event.Level;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Arrays;
-import java.util.HexFormat;
+import java.util.UUID;
 
 /**
  * RubusMedia is a concrete implementation of {@link Media} that stores media-specific information.
@@ -38,77 +36,38 @@ public class RubusMedia implements Media {
 
 	private final static Logger logger = LoggerFactory.getLogger(RubusMedia.class);
 
-	private final byte[] id;
+	private final UUID id;
 	private final String title;
 	private final int duration;
-	private final int videoWidth;
-	private final int videoHeight;
-	private final String videoContainer;
-	private final String audioContainer;
-	private final String videoCodec;
-	private final String audioCodec;
 	private final Path contentPath;
 
 	/**
 	 * Constructs an instance of this class.
 	 * @param id the media id
 	 * @param title the title
-	 * @param videoWidth the video width in pixels
-	 * @param videoHeight the video height in pixels
 	 * @param duration the duration
-	 * @param videoContainer the video container
-	 * @param audioContainer the audio container
-	 * @param videoEncoding the video codec
-	 * @param audioEncoding the audio codec
 	 * @param contentPath the directory that contains this media-specific files
 	 */
 	public RubusMedia(
-		byte[] id,
+		UUID id,
 		String title,
-		int videoWidth,
-		int videoHeight,
 		int duration,
-		String videoEncoding,
-		String audioEncoding,
-		String videoContainer,
-		String audioContainer,
 		Path contentPath
 	) {
-		assert id != null && title != null && contentPath != null && duration > 0 && videoWidth >= 0 && videoHeight >= 0;
+		assert id != null && title != null && contentPath != null && duration > 0;
 
 		this.id = id;
 		this.title = title;
 		this.duration = duration;
-		this.videoWidth = videoWidth;
-		this.videoHeight = videoHeight;
-		this.videoContainer = videoContainer;
-		this.audioContainer = audioContainer;
-		this.videoCodec = videoEncoding;
-		this.audioCodec = audioEncoding;
 		this.contentPath = contentPath;
 
-		if (logger.isDebugEnabled()) {
-			logger.debug(
-				"""
-				{} instantiated, id: {}, title: {}, video width: {}, video height: {}, duration: {} \
-				video encoding: {}, audio encoding: {}, video container: {}, audio container: {}, content path: {}""",
-				this,
-				Arrays.toString(id),
-				title,
-				videoWidth,
-				videoHeight,
-				duration,
-				videoEncoding,
-				audioEncoding,
-				videoContainer,
-				audioContainer,
-				contentPath
-			);
-		}
+		logger.debug(
+			"{} instantiated, id: {}, title: {}, duration: {} content path: {}", this, id, title, duration, contentPath
+		);
 	}
 
 	@Override
-	public byte[] getID() {
+	public UUID getID() {
 		return id;
 	}
 
@@ -123,36 +82,6 @@ public class RubusMedia implements Media {
 	}
 
 	@Override
-	public int getVideoWidth() {
-		return videoWidth;
-	}
-
-	@Override
-	public int getVideoHeight() {
-		return videoHeight;
-	}
-
-	@Override
-	public String getVideoCodec() {
-		return videoCodec;
-	}
-
-	@Override
-	public String getAudioCodec() {
-		return audioCodec;
-	}
-
-	@Override
-	public String getVideoContainer() {
-		return videoContainer;
-	}
-
-	@Override
-	public String getAudioContainer() {
-		return audioContainer;
-	}
-
-	@Override
 	public Path getContentPath() {
 		return contentPath;
 	}
@@ -163,7 +92,7 @@ public class RubusMedia implements Media {
 
 		byte[][] audioPieces = new byte[number][];
 		for (int arrayIndex = 0; arrayIndex < audioPieces.length; arrayIndex++) {
-			Path audioPiecePath = Path.of(contentPath.toString(), "a" + (arrayIndex + pieceIndex) + "." + getAudioContainer());
+			Path audioPiecePath = Path.of(contentPath.toString(), "a" + (arrayIndex + pieceIndex));
 			audioPieces[arrayIndex] = Files.exists(audioPiecePath) ? Files.readAllBytes(audioPiecePath) : null;
 		}
 		return audioPieces;
@@ -175,7 +104,7 @@ public class RubusMedia implements Media {
 
 		byte[][] videoPieces = new byte[number][];
 		for (int arrayIndex = 0; arrayIndex < videoPieces.length; arrayIndex++) {
-			Path videoPiecePath = Path.of(contentPath.toString(), "v" + (arrayIndex + pieceIndex) + "." + getVideoContainer());
+			Path videoPiecePath = Path.of(contentPath.toString(), "v" + (arrayIndex + pieceIndex));
 			videoPieces[arrayIndex] = Files.exists(videoPiecePath) ? Files.readAllBytes(videoPiecePath) : null;
 		}
 		return videoPieces;
@@ -184,15 +113,9 @@ public class RubusMedia implements Media {
 	@Override
 	public MediaInfo toMediaInfo() {
 		return new MediaInfo(
-			HexFormat.of().formatHex(getID()),
+			getID().toString(),
 			getTitle(),
-			getVideoWidth(),
-			getVideoHeight(),
-			getDuration(),
-			getVideoCodec(),
-			getAudioCodec(),
-			getVideoContainer(),
-			getAudioContainer()
+			getDuration()
 		);
 	}
 
@@ -207,15 +130,9 @@ public class RubusMedia implements Media {
 		if (obj instanceof Media media) {
 			try {
 				return
-					Arrays.equals(getID(), media.getID()) &&
+					getID().equals(media.getID()) &&
 						getTitle().equals(media.getTitle()) &&
 						getDuration() == media.getDuration() &&
-						getVideoWidth() == media.getVideoWidth() &&
-						getVideoHeight() == media.getVideoHeight() &&
-						getVideoCodec().equals(media.getVideoCodec()) &&
-						getAudioCodec().equals(media.getAudioCodec()) &&
-						getVideoContainer().equals(media.getVideoContainer()) &&
-						getAudioContainer().equals(media.getAudioContainer()) &&
 						getContentPath().equals(media.getContentPath());
 			} catch (IOException e) {
 				throw new UncheckedIOException(e);

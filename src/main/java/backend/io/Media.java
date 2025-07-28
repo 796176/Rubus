@@ -23,6 +23,7 @@ import common.net.response.body.MediaInfo;
 
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.UUID;
 
 /**
  * Media interface provides access to the media-specific information.
@@ -34,7 +35,7 @@ public interface Media {
 	 * @return the media id
 	 * @throws IOException if some I/O error occurs
 	 */
-	byte[] getID() throws IOException;
+	UUID getID() throws IOException;
 
 	/**
 	 * Returns the title of the media.
@@ -49,48 +50,6 @@ public interface Media {
 	 * @throws IOException if some I/O error occurs
 	 */
 	int getDuration() throws IOException;
-
-	/**
-	 * Returns the width of the video in pixels.
-	 * @return the width of the video in pixels
-	 * @throws IOException if some I/O error occurs
-	 */
-	int getVideoWidth() throws IOException;
-
-	/**
-	 * Returns the height of the video in pixels.
-	 * @return the height of the video in pixels
-	 * @throws IOException if some I/O error occurs
-	 */
-	int getVideoHeight() throws IOException;
-
-	/**
-	 * Returns the codec of the video.
-	 * @return the codec of the video
-	 * @throws IOException if some I/O error occurs
-	 */
-	String getVideoCodec() throws IOException;
-
-	/**
-	 * Returns the codec of the audio.
-	 * @return the codec of the audio
-	 * @throws IOException if some I/O error occurs
-	 */
-	String getAudioCodec() throws IOException;
-
-	/**
-	 * Returns the container of the video.
-	 * @return the container of the video
-	 * @throws IOException if some I/O error occurs
-	 */
-	String getVideoContainer() throws IOException;
-
-	/**
-	 * Returns the container of the audio.
-	 * @return the container of the audio
-	 * @throws IOException if some I/O error occurs
-	 */
-	String getAudioContainer() throws IOException;
 
 	/**
 	 * Returns the directory that contains this media-specific files.

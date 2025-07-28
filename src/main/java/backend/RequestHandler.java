@@ -36,7 +36,7 @@ import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HexFormat;
+import java.util.UUID;
 import java.util.function.Consumer;
 
 /**
@@ -121,14 +121,12 @@ public class RequestHandler implements Runnable {
 			RequestValueChecker rvc = new RequestValueChecker();
 			switch (parser.type()) {
 				case LIST -> {
-					String titlePattern = parser.value("title-contains");
+					String searchQuery = parser.value("title-contains");
 					ArrayList<String> ids = new ArrayList<>();
 					ArrayList<String> titles = new ArrayList<>();
-					for (Media m: pool.availableMediaFast()) {
-						if (m.getTitle().matches(titlePattern)) {
-							ids.add(HexFormat.of().formatHex(m.getID()));
-							titles.add(m.getTitle());
-						}
+					for (Media m: pool.searchMedia(searchQuery)) {
+						ids.add(m.getID().toString());
+						titles.add(m.getTitle());
 					}
 					MediaList mediaList = new MediaList(ids.toArray(new String[0]), titles.toArray(new String[0]));
 					responseMes.append("serialized-object ").append(MediaList.class.getName()).append('\n');
@@ -137,8 +135,8 @@ public class RequestHandler implements Runnable {
 				}
 
 				case INFO -> {
-					String mediaID = rvc.checkId(parser.value("media-id"));
-					Media media = pool.getMedia(HexFormat.of().parseHex(mediaID));
+					String mediaID = parser.value("media-id");
+					Media media = pool.getMedia(UUID.fromString(mediaID));
 					MediaInfo mediaInfo = media.toMediaInfo();
 					responseMes.append("serialized-object ").append(MediaInfo.class.getName()).append('\n');
 					ObjectOutputStream oos = new ObjectOutputStream(body);
@@ -146,12 +144,12 @@ public class RequestHandler implements Runnable {
 				}
 
 				case FETCH -> {
-					String mediaID = rvc.checkId(parser.value("media-id"));
+					String mediaID = parser.value("media-id");
 					int beginningPieceIndex =
 						rvc.checkForNegative(Integer.parseInt(parser.value("starting-playback-piece")));
 					int piecesToFetch =
 						rvc.checkForNonPositive(Integer.parseInt(parser.value("total-playback-pieces")));
-					Media media = pool.getMedia(HexFormat.of().parseHex(mediaID));
+					Media media = pool.getMedia(UUID.fromString(mediaID));
 					FetchedPieces fetchedPieces =
 						new FetchedPieces(
 							mediaID,

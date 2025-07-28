@@ -96,15 +96,15 @@ public class DummySocket implements RubusSocket {
 	}
 
 	@Override
-	public void write(byte[] out) throws IOException {
-		if (buffer.length - occupied < out.length) throw new IOException("Low on memory");
+	public void write(byte[] out) {
+		if (buffer.length - occupied < out.length) throw new RuntimeException("Low on memory");
 		System.arraycopy(out, 0, buffer, occupied, out.length);
 		occupied += out.length;
 	}
 
 	@Override
-	public void write(byte[] out, int offset, int length) throws IOException {
-		if (buffer.length - occupied < length) throw new IOException("Low on memory");
+	public void write(byte[] out, int offset, int length) {
+		if (buffer.length - occupied < length) throw new RuntimeException("Low on memory");
 		System.arraycopy(out, offset, buffer, occupied, length);
 		occupied += length;
 	}
