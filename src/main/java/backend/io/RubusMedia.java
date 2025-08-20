@@ -19,14 +19,14 @@
 
 package backend.io;
 
+import backend.querying.QueryingStrategyInterface;
 import common.net.response.body.MediaInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
+import java.nio.channels.SeekableByteChannel;
 import java.util.UUID;
 
 /**
@@ -37,32 +37,35 @@ public class RubusMedia implements Media {
 	private final static Logger logger = LoggerFactory.getLogger(RubusMedia.class);
 
 	private final UUID id;
+
 	private final String title;
+
 	private final int duration;
-	private final Path contentPath;
+
+	private final QueryingStrategyInterface qsi;
 
 	/**
 	 * Constructs an instance of this class.
 	 * @param id the media id
 	 * @param title the title
 	 * @param duration the duration
-	 * @param contentPath the directory that contains this media-specific files
+	 * @param queryingStrategyInterface a querying strategy to retrieve the media content like video and audio
 	 */
-	public RubusMedia(
-		UUID id,
-		String title,
-		int duration,
-		Path contentPath
-	) {
-		assert id != null && title != null && contentPath != null && duration > 0;
+	public RubusMedia(UUID id, String title, int duration, QueryingStrategyInterface queryingStrategyInterface) {
+		assert id != null && title != null && queryingStrategyInterface != null && duration > 0;
 
 		this.id = id;
 		this.title = title;
 		this.duration = duration;
-		this.contentPath = contentPath;
+		this.qsi = queryingStrategyInterface;
 
 		logger.debug(
-			"{} instantiated, id: {}, title: {}, duration: {} content path: {}", this, id, title, duration, contentPath
+			"{} instantiated, id: {}, title: {}, duration: {} QueryingStrategyInterface: {}",
+			this,
+			id,
+			title,
+			duration,
+			queryingStrategyInterface
 		);
 	}
 
@@ -82,32 +85,25 @@ public class RubusMedia implements Media {
 	}
 
 	@Override
-	public Path getContentPath() {
-		return contentPath;
+	public SeekableByteChannel[] retrieveAudioClips(int clipIndex, int number) throws Exception {
+		assert clipIndex >= 0 && number > 0 && clipIndex + number <= getDuration();
+
+		String[] audioClipsNames = new String[number];
+		for (int arrayIndex = 0; arrayIndex < audioClipsNames.length; arrayIndex++) {
+			audioClipsNames[arrayIndex] = "a" + (arrayIndex + clipIndex);
+		}
+		return qsi.query(audioClipsNames);
 	}
 
 	@Override
-	public byte[][] fetchAudioPieces(int pieceIndex, int number) throws IOException {
-		assert pieceIndex >= 0 && number > 0 && pieceIndex + number <= getDuration();
+	public SeekableByteChannel[] retrieveVideoClips(int clipIndex, int number) throws Exception {
+		assert clipIndex >= 0 && number > 0 && clipIndex + number <= getDuration();
 
-		byte[][] audioPieces = new byte[number][];
-		for (int arrayIndex = 0; arrayIndex < audioPieces.length; arrayIndex++) {
-			Path audioPiecePath = Path.of(contentPath.toString(), "a" + (arrayIndex + pieceIndex));
-			audioPieces[arrayIndex] = Files.exists(audioPiecePath) ? Files.readAllBytes(audioPiecePath) : null;
+		String[] videoClipsNames = new String[number];
+		for (int arrayIndex = 0; arrayIndex < videoClipsNames.length; arrayIndex++) {
+			videoClipsNames[arrayIndex] = "v" + (arrayIndex + clipIndex);
 		}
-		return audioPieces;
-	}
-
-	@Override
-	public byte[][] fetchVideoPieces(int pieceIndex, int number) throws IOException {
-		assert pieceIndex >= 0 && number > 0 && pieceIndex + number <= getDuration();
-
-		byte[][] videoPieces = new byte[number][];
-		for (int arrayIndex = 0; arrayIndex < videoPieces.length; arrayIndex++) {
-			Path videoPiecePath = Path.of(contentPath.toString(), "v" + (arrayIndex + pieceIndex));
-			videoPieces[arrayIndex] = Files.exists(videoPiecePath) ? Files.readAllBytes(videoPiecePath) : null;
-		}
-		return videoPieces;
+		return qsi.query(videoClipsNames);
 	}
 
 	@Override
@@ -132,8 +128,7 @@ public class RubusMedia implements Media {
 				return
 					getID().equals(media.getID()) &&
 						getTitle().equals(media.getTitle()) &&
-						getDuration() == media.getDuration() &&
-						getContentPath().equals(media.getContentPath());
+						getDuration() == media.getDuration();
 			} catch (IOException e) {
 				throw new UncheckedIOException(e);
 			}

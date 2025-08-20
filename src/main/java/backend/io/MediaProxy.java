@@ -25,12 +25,12 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
-import java.nio.file.Path;
+import java.nio.channels.SeekableByteChannel;
 import java.util.UUID;
 
 /**
  * MediaProxy is an abstract class that stores only the {@link MediaPool} instance and the media id. Accessing other
- * media-specific information will be delegated to the subject.
+ * media-specific information will be delegated to the subject.<br>
  * It's the proxy participant of the proxy pattern.
  */
 public abstract class MediaProxy implements Media {
@@ -78,21 +78,15 @@ public abstract class MediaProxy implements Media {
 	}
 
 	@Override
-	public Path getContentPath() throws IOException {
+	public SeekableByteChannel[] retrieveAudioClips(int clipIndex, int number) throws Exception {
 		if (subject == null) subject = mediaPool.getMedia(getID());
-		return subject.getContentPath();
+		return subject.retrieveAudioClips(clipIndex, number);
 	}
 
 	@Override
-	public byte[][] fetchAudioPieces(int pieceIndex, int number) throws IOException {
+	public SeekableByteChannel[] retrieveVideoClips(int clipIndex, int number) throws Exception{
 		if (subject == null) subject = mediaPool.getMedia(getID());
-		return subject.fetchAudioPieces(pieceIndex, number);
-	}
-
-	@Override
-	public byte[][] fetchVideoPieces(int pieceIndex, int number) throws IOException{
-		if (subject == null) subject = mediaPool.getMedia(getID());
-		return subject.fetchVideoPieces(pieceIndex, number);
+		return subject.retrieveVideoClips(clipIndex, number);
 	}
 
 	@Override
@@ -114,8 +108,7 @@ public abstract class MediaProxy implements Media {
 				return
 					getID().equals(media.getID()) &&
 						getTitle().equals(media.getTitle()) &&
-						getDuration() == media.getDuration() &&
-						getContentPath().equals(media.getContentPath());
+						getDuration() == media.getDuration();
 			} catch (IOException e) {
 				throw new UncheckedIOException(e);
 			}

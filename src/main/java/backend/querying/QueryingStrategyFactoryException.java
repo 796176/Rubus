@@ -17,30 +17,28 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package backend.io;
+package backend.querying;
 
-import auxiliary.QueryStrategyStub;
+/**
+ * This exception is thrown when {@link QueryingStrategyFactory} fails to instantiate
+ * a {@link QueryingStrategyInterface} instance
+ */
+public class QueryingStrategyFactoryException extends RuntimeException {
 
-import java.util.UUID;
-
-public class RubusMediaTests extends MediaTests {
-	@Override
-	Media getMedia() {
-		return new RubusMedia(
-			UUID.fromString("00000000-0000-4000-b000-000000000000"),
-			"Original Title",
-			10,
-			new QueryStrategyStub()
-		);
+	/**
+	 * Constructs an instance of this class.
+	 * @param message the detail message
+	 */
+	public QueryingStrategyFactoryException(String message) {
+		super(message);
 	}
 
-	@Override
-	Media getDifferentMedia() {
-		return new RubusMedia(
-			UUID.fromString("11111111-1111-4111-b111-111111111111"),
-			"Another Original Title",
-			20,
-			new QueryStrategyStub()
-		);
+	/**
+	 * Constructs an instance of this class
+	 * @param message the detail message
+	 * @param cause the cause
+	 */
+	public QueryingStrategyFactoryException(String message, Throwable cause) {
+		super(message, cause);
 	}
 }

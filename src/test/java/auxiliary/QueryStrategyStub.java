@@ -17,30 +17,41 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package backend.io;
+package auxiliary;
 
-import auxiliary.QueryStrategyStub;
+import backend.querying.QueryingStrategyInterface;
 
-import java.util.UUID;
+import java.nio.channels.SeekableByteChannel;
+import java.util.Map;
 
-public class RubusMediaTests extends MediaTests {
+public class QueryStrategyStub implements QueryingStrategyInterface {
 	@Override
-	Media getMedia() {
-		return new RubusMedia(
-			UUID.fromString("00000000-0000-4000-b000-000000000000"),
-			"Original Title",
-			10,
-			new QueryStrategyStub()
-		);
+	public Object addToEnvironment(String name, Object value) {
+		return null;
 	}
 
 	@Override
-	Media getDifferentMedia() {
-		return new RubusMedia(
-			UUID.fromString("11111111-1111-4111-b111-111111111111"),
-			"Another Original Title",
-			20,
-			new QueryStrategyStub()
-		);
+	public Object removeFromEnvironment(String key) {
+		return null;
+	}
+
+	@Override
+	public Map<String, Object> getEnvironment() {
+		return Map.of();
+	}
+
+	@Override
+	public SeekableByteChannel query(String name) {
+		return null;
+	}
+
+	@Override
+	public SeekableByteChannel[] query(String[] names) {
+		return new SeekableByteChannel[0];
+	}
+
+	@Override
+	public void close() throws Exception {
+
 	}
 }

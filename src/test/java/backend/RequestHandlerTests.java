@@ -19,10 +19,7 @@
 
 package backend;
 
-import auxiliary.DummySocket;
-import auxiliary.MediaPoolStub;
-import auxiliary.MediaStub;
-import auxiliary.RequestParserStrategyStub;
+import auxiliary.*;
 import backend.io.Media;
 import backend.io.MediaPool;
 import common.net.request.RubusRequestType;
@@ -37,6 +34,7 @@ import java.io.EOFException;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.net.SocketTimeoutException;
+import java.nio.channels.SeekableByteChannel;
 import java.util.Map;
 import java.util.UUID;
 import java.util.function.BiFunction;
@@ -52,16 +50,16 @@ public class RequestHandlerTests {
 
 	static Media[] instantiateMedia() {
 		Media[] availableMedia = new Media[2];
-		BiFunction<Integer, Integer, byte[][]> videoFetchingStratMedia1 = (i1, i2) -> {
+		BiFunction<Integer, Integer, SeekableByteChannel[]> videoFetchingStratMedia1 = (i1, i2) -> {
 			if (i1 == 0 && i2 == 1) {
-				return new byte[][] {{0x00}};
+				return new SeekableByteChannel[]{new ByteArrayChannel(new byte[]{0x00}, false)};
 			}
 			fail("Didn't expect arguments i1: " + i1 + ", i2: " + i2);
 			return null;
 		};
-		BiFunction<Integer, Integer, byte[][]> audioFetchingStratMedia1 = (i1, i2) -> {
+		BiFunction<Integer, Integer, SeekableByteChannel[]> audioFetchingStratMedia1 = (i1, i2) -> {
 			if (i1 == 0 && i2 == 1) {
-				return new byte[][] {{0x01}};
+				return new SeekableByteChannel[] {new ByteArrayChannel(new byte[] {0x01}, false)};
 			}
 			fail("Didn't expect arguments i1: " + i1 + ", i2: " + i2);
 			return null;
@@ -70,25 +68,30 @@ public class RequestHandlerTests {
 			UUID.fromString("00000000-0000-4000-b000-000000000000"),
 			"Title1",
 			1,
-			null,
 			videoFetchingStratMedia1,
 			audioFetchingStratMedia1
 		);
 
-		BiFunction<Integer, Integer, byte[][]> videoFetchingStratMedia2 = (i1, i2) -> {
+		BiFunction<Integer, Integer, SeekableByteChannel[]> videoFetchingStratMedia2 = (i1, i2) -> {
 			if (i1 == 0 && i2 == 2) {
-				return new byte[][] {{0x00}, {0x01}};
+				return new SeekableByteChannel[] {
+					new ByteArrayChannel(new byte[] {0x00}, false),
+					new ByteArrayChannel(new byte[] {0x01}, false)
+				};
 			} else if (i1 == 1 && i2 == 1) {
-				return new byte[][] {{0x01}};
+				return new SeekableByteChannel[] {new ByteArrayChannel(new byte[] {0x01}, false)};
 			}
 			fail("Didn't expect arguments i1: " + i1 + ", i2: " + i2);
 			return null;
 		};
-		BiFunction<Integer, Integer, byte[][]> audioFetchingStratMedia2 = (i1, i2) -> {
+		BiFunction<Integer, Integer, SeekableByteChannel[]> audioFetchingStratMedia2 = (i1, i2) -> {
 			if (i1 == 0 && i2 == 2) {
-				return new byte[][] {{0x02}, {0x03}};
+				return new SeekableByteChannel[] {
+					new ByteArrayChannel(new byte[] {0x02}, false),
+					new ByteArrayChannel(new byte[] {0x03}, false)
+				};
 			} else if (i1 == 1 && i2 == 1){
-				return new byte[][] {{0x03}};
+				return new SeekableByteChannel[]{new ByteArrayChannel(new byte[]{0x03}, false)};
 			}
 			fail("Didn't expect arguments i1: " + i1 + ", i2: " + i2);
 			return null;
@@ -97,7 +100,6 @@ public class RequestHandlerTests {
 			UUID.fromString("11111111-1111-4111-b111-111111111111"),
 			"Title2",
 			2,
-			null,
 			videoFetchingStratMedia2,
 			audioFetchingStratMedia2
 		);

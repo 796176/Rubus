@@ -45,7 +45,7 @@ public class MediaPoolTests {
 		media1ID,
 		"Title1",
 		1,
-		Path.of(System.getProperty("user.dir"), "src", "test", "resources", "data1")
+		null
 	);
 
 	static UUID media2ID = UUID.randomUUID();
@@ -54,7 +54,7 @@ public class MediaPoolTests {
 		media2ID,
 		"Title2",
 		2,
-		Path.of(System.getProperty("user.dir"), "src", "test", "resources", "data2")
+		null
 	);
 
 	static MediaPool mediaPool;
@@ -65,7 +65,7 @@ public class MediaPoolTests {
 	static void beforeAll() throws SQLException {
 		dataSource = DatabaseCreator.createdMediaFilledDB();
 		ApplicationContext applicationContext = DatabaseCreator.wrapDS(dataSource);
-		mediaPool = new PostgresMediaPool(new JdbcTemplate(applicationContext.getBean(DataSource.class)));
+		mediaPool = new PostgresMediaPool(new JdbcTemplate(applicationContext.getBean(DataSource.class)), null);
 	}
 
 	@AfterAll

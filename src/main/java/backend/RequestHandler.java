@@ -21,6 +21,7 @@ package backend;
 
 import backend.io.Media;
 import backend.io.MediaPool;
+import backend.querying.QueryingException;
 import common.RubusSocket;
 import common.RubusSockets;
 import common.net.response.RubusResponseType;
@@ -34,6 +35,8 @@ import org.springframework.dao.DataAccessException;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
+import java.nio.ByteBuffer;
+import java.nio.channels.SeekableByteChannel;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.UUID;
@@ -150,12 +153,54 @@ public class RequestHandler implements Runnable {
 					int piecesToFetch =
 						rvc.checkForNonPositive(Integer.parseInt(parser.value("total-playback-pieces")));
 					Media media = pool.getMedia(UUID.fromString(mediaID));
+
+					SeekableByteChannel[] videoClips = null;
+					byte[][] readVideoClips;
+					SeekableByteChannel[] audioClips = null;
+					byte[][] readAudioClips;
+					try {
+						videoClips = media.retrieveVideoClips(beginningPieceIndex, piecesToFetch);
+						readVideoClips = new byte[videoClips.length][];
+						for (int i = 0; i < videoClips.length; i++) {
+							int videoClipSize = (int) videoClips[i].size();
+							readVideoClips[i] = new byte[videoClipSize];
+							ByteBuffer bb = ByteBuffer.wrap(readVideoClips[i]);
+							int bytesRead = 0;
+							do {
+								bytesRead += videoClips[i].read(bb);
+							} while (bytesRead < videoClipSize);
+						}
+
+						audioClips = media.retrieveAudioClips(beginningPieceIndex, piecesToFetch);
+						readAudioClips = new byte[audioClips.length][];
+						for (int i = 0; i < audioClips.length; i++) {
+							int audioClipSize = (int) audioClips[i].size();
+							readAudioClips[i] = new byte[audioClipSize];
+							ByteBuffer bb = ByteBuffer.wrap(readAudioClips[i]);
+							int byteRead = 0;
+							do {
+								byteRead += audioClips[i].read(bb);
+							} while (byteRead < audioClipSize);
+						}
+					} finally {
+						if (videoClips != null) {
+							for (SeekableByteChannel channel: videoClips) {
+								try { channel.close(); } catch (Exception ignored) { }
+							}
+						}
+						if (audioClips != null) {
+							for (SeekableByteChannel channel: audioClips) {
+								try { channel.close(); } catch (Exception ignored) { }
+							}
+						}
+					}
+
 					FetchedPieces fetchedPieces =
 						new FetchedPieces(
 							mediaID,
 							beginningPieceIndex,
-							media.fetchVideoPieces(beginningPieceIndex, piecesToFetch),
-							media.fetchAudioPieces(beginningPieceIndex, piecesToFetch)
+							readVideoClips,
+							readAudioClips
 						);
 					responseMes.append("serialized-object ").append(FetchedPieces.class.getName()).append('\n');
 					ObjectOutputStream oos = new ObjectOutputStream(body);
@@ -183,7 +228,7 @@ public class RequestHandler implements Runnable {
 			} catch (IOException ioException) {
 				logger.warn("{} could not send response to {}", this, socket, e);
 			}
-		} catch (IOException | DataAccessException e) {
+		} catch (IOException | DataAccessException | QueryingException e) {
 			logger.error("{} encountered internal error", this, e);
 			try {
 				String errorMsg =
@@ -196,6 +241,8 @@ public class RequestHandler implements Runnable {
 			} catch (IOException ioException) {
 				logger.warn("{} could not send response to {}", this, socket, e);
 			}
+		} catch (Exception e) {
+			logger.error("{} encountered uncategorized error", this);
 		}
 
 		status = new Status(ExecutionStatus.SUCCESS, null);
