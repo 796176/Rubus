@@ -20,9 +20,10 @@
 package auxiliary;
 
 import backend.io.Media;
+import backend.querying.QueryingStrategyFactory;
 import common.net.response.body.MediaInfo;
 
-import java.nio.file.Path;
+import java.nio.channels.SeekableByteChannel;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.function.BiFunction;
@@ -35,24 +36,20 @@ public class MediaStub implements Media {
 
 	public int duration;
 
-	public Path contentPath;
+	public BiFunction<Integer, Integer, SeekableByteChannel[]> videoFetchingStrategy;
 
-	public BiFunction<Integer, Integer, byte[][]> videoFetchingStrategy;
-
-	public BiFunction<Integer, Integer, byte[][]> audioFetchingStrategy;
+	public BiFunction<Integer, Integer, SeekableByteChannel[]> audioFetchingStrategy;
 
 	public MediaStub(
 		UUID id,
 		String title,
 		int duration,
-		Path contentPath,
-		BiFunction<Integer, Integer, byte[][]> videoFetchingStrategy,
-		BiFunction<Integer, Integer, byte[][]> audioFetchingStrategy
+		BiFunction<Integer, Integer, SeekableByteChannel[]> videoFetchingStrategy,
+		BiFunction<Integer, Integer, SeekableByteChannel[]> audioFetchingStrategy
 	) {
 		this.id = id;
 		this.title = title;
 		this.duration = duration;
-		this.contentPath = contentPath;
 		this.videoFetchingStrategy = videoFetchingStrategy;
 		this.audioFetchingStrategy = audioFetchingStrategy;
 	}
@@ -73,20 +70,15 @@ public class MediaStub implements Media {
 	}
 
 	@Override
-	public Path getContentPath() {
-		return contentPath;
-	}
-
-	@Override
-	public byte[][] fetchAudioPieces(int clipOffset, int number) {
+	public SeekableByteChannel[] retrieveAudioClips(int clipIndex, int number) {
 		if (audioFetchingStrategy == null) return null;
-		return audioFetchingStrategy.apply(clipOffset, number);
+		return audioFetchingStrategy.apply(clipIndex, number);
 	}
 
 	@Override
-	public byte[][] fetchVideoPieces(int clipOffset, int number) {
+	public SeekableByteChannel[] retrieveVideoClips(int clipIndex, int number) {
 		if (videoFetchingStrategy == null) return null;
-		return videoFetchingStrategy.apply(clipOffset, number);
+		return videoFetchingStrategy.apply(clipIndex, number);
 	}
 
 	@Override

@@ -19,14 +19,14 @@
 
 package backend.io;
 
+import backend.querying.QueryingStrategyFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.io.IOException;
-import java.nio.file.Path;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.UUID;
 
@@ -40,19 +40,24 @@ public class PostgresMediaPool implements MediaPool {
 
 	private JdbcTemplate jdbcTemplate;
 
+	private QueryingStrategyFactory qsf;
+
 	/**
 	 * Constructs an instance of this class.
 	 * @param jdbcTemplate the JdbcTemplate instance that is connected to the database containing the 'media' table
+	 * @param queryingStrategyFactory the {@link QueryingStrategyFactory} instance to instantiate appropriate querying
+	 *                                strategies based on the 'media_content_uri' column value
 	 */
-	public PostgresMediaPool(JdbcTemplate jdbcTemplate) {
-		assert jdbcTemplate != null;
+	public PostgresMediaPool(JdbcTemplate jdbcTemplate, QueryingStrategyFactory queryingStrategyFactory) {
+		assert jdbcTemplate != null && queryingStrategyFactory != null;
 
 		this.jdbcTemplate = jdbcTemplate;
-		logger.debug("{} instantiated, JdbcTemplate: {}", this, jdbcTemplate);
+		qsf = queryingStrategyFactory;
+		logger.debug("{} instantiated, JdbcTemplate: {}, QueryingStrategyFactory: {}", this, jdbcTemplate, qsf);
 	}
 
 	@Override
-	public Media[] availableMedia() throws IOException {
+	public Media[] availableMedia() {
 		String sqlQuery = "select * from media;";
 		logger.debug("{} querying {}", this, sqlQuery);
 		return jdbcTemplate.query(sqlQuery, rs -> {
@@ -63,7 +68,7 @@ public class PostgresMediaPool implements MediaPool {
 						UUID.fromString(rs.getString("id")),
 						rs.getString("title"),
 						rs.getInt("duration"),
-						Path.of(rs.getString("media_content_uri"))
+						qsf.getQueryingStrategy(URI.create(rs.getString("media_content_uri")))
 					)
 				);
 			}
@@ -109,7 +114,7 @@ public class PostgresMediaPool implements MediaPool {
 	}
 
 	@Override
-	public Media getMedia(UUID mediaId) throws IOException {
+	public Media getMedia(UUID mediaId) {
 		String sql = "select * from media where id=?;";
 		logger.debug("{} querying {}", this, sql);
 		return jdbcTemplate.query(
@@ -123,7 +128,7 @@ public class PostgresMediaPool implements MediaPool {
 					mediaId,
 					rs.getString("title"),
 					rs.getInt("duration"),
-					Path.of(rs.getString("media_content_uri"))
+					qsf.getQueryingStrategy(URI.create(rs.getString("media_content_uri")))
 				);
 			}
 		);

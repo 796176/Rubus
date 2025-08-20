@@ -23,6 +23,8 @@ import backend.*;
 import backend.io.MediaPool;
 import backend.io.PostgresMediaPool;
 import backend.io.TransactionLockFailureAdvising;
+import backend.querying.DefaultQueryingStrategyFactory;
+import backend.querying.QueryingStrategyFactory;
 import common.Config;
 import org.postgresql.ds.PGSimpleDataSource;
 import org.slf4j.Logger;
@@ -140,8 +142,13 @@ public class RubusConfiguration {
 	}
 
 	@Bean
-	MediaPool mediaPool(JdbcTemplate jdbcTemplate) {
-		return new PostgresMediaPool(jdbcTemplate);
+	QueryingStrategyFactory queryingStrategyFactory() {
+		return new DefaultQueryingStrategyFactory();
+	}
+
+	@Bean
+	MediaPool mediaPool(JdbcTemplate jdbcTemplate, QueryingStrategyFactory queryingStrategyFactory) {
+		return new PostgresMediaPool(jdbcTemplate, queryingStrategyFactory);
 	}
 
 	@Bean

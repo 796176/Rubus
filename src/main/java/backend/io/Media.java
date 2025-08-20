@@ -22,7 +22,7 @@ package backend.io;
 import common.net.response.body.MediaInfo;
 
 import java.io.IOException;
-import java.nio.file.Path;
+import java.nio.channels.SeekableByteChannel;
 import java.util.UUID;
 
 /**
@@ -52,29 +52,22 @@ public interface Media {
 	int getDuration() throws IOException;
 
 	/**
-	 * Returns the directory that contains this media-specific files.
-	 * @return the directory that contains this media-specific files
+	 * Retrieves audio clips of the specified range.
+	 * @param clipIndex the index of the first clip
+	 * @param number the number of clips to retrieve
+	 * @return an ordered array of {@link SeekableByteChannel} instances containing audio
 	 * @throws IOException if some I/O error occurs
 	 */
-	Path getContentPath() throws IOException;
+	SeekableByteChannel[] retrieveAudioClips(int clipIndex, int number) throws Exception;
 
 	/**
-	 * Retrieves audio pieces of the specified range. Audio pieces are represented as byte arrays.
-	 * @param pieceIndex the index of the first piece
-	 * @param number the number of pieces to retrieve
-	 * @return an array of audio pieces
+	 * Retrieves video clips of the specified range.
+	 * @param clipIndex the index of the first clip
+	 * @param number the number of clips to retrieve
+	 * @return an ordered array of {@link SeekableByteChannel} instances containing video
 	 * @throws IOException if some I/O error occurs
 	 */
-	byte[][] fetchAudioPieces(int pieceIndex, int number) throws IOException;
-
-	/**
-	 * Retrieves video pieces of the specified range. Video pieces are represented as byte arrays.
-	 * @param pieceIndex the index of the first piece
-	 * @param number the number of pieces to retrieve
-	 * @return an array of video pieces
-	 * @throws IOException if some I/O error occurs
-	 */
-	byte[][] fetchVideoPieces(int pieceIndex, int number) throws IOException;
+	SeekableByteChannel[] retrieveVideoClips(int clipIndex, int number) throws Exception;
 
 	/**
 	 * Convert this Media instance into a {@link MediaInfo} instance.
