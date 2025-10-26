@@ -148,5 +148,11 @@
             <artifactId>aspectjmatcher</artifactId>
             <version>1.9.24</version>
         </dependency>
+
+        <dependency>
+            <groupId>org.mongodb</groupId>
+            <artifactId>bson</artifactId>
+            <version>5.5.1</version>
+        </dependency>
     </dependencies>
 </project>

@@ -19,6 +19,8 @@
 
 package backend.querying;
 
+import backend.exceptions.QueryingStrategyFactoryException;
+import jakarta.annotation.Nonnull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,8 +42,9 @@ public class DefaultQueryingStrategyFactory implements QueryingStrategyFactory {
 		logger.debug("{} instantiated", this);
 	}
 
+	@Nonnull
 	@Override
-	public QueryingStrategyInterface getQueryingStrategy(URI uri) throws QueryingStrategyFactoryException {
+	public QueryingStrategyInterface getQueryingStrategy(@Nonnull URI uri) throws QueryingStrategyFactoryException {
 		try {
 			switch (uri.getScheme()) {
 				case "file" -> {

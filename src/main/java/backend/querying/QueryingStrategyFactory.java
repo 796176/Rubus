@@ -19,6 +19,9 @@
 
 package backend.querying;
 
+import backend.exceptions.QueryingStrategyFactoryException;
+import jakarta.annotation.Nonnull;
+
 import java.net.URI;
 
 /**
@@ -36,5 +39,6 @@ public interface QueryingStrategyFactory {
 	 * @return a {@link QueryingStrategyInterface} instance
 	 * @throws QueryingStrategyFactoryException if instantiation fails
 	 */
-	QueryingStrategyInterface getQueryingStrategy(URI uri) throws QueryingStrategyFactoryException;
+	@Nonnull
+	QueryingStrategyInterface getQueryingStrategy(@Nonnull URI uri) throws QueryingStrategyFactoryException;
 }

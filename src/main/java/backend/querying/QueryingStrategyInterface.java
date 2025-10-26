@@ -19,6 +19,10 @@
 
 package backend.querying;
 
+import backend.exceptions.QueryingException;
+import jakarta.annotation.Nonnull;
+import jakarta.annotation.Nullable;
+
 import java.nio.channels.SeekableByteChannel;
 import java.util.Map;
 
@@ -48,20 +52,23 @@ public interface QueryingStrategyInterface extends AutoCloseable {
 	 * @param value the variable value
 	 * @return the previous value or null
 	 */
-	Object addToEnvironment(String name, Object value);
+	@Nullable
+	Object addToEnvironment(@Nonnull String name, Object value);
 
 	/**
 	 * Removes the environment variable from this instance.
 	 * @param key the variable name
 	 * @return the removed variable value or null if the variable didn't exist
 	 */
-	Object removeFromEnvironment(String key);
+	@Nullable
+	Object removeFromEnvironment(@Nonnull String key);
 
 	/**
 	 * Returns the map containing environment variables of this instance. The effect of making changes to the returned
 	 * map is undefined.
 	 * @return the map of environment variables
 	 */
+	@Nonnull
 	Map<String, Object> getEnvironment();
 
 	/**
@@ -70,7 +77,8 @@ public interface QueryingStrategyInterface extends AutoCloseable {
 	 * @return an {@link SeekableByteChannel} instance open for reading and containing the content of the resource
 	 * @throws QueryingException if the querying fails
 	 */
-	SeekableByteChannel query(String name) throws QueryingException;
+	@Nonnull
+	SeekableByteChannel query(@Nonnull String name) throws QueryingException;
 
 	/**
 	 * Queries multiple resources of the given simple names. The name resolution is defined by the concrete
@@ -80,5 +88,6 @@ public interface QueryingStrategyInterface extends AutoCloseable {
 	 *         the resources; their order corresponds the order of their simple names in names
 	 * @throws QueryingException if the querying fails
 	 */
-	SeekableByteChannel[] query(String[] names) throws QueryingException;
+	@Nonnull
+	SeekableByteChannel[] query(@Nonnull String[] names) throws QueryingException;
 }
