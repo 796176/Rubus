@@ -83,6 +83,8 @@ public class AboutPanel extends JPanel {
 			&emsp;&emsp;Spring Framework: <a href="https://spring.io/">spring.io</a><br>
 			&emsp;&emsp;Log4J: <a href="https://logging.apache.org/log4j/2.x/">logging.apache.org</a><br>
 			&emsp;&emsp;FlatLaf: <a href="https://www.formdev.com/flatlaf/">www.formdev.com</a><br>
+			&emsp;&emsp;Bson: <a href="https://bsonspec.org/">bsonspec.org</a><br>
+			&emsp;&emsp;Jakarta EE: <a href="https://jakarta.ee/">jakarta.ee</a><br>
 			""".formatted(version));
 		bagLayout.setConstraints(textPane, constraints);
 		add(textPane);
