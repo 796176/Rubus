@@ -1,3 +1,8 @@
+Hi there! I'm currently looking for job. If you need someone experienced in
+designing web applications please contact me <echidna453216@proton.me>
+
+---
+
 # Rubus
 Rubus is an application layer protocol, a client reference implementation, and 
 a server reference implementation. These parts constitute a video streaming service.

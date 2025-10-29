@@ -1,7 +1,7 @@
 /*
- * Rubus is an application layer protocol for video and audio streaming and
+ * Rubus is a protocol for video and audio streaming and
  * the client and server reference implementations.
- * Copyright (C) 2024 Yegore Vlussove
+ * Copyright (C) 2025 Yegore Vlussove
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,6 +18,9 @@
  */
 
 package backend.querying;
+
+import backend.exceptions.QueryingStrategyFactoryException;
+import jakarta.annotation.Nonnull;
 
 import java.net.URI;
 
@@ -36,5 +39,6 @@ public interface QueryingStrategyFactory {
 	 * @return a {@link QueryingStrategyInterface} instance
 	 * @throws QueryingStrategyFactoryException if instantiation fails
 	 */
-	QueryingStrategyInterface getQueryingStrategy(URI uri) throws QueryingStrategyFactoryException;
+	@Nonnull
+	QueryingStrategyInterface getQueryingStrategy(@Nonnull URI uri) throws QueryingStrategyFactoryException;
 }

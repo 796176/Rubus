@@ -1,7 +1,7 @@
 /*
- * Rubus is an application layer protocol for video and audio streaming and
+ * Rubus is a protocol for video and audio streaming and
  * the client and server reference implementations.
- * Copyright (C) 2024-2025 Yegore Vlussove
+ * Copyright (C) 2025 Yegore Vlussove
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -192,7 +192,7 @@ JNIEXPORT jobjectArray JNICALL Java_frontend_decoders_FfmpegJniVideoDecoder_deco
 	jint offset,
 	jint total
 ) {
-	jclass exception_class = (*env)->FindClass(env, "common/DecodingException");
+	jclass exception_class = (*env)->FindClass(env, "frontend/exceptions/DecodingException");
 
 	if (context_type == 0) {
 		struct context0 *context = (struct context0 *) context_address;
@@ -297,7 +297,7 @@ JNIEXPORT jobjectArray JNICALL Java_frontend_decoders_FfmpegJniVideoDecoder_deco
 JNIEXPORT jint JNICALL Java_frontend_decoders_FfmpegJniVideoDecoder_frames (
 	JNIEnv *env, jobject obj, jlong context_address, jint context_type
 ) {
-	jclass exception_class = (*env)->FindClass(env, "common/DecodingException");
+	jclass exception_class = (*env)->FindClass(env, "frontend/exceptions/DecodingException");
 
 	if (context_type == 0) {
 		struct context0 *context = (struct context0 *)context_address;
@@ -326,7 +326,7 @@ JNIEXPORT jint JNICALL Java_frontend_decoders_FfmpegJniVideoDecoder_frames (
 JNIEXPORT jlong JNICALL Java_frontend_decoders_FfmpegJniVideoDecoder_initContext(
 	JNIEnv *env, jobject obj, jbyteArray encoded_video, jint context_type
 ) {
-	jclass exception_class = (*env)->FindClass(env, "common/DecodingException");
+	jclass exception_class = (*env)->FindClass(env, "frontend/exceptions/DecodingException");
 
 	if (context_type == 0) {
 		struct context0 *context = calloc(1, sizeof(struct context0));

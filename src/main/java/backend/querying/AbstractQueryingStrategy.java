@@ -1,7 +1,7 @@
 /*
- * Rubus is an application layer protocol for video and audio streaming and
+ * Rubus is a protocol for video and audio streaming and
  * the client and server reference implementations.
- * Copyright (C) 2024 Yegore Vlussove
+ * Copyright (C) 2025 Yegore Vlussove
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,6 +19,9 @@
 
 package backend.querying;
 
+import backend.exceptions.QueryingException;
+import jakarta.annotation.Nonnull;
+import jakarta.annotation.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,32 +52,33 @@ public abstract class AbstractQueryingStrategy implements QueryingStrategyInterf
 	@Override
 	public void close() { }
 
+	@Nullable
 	@Override
-	public Object addToEnvironment(String name, Object value) {
+	public Object addToEnvironment(@Nonnull String name, Object value) {
 		return env.put(name, value);
 	}
 
+	@Nullable
 	@Override
-	public Object removeFromEnvironment(String key) {
+	public Object removeFromEnvironment(@Nonnull String key) {
 		return env.remove(key);
 	}
 
+	@Nonnull
 	@Override
 	public Map<String, Object> getEnvironment() {
 		return env;
 	}
 
+	@Nonnull
 	@Override
-	public SeekableByteChannel query(String name) throws QueryingException {
-		assert name != null;
-
+	public SeekableByteChannel query(@Nonnull String name) throws QueryingException {
 		return fullyQualifiedQuery(compose(getRoot(), name));
 	}
 
+	@Nonnull
 	@Override
-	public SeekableByteChannel[] query(String[] names) throws QueryingException {
-		assert names != null;
-
+	public SeekableByteChannel[] query(@Nonnull String[] names) throws QueryingException {
 		return fullyQualifiedQuery(
 			Arrays
 				.stream(names)
@@ -88,6 +92,7 @@ public abstract class AbstractQueryingStrategy implements QueryingStrategyInterf
 	 * @implSpec if the resource are files that reside in /home this method returns "/home"
 	 * @return the root of the names of the resources
 	 */
+	@Nullable
 	protected abstract String getRoot();
 
 	/**
@@ -97,7 +102,8 @@ public abstract class AbstractQueryingStrategy implements QueryingStrategyInterf
 	 * @param octets a number of octets ordered from the most significant octet to the least significant octet
 	 * @return a fully-qualified name
 	 */
-	protected abstract String compose(String... octets);
+	@Nonnull
+	protected abstract String compose(@Nonnull String... octets);
 
 	/**
 	 * Same as {@link #query(String)} but passes a fully-qualified name as an argument derived from invoking
@@ -106,7 +112,10 @@ public abstract class AbstractQueryingStrategy implements QueryingStrategyInterf
 	 * @return an {@link SeekableByteChannel} instance open for reading and containing the content of the resource
 	 * @throws QueryingException if querying fails
 	 */
-	protected abstract SeekableByteChannel fullyQualifiedQuery(String fullyQualifiedName) throws QueryingException;
+	@Nonnull
+	protected abstract SeekableByteChannel fullyQualifiedQuery(
+		@Nonnull String fullyQualifiedName
+	) throws QueryingException;
 
 	/**
 	 * Same as {@link #query(String)} but passes an array of fully qualified names as an argument derived from invoking
@@ -116,5 +125,8 @@ public abstract class AbstractQueryingStrategy implements QueryingStrategyInterf
 	 *         the resources; their order corresponds the order of their fully qualified names in fullyQualifiedNames
 	 * @throws QueryingException if querying fails
 	 */
-	protected abstract SeekableByteChannel[] fullyQualifiedQuery(String[] fullyQualifiedNames) throws QueryingException;
+	@Nonnull
+	protected abstract SeekableByteChannel[] fullyQualifiedQuery(
+		@Nonnull String[] fullyQualifiedNames
+	) throws QueryingException;
 }

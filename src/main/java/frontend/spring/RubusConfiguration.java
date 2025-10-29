@@ -1,7 +1,7 @@
 /*
- * Rubus is an application layer protocol for video and audio streaming and
+ * Rubus is a protocol for video and audio streaming and
  * the client and server reference implementations.
- * Copyright (C) 2024 Yegore Vlussove
+ * Copyright (C) 2025 Yegore Vlussove
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,16 +19,15 @@
 
 package frontend.spring;
 
-import common.Config;
-import common.RubusSocket;
-import common.TCPRubusSocket;
-import common.ssl.HandshakeFailedException;
-import common.ssl.SecureSocket;
-import frontend.WatchHistory;
+import frontend.configuration.Config;
+import frontend.controllers.WatchHistoryController;
+import frontend.interactors.WatchHistory;
 import frontend.decoders.FfmpegJniVideoDecoder;
 import frontend.decoders.VideoDecoder;
 import frontend.gui.MainFrame;
 import frontend.gui.settings.*;
+import frontend.network.HttpRubusClient;
+import frontend.network.RubusClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.BeanFactory;
@@ -37,7 +36,6 @@ import org.springframework.context.annotation.*;
 
 import javax.swing.*;
 import java.io.IOException;
-import java.net.InetAddress;
 import java.nio.file.Path;
 import java.util.function.Supplier;
 
@@ -60,42 +58,17 @@ public class RubusConfiguration {
 
 	@Bean
 	@Scope("prototype")
-	RubusSocket socket(Config config) throws Exception {
-		try {
-			return config.action(c -> {
-				String protocol = c.get("connection-protocol");
-				RubusSocket socket;
-				switch (protocol) {
-					case "tcp" -> {
-						InetAddress address = InetAddress.getByName(c.get("bind-address"));
-						int port = Integer.parseInt(c.get("listening-port"));
-						logger.info("Trying to establish tcp connection with {}:{}", address, port);
-						socket = new TCPRubusSocket(address, port);
-					}
-					default -> {
-						throw new RuntimeException("The " + protocol + "transport layer protocol is not available");
-					}
-				}
-				boolean secureConnectionHandshakeDisabled =
-					c.get("secure-connection-handshake-disabled") != null &&
-						Boolean.parseBoolean(c.get("secure-connection-handshake-disabled"));
-				if (secureConnectionHandshakeDisabled) {
-					return socket;
-				} else {
-					boolean secureConnectionRequired = Boolean.parseBoolean(c.get("secure-connection-required"));
-					long handshakeTimeout = Long.parseLong(c.get("secure-connection-handshake-timeout"));
-					try {
-						return new SecureSocket(socket, c, handshakeTimeout, true);
-					} catch (HandshakeFailedException e) {
-						if (!secureConnectionRequired) return socket;
-						else throw e;
-					}
-				}
-			});
-		} catch (Exception e) {
-			logger.error("Failed to establish connection", e);
-			throw e;
-		}
+	RubusClient rubusClient(Config config) {
+		return config.action(c -> {
+			String address = c.get("bind-address");
+			int port = Integer.parseInt(c.get("listening-port"));
+			HttpRubusClient httpRubusClient = new HttpRubusClient(address, port);
+			boolean secureConnectionEnabled = Boolean.parseBoolean(c.get("secure-connection-enabled"));
+			httpRubusClient.setSecureConnectionEnabled(secureConnectionEnabled);
+			boolean secureConnectionRequired = Boolean.parseBoolean(c.get("secure-connection-required"));
+			httpRubusClient.setSecureConnectionRequired(secureConnectionRequired);
+			return httpRubusClient;
+		});
 	}
 
 	@Bean
@@ -114,7 +87,7 @@ public class RubusConfiguration {
 	@Value("${rubus.workingDir}/watch_history")
 	WatchHistory watchHistory(Path watchHistoryPath) throws IOException {
 		try {
-			return new WatchHistory(watchHistoryPath);
+			return new WatchHistoryController(watchHistoryPath);
 		} catch (Exception e) {
 			logger.error("WatchHistory failed to instantiate, history path: {}", watchHistoryPath, e);
 			throw e;
@@ -134,10 +107,10 @@ public class RubusConfiguration {
 		int y = Integer.parseInt(config.get("main-frame-y"));
 		int width = Integer.parseInt(config.get("main-frame-width"));
 		int height = Integer.parseInt(config.get("main-frame-height"));
-		Supplier<RubusSocket> rubusSocketSupplier = () -> beanFactory.getBeanProvider(RubusSocket.class).getObject();
+		Supplier<RubusClient> rubusClientSupplier = () -> beanFactory.getBeanProvider(RubusClient.class).getObject();
 		Supplier<SettingsTabs> settingsTabsSupplier = () -> beanFactory.getBeanProvider(SettingsTabs.class).getObject();
 		MainFrame mainFrame =
-			new MainFrame(config, rubusSocketSupplier, watchHistory, settingsTabsSupplier, videoDecoder);
+			new MainFrame(config, rubusClientSupplier, watchHistory, settingsTabsSupplier, videoDecoder);
 		mainFrame.setBounds(x, y, width, height);
 		return mainFrame;
 	}

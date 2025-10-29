@@ -1,7 +1,7 @@
 /*
- * Rubus is an application layer protocol for video and audio streaming and
+ * Rubus is a protocol for video and audio streaming and
  * the client and server reference implementations.
- * Copyright (C) 2024 Yegore Vlussove
+ * Copyright (C) 2025 Yegore Vlussove
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,8 +19,8 @@
 
 package frontend.spring;
 
-import common.Config;
-import frontend.WatchHistory;
+import frontend.configuration.Config;
+import frontend.interactors.WatchHistory;
 import frontend.gui.settings.*;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

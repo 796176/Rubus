@@ -1,7 +1,7 @@
 /*
- * Rubus is an application layer protocol for video and audio streaming and
+ * Rubus is a protocol for video and audio streaming and
  * the client and server reference implementations.
- * Copyright (C) 2024-2025 Yegore Vlussove
+ * Copyright (C) 2025 Yegore Vlussove
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -71,9 +71,9 @@ public class AboutPanel extends JPanel {
 		} catch (RuntimeException | IOException ignored) { }
 		textPane.setText("""
 			<h3>Rubus %s</h3><br>
-			Rubus is an application layer protocol for video and audio streaming and
+			Rubus is a protocol for video and audio streaming and
 			the client and server reference implementations.<br>
-			Copyright (C) 2024-2025 Yegore Vlussove<br><br>
+			Copyright (C) 2025 Yegore Vlussove<br><br>
 			
 			Official page: <a href="https://github.com/796176/Rubus">github.com/796176/Rubus</a><br>
 			License: Gnu Public License 3<br><br>
@@ -83,6 +83,8 @@ public class AboutPanel extends JPanel {
 			&emsp;&emsp;Spring Framework: <a href="https://spring.io/">spring.io</a><br>
 			&emsp;&emsp;Log4J: <a href="https://logging.apache.org/log4j/2.x/">logging.apache.org</a><br>
 			&emsp;&emsp;FlatLaf: <a href="https://www.formdev.com/flatlaf/">www.formdev.com</a><br>
+			&emsp;&emsp;Bson: <a href="https://bsonspec.org/">bsonspec.org</a><br>
+			&emsp;&emsp;Jakarta EE: <a href="https://jakarta.ee/">jakarta.ee</a><br>
 			""".formatted(version));
 		bagLayout.setConstraints(textPane, constraints);
 		add(textPane);

@@ -1,7 +1,7 @@
 /*
- * Rubus is an application layer protocol for video and audio streaming and
+ * Rubus is a protocol for video and audio streaming and
  * the client and server reference implementations.
- * Copyright (C) 2024 Yegore Vlussove
+ * Copyright (C) 2025 Yegore Vlussove
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,6 +19,8 @@
 
 package backend.querying;
 
+import backend.exceptions.QueryingException;
+import jakarta.annotation.Nonnull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,9 +43,7 @@ public class FSQueryingStrategy extends AbstractQueryingStrategy {
 	 * Constructs an instance of this class.
 	 * @param path the location of the directory under which the queried files are located.
 	 */
-	public FSQueryingStrategy(Path path) {
-		assert path != null;
-
+	public FSQueryingStrategy(@Nonnull Path path) {
 		if (Files.notExists(path) || !Files.isDirectory(path)) {
 			logger.error("{}: {} doesn't exist or not a directory", this, path);
 			throw new IllegalArgumentException(path + " doesn't exist or it's not a directory");
@@ -53,8 +53,9 @@ public class FSQueryingStrategy extends AbstractQueryingStrategy {
 		logger.debug("{} instantiated, Path: {}", this, path);
 	}
 
+	@Nonnull
 	@Override
-	protected String compose(String... octets) {
+	protected String compose(@Nonnull String... octets) {
 		StringBuilder sb = new StringBuilder(octets[0]);
 		for (int i = 1; i < octets.length; i++) {
 			if (!octets[i - 1].endsWith(File.separator)) sb.append(File.separator);
@@ -63,8 +64,9 @@ public class FSQueryingStrategy extends AbstractQueryingStrategy {
 		return sb.toString();
 	}
 
+	@Nonnull
 	@Override
-	protected SeekableByteChannel fullyQualifiedQuery(String fullyQualifiedName) throws QueryingException {
+	protected SeekableByteChannel fullyQualifiedQuery(@Nonnull String fullyQualifiedName) throws QueryingException {
 		try {
 			return Files.newByteChannel(Path.of(fullyQualifiedName), StandardOpenOption.READ);
 		} catch (Exception e) {
@@ -72,8 +74,11 @@ public class FSQueryingStrategy extends AbstractQueryingStrategy {
 		}
 	}
 
+	@Nonnull
 	@Override
-	protected SeekableByteChannel[] fullyQualifiedQuery(String[] fullyQualifiedNames) throws QueryingException {
+	protected SeekableByteChannel[] fullyQualifiedQuery(
+		@Nonnull String[] fullyQualifiedNames
+	) throws QueryingException {
 		SeekableByteChannel[] channels = new SeekableByteChannel[fullyQualifiedNames.length];
 		try {
 			for (int i = 0; i < fullyQualifiedNames.length; i++) {
@@ -88,6 +93,7 @@ public class FSQueryingStrategy extends AbstractQueryingStrategy {
 		return channels;
 	}
 
+	@Nonnull
 	@Override
 	public String getRoot() {
 		return directory.toString();

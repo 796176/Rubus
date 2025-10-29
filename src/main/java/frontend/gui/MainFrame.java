@@ -1,7 +1,7 @@
 /*
- * Rubus is an application layer protocol for video and audio streaming and
+ * Rubus is a protocol for video and audio streaming and
  * the client and server reference implementations.
- * Copyright (C) 2024-2025 Yegore Vlussove
+ * Copyright (C) 2025 Yegore Vlussove
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,15 +19,19 @@
 
 package frontend.gui;
 
-import common.Config;
-import common.RubusSocket;
-import common.net.response.body.MediaInfo;
-import frontend.*;
+import frontend.controllers.AudioPlayerController;
+import frontend.controllers.FetchController;
+import frontend.models.MediaInfo;
+import frontend.interactors.*;
 import frontend.decoders.Decoder;
 import frontend.decoders.VideoDecoder;
 import frontend.gui.mediasearch.MediaSearchDialog;
 import frontend.gui.settings.SettingsDialog;
 import frontend.gui.settings.SettingsTabs;
+import frontend.network.RubusClient;
+import frontend.network.RubusResponse;
+import frontend.network.RubusRequest;
+import frontend.configuration.Config;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,7 +53,7 @@ public class MainFrame extends JFrame {
 	private final InnerThread thread;
 	private final GridBagLayout bagLayout = new GridBagLayout();
 	private final GridBagConstraints constraints = new GridBagConstraints();
-	private final Supplier<RubusSocket> rubusSocketSupplier;
+	private final Supplier<RubusClient> rubusClientSupplier;
 	private final Config config;
 	private final WatchHistory watchHistory;
 	private final VideoDecoder vd;
@@ -62,16 +66,16 @@ public class MainFrame extends JFrame {
 
 	public MainFrame(
 		Config config,
-		Supplier<RubusSocket> rubusSocketSupplier,
+		Supplier<RubusClient> rubusClientSupplier,
 		WatchHistory watchHistory,
 		Supplier<SettingsTabs> settingsTabsSupplier,
 		VideoDecoder videoDecoder
 	) {
-		assert config != null && rubusSocketSupplier != null && watchHistory != null && videoDecoder != null;
+		assert config != null && rubusClientSupplier != null && watchHistory != null && videoDecoder != null;
 
 		this.watchHistory = watchHistory;
 		this.config = config;
-		this.rubusSocketSupplier = rubusSocketSupplier;
+		this.rubusClientSupplier = rubusClientSupplier;
 		vd = videoDecoder;
 		setLayout(bagLayout);
 		constraints.anchor = GridBagConstraints.CENTER;
@@ -87,7 +91,6 @@ public class MainFrame extends JFrame {
 		menuBar.reloadButton().addActionListener(actionEvent -> {
 			try {
 				if (fetchController != null) {
-					fetchController.setSocketSupplier(rubusSocketSupplier);
 					fetchController.close();
 					fetchController.update(player);
 				}
@@ -101,7 +104,7 @@ public class MainFrame extends JFrame {
 			}
 		});
 		menuBar.openVideoItem().addActionListener(actionEvent -> {
-			new MediaSearchDialog(this, rubusSocketSupplier, watchHistory);
+			new MediaSearchDialog(this, rubusClientSupplier, watchHistory);
 		});
 
 		menuBar.settingsItem().addActionListener(actionEvent -> {
@@ -145,11 +148,11 @@ public class MainFrame extends JFrame {
 
 		logger.debug(
 			"""
-			{} instantiated, Config: {}, RubusSocketSupplier: {}, WatchHistory: {}, SettingsTabSupplier: {}, \
+			{} instantiated, Config: {}, RubusClientSupplier: {}, WatchHistory: {}, SettingsTabSupplier: {}, \
 			VideoDecoder: {}""",
 			this,
 			config,
-			rubusSocketSupplier,
+			rubusClientSupplier,
 			watchHistory,
 			settingsTabsSupplier,
 			videoDecoder
@@ -157,12 +160,12 @@ public class MainFrame extends JFrame {
 	}
 
 	public void play(String id, int progress) {
-		try (RubusClient rubusClient = new RubusClient(rubusSocketSupplier)) {
-			RubusRequest request = RubusRequest.newBuilder().INFO(id).build();
+		try (RubusClient rubusClient = rubusClientSupplier.get()) {
+			RubusRequest request = rubusClient.getRequestBuilder().INFO(id).build();
 			RubusResponse response = rubusClient.send(request, 10000);
 			MediaInfo mediaInfo = response.INFO();
 
-			request = RubusRequest.newBuilder().FETCH(id, 0, 1).build();
+			request = rubusClient.getRequestBuilder().FETCH(id, 0, 1).build();
 			response = rubusClient.send(request, 10000);
 			byte[] audio = response.FETCH().audio()[0];
 			AudioFormat audioFormat = AudioSystem.getAudioFileFormat(new ByteArrayInputStream(audio)).getFormat();
@@ -190,7 +193,7 @@ public class MainFrame extends JFrame {
 				config.action(c -> {
 					int bufferSize = Integer.parseInt(c.get("buffer-size"));
 					int minimumBatchSize = Integer.parseInt(c.get("minimum-batch-size"));
-					fetchController = new FetchController(rubusSocketSupplier, id, bufferSize, minimumBatchSize);
+					fetchController = new FetchController(rubusClientSupplier, id, bufferSize, minimumBatchSize);
 					return null;
 				});
 				audioController = new AudioPlayerController(audioPlayer);

@@ -14,12 +14,6 @@ buffer-size [client] is the maximum size of the player's buffer in seconds.
 certificate-location [server] sets the location of an X.509 certificate that will be 
 used to establish secure connections between the server and the clients.
 
-connection-protocol [client/server] specifies the transport layer protocol; this 
-option must be the same between the server and all the clients that connect to 
-that server.  
-The list of supported transport layer protocols:
- - tcp
-
 database-address [server] specifies the internet address of the Postgres dbms server.
 
 database-name [server] specifies the name of the database containing the `media` table.
@@ -49,9 +43,6 @@ minimum-batch-size [client] specifies the minimum amount of media clips the clie
 requests from the server; if the amount of available media clips is less than
 minimum-batch-size, the client requests less than that.
 
-open-connections-limit [server] sets a limit on how many connections the server can 
-keep open at a time.
-
 private-key-location [server] sets the location of the unencrypted PKCS8 private
 key that is used together with the certificate specified in certificate-location to
 establish secure connections between the server and the clients.
@@ -60,16 +51,8 @@ secure-connection-enabled [client/server] specifies if a secure connection may b
 established between 2 hosts. If the server wants to enable secure connections it 
 must also specify certificate-location and private-key-location.
 
-secure-connection-handshake-disabled [clint/server] specifies that the host doesn't
-need to perform a handshake to determine if a secure connection can be established. In
-order to work this option needs to be set true for both hosts.
-
-secure-connection-handshake-timeout [client/server] sets the timeout of a handshake
-that determines if a secure connection can be established between 2 hosts and if it
-can it's being established during that handshake.
-
-secure-connection-required [client/server] lets the host know if an unsecure 
-connection may be established between 2 hosts.
+secure-connection-required [client] lets the client know if an unsecure 
+connection may be established with the server.
 
 transaction-failure-retry-attempts [server] specifies how many times a transaction
 that failed due to a serialization failure can be retried.
