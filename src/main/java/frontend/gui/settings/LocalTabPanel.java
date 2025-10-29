@@ -19,7 +19,7 @@
 
 package frontend.gui.settings;
 
-import frontend.WatchHistory;
+import frontend.interactors.WatchHistory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

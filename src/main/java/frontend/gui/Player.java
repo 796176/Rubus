@@ -19,12 +19,12 @@
 
 package frontend.gui;
 
-import common.DecodingException;
-import common.net.FetchingException;
-import common.net.RubusException;
-import frontend.*;
+import frontend.exceptions.DecodingException;
+import frontend.interactors.*;
+import frontend.models.EncodedPlaybackClip;
 import frontend.decoders.Decoder;
 import frontend.decoders.VideoDecoder;
+import frontend.exceptions.FetchingException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,7 +45,7 @@ public class Player extends JPanel implements PlayerInterface, ExceptionHandler 
 
 	private volatile int progress;
 
-	private volatile EncodedPlaybackPiece[] buffer = new EncodedPlaybackPiece[0];
+	private volatile EncodedPlaybackClip[] buffer = new EncodedPlaybackClip[0];
 
 	private volatile boolean isPaused = false;
 
@@ -61,7 +61,7 @@ public class Player extends JPanel implements PlayerInterface, ExceptionHandler 
 
 	private volatile int frameCounter = 0;
 
-	private volatile EncodedPlaybackPiece playingPiece = null;
+	private volatile EncodedPlaybackClip playingClip = null;
 
 	private Exception occurredException = null;
 
@@ -186,12 +186,12 @@ public class Player extends JPanel implements PlayerInterface, ExceptionHandler 
 	}
 
 	@Override
-	public EncodedPlaybackPiece[] getBuffer() {
+	public EncodedPlaybackClip[] getBuffer() {
 		return buffer;
 	}
 
 	@Override
-	public void setBuffer(EncodedPlaybackPiece[] buffer) {
+	public void setBuffer(EncodedPlaybackClip[] buffer) {
 		assert buffer != null;
 
 		this.buffer = buffer;
@@ -215,8 +215,8 @@ public class Player extends JPanel implements PlayerInterface, ExceptionHandler 
 	}
 
 	@Override
-	public EncodedPlaybackPiece getPlayingPiece() {
-		return playingPiece;
+	public EncodedPlaybackClip getPlayingClip() {
+		return playingClip;
 	}
 
 	public void purge() throws Exception {
@@ -233,8 +233,8 @@ public class Player extends JPanel implements PlayerInterface, ExceptionHandler 
 			controlsHeight = 0;
 			frameCounter = 0;
 			duration = 0;
-			setBuffer(new EncodedPlaybackPiece[0]);
-			playingPiece = null;
+			setBuffer(new EncodedPlaybackClip[0]);
+			playingClip = null;
 		} finally {
 			renderLock.unlock();
 		}
@@ -353,15 +353,15 @@ public class Player extends JPanel implements PlayerInterface, ExceptionHandler 
 					int newProgress = (int) (relativePosition * getVideoDuration());
 					setProgress(newProgress);
 					if (getProgress() > previousProgress && getProgress() - previousProgress < getBuffer().length) {
-						int piecesToSkip = getProgress() - previousProgress;
-						if (getPlayingPiece() != null) piecesToSkip--;
+						int clipsToSkip = getProgress() - previousProgress;
+						if (getPlayingClip() != null) clipsToSkip--;
 						setBuffer(Arrays.copyOfRange(
 							getBuffer(),
-							piecesToSkip,
+							clipsToSkip,
 							getBuffer().length
 						));
-					} else setBuffer(new EncodedPlaybackPiece[0]);
-					playingPiece = null;
+					} else setBuffer(new EncodedPlaybackClip[0]);
+					playingClip = null;
 					sendNotification();
 
 					logger.debug("{}'s progress reassigned from {} to {}", this, previousProgress, newProgress);
@@ -408,7 +408,7 @@ public class Player extends JPanel implements PlayerInterface, ExceptionHandler 
 				if (getBuffer().length > 1) {
 					vd.startDecodingOfAllFrames(getProgress() + 1, sc, getBuffer()[1].video());
 				}
-				playingPiece = getBuffer()[0];
+				playingClip = getBuffer()[0];
 				setBuffer(Arrays.copyOfRange(getBuffer(), 1, getBuffer().length));
 				preDecodingStatus = PreDecodingStatus.DECODING;
 				sendNotification();
@@ -449,14 +449,14 @@ public class Player extends JPanel implements PlayerInterface, ExceptionHandler 
 					vd.freeDecodedFrames(getProgress());
 					setProgress(getProgress() + 1);
 					if (getBuffer().length > 1) {
-						playingPiece = getBuffer()[0];
+						playingClip = getBuffer()[0];
 						vd.startDecodingOfAllFrames(getProgress() + 1, sc, getBuffer()[1].video());
 						setBuffer(Arrays.copyOfRange(getBuffer(), 1, getBuffer().length));
 					} else if (getBuffer().length > 0) {
-						playingPiece = getBuffer()[0];
+						playingClip = getBuffer()[0];
 						setBuffer(Arrays.copyOfRange(getBuffer(), 1, getBuffer().length));
 					} else {
-						playingPiece = null;
+						playingClip = null;
 						isBuffering = true;
 						preDecodingStatus = PreDecodingStatus.NOT_PRE_DECODED;
 					}
@@ -482,10 +482,6 @@ public class Player extends JPanel implements PlayerInterface, ExceptionHandler 
 		if (e instanceof FetchingException fetchingException) {
 			if (getBuffer().length == 0 && isBuffering())
 				occurredException = fetchingException;
-		} else if (e instanceof RubusException rubusException) {
-			if (getBuffer().length == 0 && isBuffering()) {
-				occurredException = rubusException;
-			}
 		} else if (e instanceof DecodingException decodingException) {
 			occurredException = decodingException;
 		}

@@ -19,8 +19,8 @@
 
 package frontend.gui.mediasearch;
 
-import common.net.response.body.MediaList;
-import frontend.WatchHistory;
+import frontend.models.MediaList;
+import frontend.interactors.WatchHistory;
 import frontend.gui.MainFrame;
 import frontend.gui.colors.Colors;
 import org.slf4j.Logger;
@@ -30,6 +30,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.util.Map;
 
 public class MediaListPanel extends JPanel {
 
@@ -52,8 +53,8 @@ public class MediaListPanel extends JPanel {
 
 		setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 
-		for(int i = 0; i < list.ids().length; i++) {
-			JPanel mediaPanel = createMediaPanel(list.titles()[i], list.ids()[i]);
+		for(Map.Entry<String, String> media: list.media().entrySet()) {
+			JPanel mediaPanel = createMediaPanel(media.getValue(), media.getKey());
 			mediaPanel.addMouseListener(new MouseAdapter() {
 				@Override
 				public void mouseEntered(MouseEvent e) {

@@ -19,8 +19,8 @@
 
 package frontend.spring;
 
-import common.Config;
-import frontend.WatchHistory;
+import frontend.configuration.Config;
+import frontend.interactors.WatchHistory;
 import frontend.gui.settings.*;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

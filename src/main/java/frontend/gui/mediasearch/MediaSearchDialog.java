@@ -19,14 +19,15 @@
 
 package frontend.gui.mediasearch;
 
-import common.RubusSocket;
-import common.net.response.body.MediaList;
-import frontend.RubusClient;
-import frontend.RubusRequest;
-import frontend.RubusResponse;
-import frontend.WatchHistory;
+import frontend.exceptions.FetchingException;
+import frontend.network.RubusClient;
+import frontend.models.MediaList;
+import frontend.interactors.WatchHistory;
 import frontend.gui.CenteredDialog;
 import frontend.gui.MainFrame;
+import frontend.network.RubusRequest;
+import frontend.network.RubusResponse;
+import frontend.network.RubusResponseType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,6 +35,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.io.IOException;
 import java.util.function.Supplier;
 
 public class MediaSearchDialog extends CenteredDialog implements Runnable {
@@ -42,7 +44,7 @@ public class MediaSearchDialog extends CenteredDialog implements Runnable {
 
 	private final MainFrame mainFrame;
 
-	private final Supplier<RubusSocket> rubusSocketSupplier;
+	private final Supplier<RubusClient> rubusCleintSupplier;
 
 	private final WatchHistory watchHistory;
 
@@ -50,12 +52,12 @@ public class MediaSearchDialog extends CenteredDialog implements Runnable {
 
 	private final JScrollPane scrollPane;
 
-	public MediaSearchDialog(MainFrame parent, Supplier<RubusSocket> rubusSocketSupplier, WatchHistory watchHistory) {
+	public MediaSearchDialog(MainFrame parent, Supplier<RubusClient> rubusClientSupplier, WatchHistory watchHistory) {
 		super(parent, "New video", true, parent.getWidth() / 2, parent.getHeight());
-		assert rubusSocketSupplier != null && watchHistory != null;
+		assert rubusClientSupplier != null && watchHistory != null;
 
 		this.mainFrame = parent;
-		this.rubusSocketSupplier = rubusSocketSupplier;
+		this.rubusCleintSupplier = rubusClientSupplier;
 		this.watchHistory = watchHistory;
 
 		GridBagLayout bagLayout = new GridBagLayout();
@@ -100,17 +102,22 @@ public class MediaSearchDialog extends CenteredDialog implements Runnable {
 			"{} instantiated, MainFrame: {}, Supplier: {}, WatchHistory: {}",
 			this,
 			parent,
-			rubusSocketSupplier,
+			rubusClientSupplier,
 			watchHistory
 		);
 	}
 
 	@Override
 	public synchronized void run() {
-		try (RubusClient rubusClient = new RubusClient(rubusSocketSupplier)) {
-			RubusRequest.Builder requestBuilder = RubusRequest.newBuilder();
+		try (RubusClient rubusClient = rubusCleintSupplier.get()) {
+			RubusRequest.Builder requestBuilder = rubusClient.getRequestBuilder();
 			requestBuilder.LIST(searchTF.getText());
 			RubusResponse response = rubusClient.send(requestBuilder.build(), 10000);
+			if (response.getResponseType() != RubusResponseType.OK) {
+				throw new IOException(
+					"Couldn't fetch data from server, response code: " + response.getResponseType()
+				);
+			}
 			MediaList mediaList = response.LIST();
 
 			SwingUtilities.invokeLater(() -> {

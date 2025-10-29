@@ -19,7 +19,7 @@
 
 package frontend.gui.settings;
 
-import common.Config;
+import frontend.configuration.Config;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
