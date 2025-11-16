@@ -15,7 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-FROM eclipse-temurin:21-noble AS builder
+FROM eclipse-temurin:25-noble AS builder
 WORKDIR /opt/rubus
 RUN apt update && apt install -y maven
 COPY pom.xml ./
@@ -27,7 +27,7 @@ ARG VERSION
 RUN java -Djarmode=tools -jar ./target/RubusServer-$VERSION.jar extract --layers --destination extracted
 
 
-FROM eclipse-temurin:21-jre-noble AS final
+FROM eclipse-temurin:25-jre-noble AS final
 WORKDIR /opt/rubus
 ENV RUBUS_WORKING_DIR=/var/opt/rubus
 ENV LOCAL_MEDIA=/var/lib/rubus
