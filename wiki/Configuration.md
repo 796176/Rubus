@@ -2,9 +2,6 @@
 
 ## Configuration file options
 
-available-threads-limit [server] sets a limit on how many cpu threads can be utilized
-to process incoming requests.
-
 bind-address [client/server] for the client this option specifies the destination 
 address of the server; for the server this option specifies the ip address the server
 is bound to.
@@ -83,6 +80,10 @@ The description of the columns of the `media` table:
  - duration is the media duration
  - media_content_uri is a URI that points to the location where the resources are 
 stored
+    > #### Note
+    >
+    > When running inside a Docker container be aware that the file uri is relative to 
+      the container where the application is running, not the host machine.
  - title_tsvector is a generated column that calculates tsvector based on `title`
 
 ## Further optimization

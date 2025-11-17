@@ -47,9 +47,9 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.core.annotation.Order;
 import org.springframework.core.task.AsyncTaskExecutor;
+import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.JdbcTransactionManager;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.transaction.annotation.RollbackOn;
@@ -60,7 +60,6 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.nio.file.Path;
 import java.util.Arrays;
-import java.util.Objects;
 
 /**
  * Configuration, dependency injection, and embedded container launch.
@@ -181,10 +180,10 @@ public class RubusConfiguration {
 	}
 
 	@Bean("applicationTaskExecutor")
-	AsyncTaskExecutor asyncTaskExecutor(Config config) {
-		ThreadPoolTaskExecutor threadPoolTaskExecutor = new ThreadPoolTaskExecutor();
-		threadPoolTaskExecutor.setCorePoolSize(Integer.parseInt(config.get("available-threads-limit")));
-		return threadPoolTaskExecutor;
+	AsyncTaskExecutor asyncTaskExecutor() {
+		SimpleAsyncTaskExecutor simpleAsyncTaskExecutor = new SimpleAsyncTaskExecutor();
+		simpleAsyncTaskExecutor.setVirtualThreads(true);
+		return simpleAsyncTaskExecutor;
 	}
 
 	public static void main(String[] args) {
