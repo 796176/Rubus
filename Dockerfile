@@ -39,8 +39,16 @@ COPY --from=builder /opt/rubus/extracted/spring-boot-loader/ ./
 COPY --from=builder /opt/rubus/extracted/snapshot-dependencies/ ./
 COPY --from=builder /opt/rubus/extracted/application/ ./
 
+COPY rubus.conf.aot aot/rubus.conf
 ARG VERSION
+ARG DB_USER=postgres DB_PASSWORD=postgres
+RUN java -XX:AOTMode=record -XX:AOTConfiguration=aot/app.aotconf -Dspring.context.exit=onRefresh \
+-Drubus.workingDir=/opt/rubus/aot -Drubus.db.user=$DB_USER -Drubus.db.password=$DB_PASSWORD \
+-jar RubusServer-$VERSION.jar
+RUN java -XX:AOTMode=create -XX:AOTConfiguration=aot/app.aotconf -XX:AOTCache=app.aot -jar RubusServer-$VERSION.jar \
+rm -R aot
+
 ENV VERSION=$VERSION JVM_OPTIONS= DB_USER= DB_PASSWORD=
 ENTRYPOINT ["/bin/bash", "-c", \
-"./init.sh && java -Drubus.workingDir=$RUBUS_WORKING_DIR -Drubus.db.user=$DB_USER -Drubus.db.password=$DB_PASSWORD \
-$JVM_OPTIONS -jar RubusServer-$VERSION.jar"]
+"./init.sh && java -XX:AOTCache=app.aot -Drubus.workingDir=$RUBUS_WORKING_DIR -Drubus.db.user=$DB_USER \
+-Drubus.db.password=$DB_PASSWORD $JVM_OPTIONS -jar RubusServer-$VERSION.jar"]

@@ -1,0 +1,8 @@
+listening-port 54300
+database-address localhost
+database-port 5432
+database-name rubus
+secure-connection-enabled false
+bind-address localhost
+transaction-failure-retry-attempts 5
+transaction-timeout 10
